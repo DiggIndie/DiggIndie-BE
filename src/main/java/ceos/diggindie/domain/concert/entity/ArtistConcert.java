@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.concert.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.band.entity.Artist;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,13 +18,15 @@ public class ArtistConcert extends BaseEntity {
     @Column(name = "artist_concert_id")
     private Long id;
 
-    @Column(name = "artist_id", nullable = false)
-    private Long artistId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "artist_id", nullable = false)
+    private Artist artist;
 
-    @Column(name = "concert_id", nullable = false)
-    private Long concertId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "concert_id", nullable = false)
+    private Concert concert;
 
-    @Column(name = "concert_hall_id", nullable = false)
-    private Long concertHallId;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "concert_hall_id", nullable = false)
+    private ConcertHall concertHall;
 }

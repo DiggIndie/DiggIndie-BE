@@ -6,6 +6,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "concert_hall")
 @Getter
@@ -25,5 +28,8 @@ public class ConcertHall extends BaseEntity {
 
     @Column(length = 255)
     private String description;
+
+    @OneToMany(mappedBy = "concertHall")
+    private List<Concert> concerts = new ArrayList<>();
 
 }

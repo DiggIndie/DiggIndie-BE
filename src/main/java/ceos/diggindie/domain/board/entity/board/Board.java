@@ -1,10 +1,14 @@
 package ceos.diggindie.domain.board.entity.board;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "board")
@@ -17,9 +21,6 @@ public class Board extends BaseEntity {
     @Column(name = "board_id")
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-
     @Column(nullable = false, length = 10)
     private String category;
 
@@ -31,5 +32,15 @@ public class Board extends BaseEntity {
 
     @Column(name = "is_anonymous", nullable = false)
     private Boolean isAnonymous;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardLike> boardLikes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardImage> boardImages = new ArrayList<>();
 
 }

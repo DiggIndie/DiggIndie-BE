@@ -1,10 +1,16 @@
 package ceos.diggindie.domain.band.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.keyword.entity.ArtistKeyword;
+import ceos.diggindie.domain.magazine.entity.ArtistStory;
+import ceos.diggindie.domain.member.entity.MemberBand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "band")
@@ -28,5 +34,26 @@ public class Band extends BaseEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
+
+    @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Artist> artists = new ArrayList<>();
+
+    @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Album> albums = new ArrayList<>();
+
+    @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ArtistStory> artistStories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "band")
+    private List<MemberBand> memberBands = new ArrayList<>();
+
+    @OneToMany(mappedBy = "band")
+    private List<ArtistKeyword> artistKeywords = new ArrayList<>();
+
+    @OneToMany(mappedBy = "band")
+    private List<ArtistRecommend> artistRecommends = new ArrayList<>();
+
+    @OneToMany(mappedBy = "band")
+    private List<ArtistScrap> artistScraps = new ArrayList<>();
 
 }

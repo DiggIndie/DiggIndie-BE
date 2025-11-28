@@ -1,10 +1,14 @@
 package ceos.diggindie.domain.board.entity.market;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "market")
@@ -17,9 +21,6 @@ public class Market extends BaseEntity {
     @Column(name = "market_id")
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-
     @Column(nullable = false, length = 100)
     private String title;
 
@@ -28,5 +29,16 @@ public class Market extends BaseEntity {
 
     @Column(nullable = false)
     private Integer price;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @OneToMany(mappedBy = "market", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MarketScrap> marketScraps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "market", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MarketImage> marketImages = new ArrayList<>();
+
 
 }

@@ -17,10 +17,12 @@ public class MagazineImage extends BaseEntity {
     @Column(name = "magazine_image_id")
     private Long id;
 
-    @Column(name = "magazine_id", nullable = false)
-    private Long magazineId;
 
     @Column(name = "image_url", length = 200)
     private String imageUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "magazine_id", nullable = false)
+    private Magazine magazine;
 
 }

@@ -6,6 +6,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "album")
 @Getter
@@ -17,13 +20,17 @@ public class Album extends BaseEntity {
     @Column(name = "album_id")
     private Long id;
 
-    @Column(name = "artist_id", nullable = false)
-    private Long artistId;
-
     @Column(nullable = false, length = 100)
     private String title;
 
     @Column(name = "album_image", length = 200)
     private String albumImage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "artist_id", nullable = false)
+    private Band band;
+
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Music> musics = new ArrayList<>();
 
 }

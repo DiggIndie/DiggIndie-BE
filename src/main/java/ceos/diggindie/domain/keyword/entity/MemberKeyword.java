@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.keyword.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,10 +18,11 @@ public class MemberKeyword extends BaseEntity {
     @Column(name = "member_keyword_id")
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
-    @Column(name = "keyword_id", nullable = false)
-    private Long keywordId;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "keyword_id", nullable = false)
+    private Keyword keyword;
 }

@@ -17,10 +17,11 @@ public class RecentSearch extends BaseEntity {
     @Column(name = "recent_search_id")
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-
     @Column(nullable = false, length = 100)
     private String content;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
 }

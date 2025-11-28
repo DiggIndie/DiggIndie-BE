@@ -1,10 +1,14 @@
 package ceos.diggindie.domain.band.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.concert.entity.ArtistConcert;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "artist")
@@ -17,13 +21,20 @@ public class Artist extends BaseEntity {
     @Column(name = "artist_id")
     private Long id;
 
-    @Column(name = "band_id", nullable = false)
-    private Long bandId;
-
     @Column(name = "artist_name", length = 20)
     private String artistName;
 
     @Column(name = "main_image", length = 200)
     private String mainImage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "band_id", nullable = false)
+    private Band band;
+
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Music> musics = new ArrayList<>();
+
+    @OneToMany(mappedBy = "artist")
+    private List<ArtistConcert> artistConcerts = new ArrayList<>();
 
 }

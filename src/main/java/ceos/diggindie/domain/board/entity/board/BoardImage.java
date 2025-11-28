@@ -17,10 +17,10 @@ public class BoardImage extends BaseEntity {
     @Column(name = "board_image_id")
     private Long id;
 
-    @Column(name = "board_id")
-    private Long boardId;
-
     @Column(name = "image_url", nullable = false, length = 200)
     private String imageUrl;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 }

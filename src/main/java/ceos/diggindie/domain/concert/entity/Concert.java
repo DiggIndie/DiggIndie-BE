@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "concert")
@@ -17,9 +19,6 @@ public class Concert extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "concert_id")
     private Long id;
-
-    @Column(name = "concert_hall_id", nullable = false)
-    private Long concertHallId;
 
     @Column(nullable = false, length = 30)
     private String title;
@@ -40,5 +39,15 @@ public class Concert extends BaseEntity {
 
     @Column(name = "book_url", length = 200)
     private String bookUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "concert_hall_id", nullable = false)
+    private ConcertHall concertHall;
+
+    @OneToMany(mappedBy = "concert")
+    private List<ArtistConcert> artistConcerts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "concert")
+    private List<ConcertScrap> concertScraps = new ArrayList<>();
 
 }

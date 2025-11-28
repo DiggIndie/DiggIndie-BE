@@ -17,12 +17,6 @@ public class Music extends BaseEntity {
     @Column(name = "music_id")
     private Long id;
 
-    @Column(name = "album_id", nullable = false)
-    private Long albumId;
-
-    @Column(name = "artist_id", nullable = false)
-    private Long artistId;
-
     @Column(name = "music_name", nullable = false, length = 50)
     private String musicName;
 
@@ -31,5 +25,13 @@ public class Music extends BaseEntity {
 
     @Column(name = "music_url", length = 100)
     private String musicUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "album_id", nullable = false)
+    private Album album;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "artist_id", nullable = false)
+    private Artist artist;
 
 }

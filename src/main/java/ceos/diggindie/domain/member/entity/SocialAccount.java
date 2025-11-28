@@ -18,14 +18,15 @@ public class SocialAccount extends BaseEntity {
     @Column(name = "social_account_id")
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LoginPlatform platform;
 
     @Column(name = "platform_id", nullable = false, length = 50)
     private String platformId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
 }

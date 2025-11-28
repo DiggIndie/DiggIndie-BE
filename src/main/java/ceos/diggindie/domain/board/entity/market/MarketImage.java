@@ -17,10 +17,10 @@ public class MarketImage extends BaseEntity {
     @Column(name = "market_image_id")
     private Long id;
 
-    @Column(name = "market_id")
-    private Long marketId;
-
     @Column(name = "image_url", nullable = false, length = 200)
     private String imageUrl;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "market_id", nullable = false)
+    private Market market;
 }

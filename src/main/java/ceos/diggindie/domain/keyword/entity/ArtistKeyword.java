@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.keyword.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.domain.band.entity.Band;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,10 +18,12 @@ public class ArtistKeyword extends BaseEntity {
     @Column(name = "artist_keyword_id")
     private Long id;
 
-    @Column(name = "artist_id", nullable = false)
-    private Long artistId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "artist_id", nullable = false)
+    private Band band;
 
-    @Column(name = "keyword_id", nullable = false)
-    private Long keywordId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "keyword_id", nullable = false)
+    private Keyword keyword;
 
 }
