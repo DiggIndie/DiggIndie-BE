@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.board.entity.market;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.MarketType;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -33,6 +34,13 @@ public class Market extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer views = 0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private MarketType type;
 
     @OneToMany(mappedBy = "market", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MarketScrap> marketScraps = new ArrayList<>();

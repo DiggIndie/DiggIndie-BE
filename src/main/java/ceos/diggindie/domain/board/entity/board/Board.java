@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.board.entity.board;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -21,9 +22,6 @@ public class Board extends BaseEntity {
     @Column(name = "board_id")
     private Long id;
 
-    @Column(nullable = false, length = 10)
-    private String category;
-
     @Column(nullable = false, length = 100)
     private String title;
 
@@ -36,6 +34,13 @@ public class Board extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private BoardCategory category;
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer views = 0;
 
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardLike> boardLikes = new ArrayList<>();

@@ -30,8 +30,4 @@ public class Music extends BaseEntity {
     @JoinColumn(name = "album_id", nullable = false)
     private Album album;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artist_id", nullable = false)
-    private Artist artist;
-
 }

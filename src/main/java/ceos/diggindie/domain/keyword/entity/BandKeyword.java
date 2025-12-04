@@ -8,18 +8,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "artist_keyword")
+@Table(name = "band_keyword")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ArtistKeyword extends BaseEntity {
+public class BandKeyword extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "artist_keyword_id")
+    @Column(name = "band_keyword_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "artist_id", nullable = false)
+    @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
     @ManyToOne(fetch = FetchType.LAZY)

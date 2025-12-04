@@ -1,7 +1,7 @@
 package ceos.diggindie.domain.band.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
-import ceos.diggindie.domain.concert.entity.ArtistConcert;
+import ceos.diggindie.domain.concert.entity.BandConcert;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,10 +31,7 @@ public class Artist extends BaseEntity {
     @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
-    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Music> musics = new ArrayList<>();
-
     @OneToMany(mappedBy = "artist")
-    private List<ArtistConcert> artistConcerts = new ArrayList<>();
+    private List<BandConcert> bandConcerts = new ArrayList<>();
 
 }

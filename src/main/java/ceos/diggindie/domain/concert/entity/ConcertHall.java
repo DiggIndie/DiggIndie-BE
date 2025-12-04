@@ -26,6 +26,12 @@ public class ConcertHall extends BaseEntity {
     @Column(length = 255)
     private String address;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @Column(length = 255)
     private String description;
 

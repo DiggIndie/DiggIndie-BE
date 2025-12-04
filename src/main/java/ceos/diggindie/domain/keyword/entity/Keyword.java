@@ -24,7 +24,7 @@ public class Keyword extends BaseEntity {
     private String keyword;
 
     @OneToMany(mappedBy = "keyword")
-    private List<ArtistKeyword> artistKeywords = new ArrayList<>();
+    private List<BandKeyword> bandKeywords = new ArrayList<>();
 
     @OneToMany(mappedBy = "keyword")
     private List<MemberKeyword> memberKeywords = new ArrayList<>();

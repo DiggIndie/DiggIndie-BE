@@ -1,8 +1,8 @@
 package ceos.diggindie.domain.band.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
-import ceos.diggindie.domain.keyword.entity.ArtistKeyword;
-import ceos.diggindie.domain.magazine.entity.ArtistStory;
+import ceos.diggindie.domain.keyword.entity.BandKeyword;
+import ceos.diggindie.domain.magazine.entity.BandStory;
 import ceos.diggindie.domain.member.entity.MemberBand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -35,6 +35,9 @@ public class Band extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "spotify_id", length = 100)
+    private String spotifyId;
+
     @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Artist> artists = new ArrayList<>();
 
@@ -42,18 +45,18 @@ public class Band extends BaseEntity {
     private List<Album> albums = new ArrayList<>();
 
     @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ArtistStory> artistStories = new ArrayList<>();
+    private List<BandStory> artistStories = new ArrayList<>();
 
     @OneToMany(mappedBy = "band")
     private List<MemberBand> memberBands = new ArrayList<>();
 
     @OneToMany(mappedBy = "band")
-    private List<ArtistKeyword> artistKeywords = new ArrayList<>();
+    private List<BandKeyword> bandKeywords = new ArrayList<>();
 
     @OneToMany(mappedBy = "band")
-    private List<ArtistRecommend> artistRecommends = new ArrayList<>();
+    private List<BandRecommend> artistRecommends = new ArrayList<>();
 
     @OneToMany(mappedBy = "band")
-    private List<ArtistScrap> artistScraps = new ArrayList<>();
+    private List<BandScrap> artistScraps = new ArrayList<>();
 
 }

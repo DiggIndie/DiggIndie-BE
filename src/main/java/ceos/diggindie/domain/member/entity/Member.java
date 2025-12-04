@@ -2,8 +2,8 @@ package ceos.diggindie.domain.member.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.common.enums.LoginPlatform;
-import ceos.diggindie.domain.band.entity.ArtistRecommend;
-import ceos.diggindie.domain.band.entity.ArtistScrap;
+import ceos.diggindie.domain.band.entity.BandRecommend;
+import ceos.diggindie.domain.band.entity.BandScrap;
 import ceos.diggindie.domain.board.entity.board.Board;
 import ceos.diggindie.domain.board.entity.board.BoardLike;
 import ceos.diggindie.domain.board.entity.market.Market;
@@ -67,10 +67,10 @@ public class Member extends BaseEntity {
     private List<RecentSearch> recentSearches = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ArtistRecommend> artistRecommends = new ArrayList<>();
+    private List<BandRecommend> artistRecommends = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ArtistScrap> artistScraps = new ArrayList<>();
+    private List<BandScrap> artistScraps = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ConcertScrap> concertScraps = new ArrayList<>();

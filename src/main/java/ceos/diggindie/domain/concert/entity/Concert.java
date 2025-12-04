@@ -23,13 +23,20 @@ public class Concert extends BaseEntity {
     @Column(nullable = false, length = 30)
     private String title;
 
-    @Column(nullable = false)
-    private LocalDateTime date;
+    @Column(name = "start_date", nullable = false)
+    private LocalDateTime startDate;
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private Integer price;
+    @Column(name = "preorder_price")
+    private Integer preorderPrice;
+
+    @Column(name = "on_site_price")
+    private Integer onSitePrice;
 
     @Column(name = "main_img", length = 200)
     private String mainImg;
@@ -40,12 +47,15 @@ public class Concert extends BaseEntity {
     @Column(name = "book_url", length = 200)
     private String bookUrl;
 
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer views = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "concert_hall_id", nullable = false)
     private ConcertHall concertHall;
 
     @OneToMany(mappedBy = "concert")
-    private List<ArtistConcert> artistConcerts = new ArrayList<>();
+    private List<BandConcert> bandConcerts = new ArrayList<>();
 
     @OneToMany(mappedBy = "concert")
     private List<ConcertScrap> concertScraps = new ArrayList<>();
