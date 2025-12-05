@@ -1,4 +1,4 @@
-package ceos.diggindie.domain.board.entity.market;
+package ceos.diggindie.domain.board.entity.board;
 
 import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
@@ -8,22 +8,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "market_scrap")
+@Table(name = "board_comment_like")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MarketScrap extends BaseEntity {
+public class BoardCommentLike extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "market_scrap_id")
+    @Column(name = "board_comment_like_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "market_id", nullable = false)
-    private Market market;
+    @JoinColumn(name = "board_comment_id", nullable = false)
+    private BoardComment boardComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
-
 }

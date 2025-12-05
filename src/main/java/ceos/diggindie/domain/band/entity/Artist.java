@@ -31,7 +31,4 @@ public class Artist extends BaseEntity {
     @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
-    @OneToMany(mappedBy = "artist")
-    private List<BandConcert> bandConcerts = new ArrayList<>();
-
 }

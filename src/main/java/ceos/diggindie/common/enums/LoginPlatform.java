@@ -5,5 +5,5 @@ public enum LoginPlatform {
     NAVER,
     GOOGLE,
     APPLE,
-    EMAIL
+    LOCAL
 }
