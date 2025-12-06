@@ -1,27 +1,32 @@
 spring:
   application:
     name: diggindie
+
   datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:diggindie}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${RDS_AWS_HOST}:5432/${RDS_DB}
-    username: ${RDS_USER}
-    password: ${RDS_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
 
   jpa:
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${DDL_AUTO:update}  # .env에서 설정 가능
     properties:
       hibernate:
-        show_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+    show-sql: true
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
 
 jwt:
   secret: ${JWT_SECRET_KEY}
   access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY}
   refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY}
-
-spotify:
-  client-id: ${SPOTIFY_CLIENT_ID}
-  client-secret: ${SPOTIFY_CLIENT_SECRET}
