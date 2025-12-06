@@ -1,7 +1,7 @@
 package ceos.diggindie.common.config.security;
 
-import ceos.diggindie.domain.user.domain.Member;
-import ceos.diggindie.domain.user.repository.MemberRepository;
+import ceos.diggindie.domain.member.entity.Member;
+import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -26,11 +26,26 @@ repositories {
 
 dependencies {
 
-	// Spring
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spring Boot Starter
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Database
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // pgvector
+    implementation 'com.pgvector:pgvector:0.1.4'
+
+    // dotenv
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	// security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -39,13 +54,6 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.12.5'
 	runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.5'
-
-	// Lombok
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-
-	// PostgreSQL
-	implementation 'org.postgresql:postgresql:42.7.3'
 }
 
 tasks.named('test') {

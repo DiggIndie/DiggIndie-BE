@@ -1,0 +1,51 @@
+package ceos.diggindie.domain.board.entity.board;
+
+import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.BoardCategory;
+import ceos.diggindie.domain.member.entity.Member;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "board")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Board extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "board_id")
+    private Long id;
+
+    @Column(nullable = false, length = 100)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
+
+    @Column(name = "is_anonymous", nullable = false)
+    private Boolean isAnonymous;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private BoardCategory category;
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
+    private Integer views = 0;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardLike> boardLikes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardImage> boardImages = new ArrayList<>();
+
+}

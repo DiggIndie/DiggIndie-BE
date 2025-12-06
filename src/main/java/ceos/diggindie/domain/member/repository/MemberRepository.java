@@ -1,6 +1,7 @@
-package ceos.diggindie.domain.user.repository;
+package ceos.diggindie.domain.member.repository;
 
-import ceos.diggindie.domain.user.domain.Member;
+
+import ceos.diggindie.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
