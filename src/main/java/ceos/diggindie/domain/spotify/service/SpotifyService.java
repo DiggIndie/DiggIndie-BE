@@ -28,27 +28,27 @@ public class SpotifyService {
 
     public SpotifyTokenResponse getSpotifyToken() {
 
-        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
-        payload.add("grant_type", "client_credentials");
-        payload.add("client_id", CLIENT_ID);
-        payload.add("client_secret", CLIENT_SECRET);
+         MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
+         payload.add("grant_type", "client_credentials");
+         payload.add("client_id", CLIENT_ID);
+         payload.add("client_secret", CLIENT_SECRET);
 
-         ResponseEntity<SpotifyTokenResponse> response = restClient
+         SpotifyTokenResponse response = restClient
                     .post()
                     .uri("https://accounts.spotify.com/api/token")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .body(payload)
                     .retrieve()
-                    .toEntity(SpotifyTokenResponse.class);
+                    .body(SpotifyTokenResponse.class);
 
-        if (response == null || response.getBody().accessToken() == null) {
+        if (response == null || response.accessToken() == null) {
             log.info("Spotify access token 발급 실패");
         } else {
             log.info("Spotify access token 발급 성공, tokenType={}, expiresIn={}",
-                    response.getBody().tokenType(), response.getBody().expiresIn());
+                    response.tokenType(), response.expiresIn());
         }
 
-        return response.getBody();
+        return response;
     }
 
 
@@ -59,7 +59,7 @@ public class SpotifyService {
         String accessToken = tokenResponse.accessToken();
         String query = request.query();
 
-        ResponseEntity<SpotifySearchResponse> response = restClient
+        SpotifySearchResponse response = restClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .scheme("https")
@@ -72,15 +72,15 @@ public class SpotifyService {
                         .build())
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
-                .toEntity(SpotifySearchResponse.class);
+                .body(SpotifySearchResponse.class);
 
-        if (response == null || response.getBody() == null) {
+        if (response == null) {
             log.info("Spotify 검색 실패");
         } else {
-            log.info("Spotify 검색 성공, artists={}", response.getBody().artists().items());
+            log.info("Spotify 검색 성공, artists={}", response.artists().items());
         }
 
-        return response.getBody();
+        return response;
     }
 
     public void updateSpotifyInfo() {
