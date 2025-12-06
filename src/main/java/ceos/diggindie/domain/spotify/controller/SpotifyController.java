@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @RequiredArgsConstructor
@@ -36,6 +36,17 @@ public class SpotifyController {
                 SuccessCode.GET_SUCCESS,
                 true,
                 spotifyService.searchSpotify(request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/spotify/update")
+    public ResponseEntity<Response<?>> spotifyUpdate() {
+        spotifyService.updateSpotifyInfo();
+        Response<Void> response = Response.of(
+                SuccessCode.UPDATE_SUCCESS,
+                true,
+                null
         );
         return ResponseEntity.ok().body(response);
     }

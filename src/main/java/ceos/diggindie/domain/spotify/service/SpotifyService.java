@@ -83,7 +83,23 @@ public class SpotifyService {
         return response.getBody();
     }
 
+    public void updateSpotifyInfo() {
 
+        // query는 DB에서 가져와야 함
+        String query = "실리카겔";
+        SpotifySearchRequest request = new SpotifySearchRequest(query);
+
+        SpotifySearchResponse response = searchSpotify(request);
+
+        response.artists().items().forEach(artist -> {
+
+            String spotifyId = artist.id();
+            String imageUrl = artist.images().isEmpty() ? "" : artist.images().get(0).url();
+
+            // DB에 Spotify ID 업데이트 로직 작성 필요
+            log.info("검색된 Spotify ID: {}, 이미지 URL: {}", spotifyId, imageUrl);
+        });
+    }
 
 
 }
