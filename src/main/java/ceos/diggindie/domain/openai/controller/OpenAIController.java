@@ -3,6 +3,7 @@ package ceos.diggindie.domain.openai.controller;
 import ceos.diggindie.domain.openai.dto.PromptRequest;
 import ceos.diggindie.domain.openai.service.OpenAIService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,7 +12,8 @@ public class OpenAIController {
 
     private final OpenAIService openAIService;
 
-    @PostMapping("/openai")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/admin/openai")
     public String chat(
             @RequestBody PromptRequest prompt
     ) {

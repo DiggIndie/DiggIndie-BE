@@ -41,7 +41,7 @@ public class OpenAIService {
                 .body(OpenAIResponse.class);
 
         if (response == null || response.output() == null || response.output().isEmpty()) {
-            return "";
+            return null;
         }
 
         String result = response.output().stream()
