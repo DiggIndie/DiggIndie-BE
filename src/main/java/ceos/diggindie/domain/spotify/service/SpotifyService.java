@@ -44,8 +44,7 @@ public class SpotifyService {
         if (response == null || response.accessToken() == null) {
             log.info("Spotify access token 발급 실패");
         } else {
-            log.info("Spotify access token 발급 성공, tokenType={}, expiresIn={}",
-                    response.tokenType(), response.expiresIn());
+            log.info("Spotify access token 발급 성공");
         }
 
         return response;
@@ -77,29 +76,9 @@ public class SpotifyService {
         if (response == null) {
             log.info("Spotify 검색 실패");
         } else {
-            log.info("Spotify 검색 성공, artists={}", response.artists().items());
+            log.info("Spotify 검색 성공");
         }
 
         return response;
     }
-
-    public void updateSpotifyInfo() {
-
-        // query는 DB에서 가져와야 함
-        String query = "실리카겔";
-        SpotifySearchRequest request = new SpotifySearchRequest(query);
-
-        SpotifySearchResponse response = searchSpotify(request);
-
-        response.artists().items().forEach(artist -> {
-
-            String spotifyId = artist.id();
-            String imageUrl = artist.images().isEmpty() ? "" : artist.images().get(0).url();
-
-            // DB에 Spotify ID 업데이트 로직 작성 필요
-            log.info("검색된 Spotify ID: {}, 이미지 URL: {}", spotifyId, imageUrl);
-        });
-    }
-
-
 }

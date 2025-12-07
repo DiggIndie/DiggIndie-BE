@@ -8,9 +8,9 @@ import ceos.diggindie.domain.spotify.dto.SpotifyTokenResponse;
 import ceos.diggindie.domain.spotify.service.SpotifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @RequiredArgsConstructor
@@ -18,7 +18,8 @@ public class SpotifyController {
 
     private final SpotifyService spotifyService;
 
-    @GetMapping("/spotify/auth")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/api/admin/spotify/auth")
     public ResponseEntity<Response<?>> spotifyAuth() {
 
         Response<SpotifyTokenResponse> response = Response.of(
@@ -29,7 +30,8 @@ public class SpotifyController {
         return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/spotify/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/api/admin/spotify/search")
     public ResponseEntity<Response<?>> spotifySearch(
             SpotifySearchRequest request) {
         Response<SpotifySearchResponse> response = Response.of(
@@ -40,14 +42,4 @@ public class SpotifyController {
         return ResponseEntity.ok().body(response);
     }
 
-    @PostMapping("/spotify/update")
-    public ResponseEntity<Response<?>> spotifyUpdate() {
-        spotifyService.updateSpotifyInfo();
-        Response<Void> response = Response.of(
-                SuccessCode.UPDATE_SUCCESS,
-                true,
-                null
-        );
-        return ResponseEntity.ok().body(response);
-    }
 }
