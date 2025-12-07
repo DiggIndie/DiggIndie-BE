@@ -98,16 +98,16 @@ public class JwtTokenProvider implements InitializingBean {
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             // 잘못된 서명 또는 JWT 형식
-             log.warn("JWT 토큰 형식이 잘못되었습니다.", e);
+            log.warn("JWT 토큰 형식이 잘못되었습니다.", e);
         } catch (ExpiredJwtException e) {
             // 만료된 JWT
-             log.warn("만료된 JWT 토큰이 사용되었습니다.", e);
+            log.warn("만료된 JWT 토큰이 사용되었습니다.", e);
         } catch (UnsupportedJwtException e) {
             // 지원하지 않는 JWT
-             log.warn("지원하지 않는 JWT 토큰이 사용되었습니다.", e);
+            log.warn("지원하지 않는 JWT 토큰이 사용되었습니다.", e);
         } catch (IllegalArgumentException e) {
             // 빈 JWT 또는 기타 문제
-             log.warn("JWT 토큰의 값이 비어있습니다.", e);
+            log.warn("JWT 토큰의 값이 비어있습니다.", e);
         }
         return false;
     }
