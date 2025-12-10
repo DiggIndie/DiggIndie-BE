@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.member.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.LoginPlatform;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

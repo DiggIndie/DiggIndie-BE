@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.member.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.LoginPlatform;
 import ceos.diggindie.domain.band.entity.BandRecommend;
 import ceos.diggindie.domain.band.entity.BandScrap;
 import ceos.diggindie.domain.board.entity.board.Board;
