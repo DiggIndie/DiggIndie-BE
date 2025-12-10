@@ -15,7 +15,15 @@ public class BandController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("api/admin/bands/update")
     public void updateBands() {
+
         bandService.processRawBands();
+
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("api/admin/bands/artists/update")
+    public void updateArtists() {
+        bandService.processArtists();
     }
 
 }
