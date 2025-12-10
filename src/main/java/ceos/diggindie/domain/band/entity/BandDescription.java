@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 public class BandDescription extends BaseEntity {
 
     @Id
-    @Column(name = "band_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "band_description_id")
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "band_id")
+    @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
     @Column(nullable = false, columnDefinition = "TEXT")
