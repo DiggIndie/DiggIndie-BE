@@ -13,7 +13,7 @@ public class BandController {
     private final BandService bandService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("api/admin/bands/update")
+    @PostMapping("/api/admin/bands/update")
     public void updateBands() {
 
         bandService.processRawBands();
@@ -21,7 +21,7 @@ public class BandController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("api/admin/bands/artists/update")
+    @PostMapping("/api/admin/bands/artists/update")
     public void updateArtists() {
         bandService.processArtists();
     }
