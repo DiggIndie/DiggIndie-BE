@@ -1,19 +1,15 @@
 package ceos.diggindie.domain.band.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
-import ceos.diggindie.domain.concert.entity.BandConcert;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.*;
 
 @Entity
 @Table(name = "artist")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Artist extends BaseEntity {
 
     @Id
@@ -21,7 +17,7 @@ public class Artist extends BaseEntity {
     @Column(name = "artist_id")
     private Long id;
 
-    @Column(name = "artist_name", length = 20)
+    @Column(name = "artist_name", length = 100)
     private String artistName;
 
     @Column(name = "main_image", length = 200)
