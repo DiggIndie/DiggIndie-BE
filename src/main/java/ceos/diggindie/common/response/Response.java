@@ -38,12 +38,31 @@ public class Response<T> {
                 .build();
     }
 
+    public static <T> Response<T> of(Code code, boolean isSuccess, String message, T payload) {
+        return Response.<T>builder()
+                .statusCode(code.getStatusCode())
+                .isSuccess(isSuccess)
+                .message(message)
+                .payload(payload)
+                .build();
+    }
+
     // Paginated
     public static <T> Response<T> of(Code code, boolean isSuccess, T payload, PageInfo pageInfo) {
         return Response.<T>builder()
                 .statusCode(code.getStatusCode())
                 .isSuccess(isSuccess)
                 .message(code.getMessage())
+                .pageInfo(pageInfo)
+                .payload(payload)
+                .build();
+    }
+
+    public static <T> Response<T> of(Code code, boolean isSuccess, String message, T payload, PageInfo pageInfo) {
+        return Response.<T>builder()
+                .statusCode(code.getStatusCode())
+                .isSuccess(isSuccess)
+                .message(message)
                 .pageInfo(pageInfo)
                 .payload(payload)
                 .build();
