@@ -2,6 +2,7 @@ package ceos.diggindie.common.config.security.jwt;
 
 import ceos.diggindie.common.config.security.CustomUserDetailService;
 import ceos.diggindie.common.config.security.CustomUserDetails;
+import ceos.diggindie.common.enums.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import lombok.RequiredArgsConstructor;
@@ -45,21 +46,22 @@ public class JwtTokenProvider implements InitializingBean {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateAccessToken(String externalId) {
-        return generateToken(externalId, accessTokenValidity);
+    public String generateAccessToken(String externalId, Role role) {
+        return generateToken(externalId, role, accessTokenValidity);
     }
 
-    public String generateRefreshToken(String externalId) {
-        return generateToken(externalId, refreshTokenValidity);
+    public String generateRefreshToken(String externalId, Role role) {
+        return generateToken(externalId, role, refreshTokenValidity);
     }
 
-    public String generateToken(String externalId, Duration expiration) {
+    public String generateToken(String externalId, Role role, Duration expiration) {
 
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expiration.toMillis());
 
         return Jwts.builder()
                 .setSubject(externalId)
+                .claim("role", role.name())
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -88,8 +90,12 @@ public class JwtTokenProvider implements InitializingBean {
     }
 
     public String getExternalId(String token) {
-        String externalId = parseClaims(token).getSubject();
-        return externalId;
+        return parseClaims(token).getSubject();
+    }
+
+    public Role getRole(String token) {
+        String roleName = parseClaims(token).get("role", String.class);
+        return Role.valueOf(roleName);
     }
 
     public boolean validateToken(String token) {
@@ -115,6 +121,8 @@ public class JwtTokenProvider implements InitializingBean {
     public Authentication getAuthentication(String token) {
 
         String externalId = getExternalId(token);
+        Role role = getRole(token);
+
         CustomUserDetails userDetails = customUserDetailService.loadByExternalId(externalId);
 
         return new UsernamePasswordAuthenticationToken(

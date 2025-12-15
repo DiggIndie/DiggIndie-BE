@@ -6,6 +6,7 @@ import ceos.diggindie.domain.magazine.entity.BandStory;
 import ceos.diggindie.domain.member.entity.MemberBand;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,6 +32,9 @@ public class Band extends BaseEntity {
 
     @Column(name = "main_url", length = 200)
     private String mainUrl;
+
+    @Column(name = "main_music", length = 200)
+    private String mainMusic;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -58,5 +62,22 @@ public class Band extends BaseEntity {
 
     @OneToMany(mappedBy = "band")
     private List<BandScrap> artistScraps = new ArrayList<>();
+
+    @Builder
+    public Band(
+            String bandName,
+            String mainImage,
+            String mainUrl,
+            String mainMusic,
+            String description,
+            String spotifyId
+    ) {
+        this.bandName = bandName;
+        this.mainImage = mainImage;
+        this.mainUrl = mainUrl;
+        this.mainMusic = mainMusic;
+        this.description = description;
+        this.spotifyId = spotifyId;
+    }
 
 }

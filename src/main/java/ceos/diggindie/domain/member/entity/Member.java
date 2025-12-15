@@ -1,6 +1,8 @@
 package ceos.diggindie.domain.member.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.LoginPlatform;
+import ceos.diggindie.common.enums.Role;
 import ceos.diggindie.domain.band.entity.BandRecommend;
 import ceos.diggindie.domain.band.entity.BandScrap;
 import ceos.diggindie.domain.board.entity.board.Board;
@@ -27,6 +29,9 @@ public class Member extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(name = "external_id", nullable = false, length = 36, unique = true)
     private String externalId;
