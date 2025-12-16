@@ -43,10 +43,10 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-
+        String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
         setCookies(response, member.getExternalId(), member.getRole());
 
-        return new LoginResponse(member.getExternalId(), member.getUserId(), false);
+        return new LoginResponse(member.getExternalId(), accessToken, accessTokenValidity.getSeconds(), member.getUserId(), false);
     }
 
     @Transactional
@@ -62,17 +62,15 @@ public class AuthService {
 
         Member savedMember = memberRepository.save(member);
 
+        String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
         setCookies(response, savedMember.getExternalId(), savedMember.getRole());
 
-        return new SignupResponse(savedMember.getExternalId(), savedMember.getUserId(), true);
+        return new SignupResponse(savedMember.getExternalId(), accessToken, accessTokenValidity.getSeconds(), savedMember.getUserId(), true);
     }
 
     private void setCookies(HttpServletResponse response, String externalId, Role role) {
 
-        String accessToken = jwtTokenProvider.generateAccessToken(externalId, role);
         String refreshToken = jwtTokenProvider.generateRefreshToken(externalId, role);
-
-        addTokenCookie(response, "accessToken", accessToken, accessTokenValidity);
         addTokenCookie(response, "refreshToken", refreshToken, refreshTokenValidity);
 
         // refresh token 저장 로직 추가 예정
