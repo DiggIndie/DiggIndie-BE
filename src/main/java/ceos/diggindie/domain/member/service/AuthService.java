@@ -2,11 +2,7 @@ package ceos.diggindie.domain.member.service;
 
 import ceos.diggindie.common.config.security.jwt.JwtTokenProvider;
 import ceos.diggindie.common.enums.Role;
-import ceos.diggindie.domain.member.dto.LoginRequest;
-import ceos.diggindie.domain.member.dto.LoginResponse;
-import ceos.diggindie.domain.member.dto.SignupRequest;
-import ceos.diggindie.domain.member.dto.SignupResponse;
-import ceos.diggindie.domain.member.dto.UserIdCheckResponse;
+import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.HttpServletResponse;
@@ -92,5 +88,27 @@ public class AuthService {
     public UserIdCheckResponse checkExists(String userId) {
         boolean isAvailable = !memberRepository.existsByUserId(userId);
         return new UserIdCheckResponse(isAvailable);
+    }
+
+    public LogoutResponse logout(HttpServletResponse response, Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        removeRefreshTokenCookie(response);
+
+        return new LogoutResponse(member.getExternalId(), member.getUserId());
+    }
+
+    private void removeRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 }

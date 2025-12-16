@@ -1,16 +1,15 @@
 package ceos.diggindie.domain.member.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
+import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
-import ceos.diggindie.domain.member.dto.LoginRequest;
-import ceos.diggindie.domain.member.dto.LoginResponse;
-import ceos.diggindie.domain.member.dto.SignupRequest;
-import ceos.diggindie.domain.member.dto.SignupResponse;
-import ceos.diggindie.domain.member.dto.UserIdCheckResponse;
+import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -61,6 +60,22 @@ public class AuthController {
                 authService.checkExists(userId)
         );
 
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/auth/logout")
+    public ResponseEntity<Response<LogoutResponse>> logout(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            HttpServletResponse httpResponse
+    ) {
+
+        Response<LogoutResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "로그아웃 API",
+                authService.logout(httpResponse, userDetails.getMemberId())
+        );
         return ResponseEntity.ok().body(response);
     }
 
