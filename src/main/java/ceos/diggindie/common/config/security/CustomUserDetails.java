@@ -13,11 +13,13 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
 
     private final Long memberId;
+    private final String externalId;
     private final String userId;
     private final Role role;
 
-    public CustomUserDetails(Long memberId, String userId, Role role) {
+    public CustomUserDetails(Long memberId, String externalId, String userId, Role role) {
         this.memberId = memberId;
+        this.externalId = externalId;
         this.userId = userId;
         this.role = role;
     }
