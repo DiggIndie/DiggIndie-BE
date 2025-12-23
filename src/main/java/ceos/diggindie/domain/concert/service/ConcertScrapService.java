@@ -4,7 +4,6 @@ import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.entity.Concert;
 import ceos.diggindie.domain.concert.entity.ConcertScrap;
 import ceos.diggindie.domain.concert.repository.ConcertScrapRepository;
-import ceos.diggindie.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,15 +59,21 @@ public class ConcertScrapService {
         }
     }
 
-    private String formatDuration(LocalDate start, LocalDate end) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.d");
+    private static final DateTimeFormatter FULL_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.d");
+    private static final DateTimeFormatter MONTH_DAY_FORMAT = DateTimeFormatter.ofPattern("MM.d");
 
+    private String formatDuration(LocalDate start, LocalDate end) {
+        // 연도와 월이 같은 경우: "2025.12.1 ~ 3"
         if (start.getYear() == end.getYear() && start.getMonth() == end.getMonth()) {
-            return start.format(formatter) + " ~ " + end.getDayOfMonth();
+            return start.format(FULL_FORMAT) + " ~ " + end.getDayOfMonth();
         }
+
+        // 연도만 같은 경우: "2025.12.1 ~ 01.05"
         if (start.getYear() == end.getYear()) {
-            return start.format(formatter) + " ~ " + end.format(DateTimeFormatter.ofPattern("MM.d"));
+            return start.format(FULL_FORMAT) + " ~ " + end.format(MONTH_DAY_FORMAT);
         }
-        return start.format(formatter) + " ~ " + end.format(formatter);
+
+        // 연도가 다른 경우: "2025.12.31 ~ 2026.01.01"
+        return start.format(FULL_FORMAT) + " ~ " + end.format(FULL_FORMAT);
     }
 }

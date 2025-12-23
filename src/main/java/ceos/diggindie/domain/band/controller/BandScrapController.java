@@ -23,7 +23,7 @@ public class BandScrapController {
 
     private final BandScrapService bandScrapService;
 
-    @PostMapping("/artists/scraps")
+    @PostMapping("/my/artists")
     public ResponseEntity<ApiResponse<Void>> saveBandScraps(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BandScrapRequest request
@@ -34,7 +34,7 @@ public class BandScrapController {
         return ApiResponse.onSuccess(SuccessStatus._CREATED);
     }
 
-    @GetMapping("/artists/scraps")
+    @GetMapping("/my/artists")
     public ResponseEntity<ApiResponse<BandScrapResponse.BandScrapPageResponse>> getBandScraps(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,

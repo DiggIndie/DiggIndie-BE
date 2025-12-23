@@ -35,6 +35,7 @@ public class BandScrapService {
                 .orElseThrow(() -> GeneralException.notFound("사용자를 찾을 수 없습니다."));
 
         List<Band> bands = bandRepository.findAllById(request.bandIds());
+        // 위 부분에서 요청 밴드 중 일부가 없어도 예외 발생 안하도록 하는게 맞는지 수정 필요
 
         List<BandScrap> scraps = bands.stream()
                 .map(band -> BandScrap.of(member, band))

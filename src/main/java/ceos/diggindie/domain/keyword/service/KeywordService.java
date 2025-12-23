@@ -48,8 +48,14 @@ public class KeywordService {
 
         List<Keyword> keywords = keywordRepository.findAllById(request.keywordIds());
 
-        if (keywords.size() != request.keywordIds().size()) {
-            throw new GeneralException(ErrorStatus._BAD_REQUEST, "유효하지 않은 키워드 ID가 포함되어 있습니다.");
+        List<Long> foundIds = keywords.stream().map(Keyword::getId).toList();
+        List<Long> invalidIds = request.keywordIds().stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+
+        if (!invalidIds.isEmpty()) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST,
+                    "유효하지 않은 키워드 ID: " + invalidIds);
         }
 
         List<MemberKeyword> memberKeywords = keywords.stream()

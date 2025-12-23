@@ -2,6 +2,7 @@ package ceos.diggindie.common.exception;
 
 import ceos.diggindie.common.response.ApiResponse;
 import ceos.diggindie.common.status.ErrorStatus;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionFailedException;
@@ -20,8 +21,8 @@ public class ExceptionAdvice {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException e) {
         String errorMessage = e.getConstraintViolations().stream()
-                .map(violation -> violation.getMessage())
                 .findFirst()
+                .map(ConstraintViolation::getMessage)
                 .orElse("입력값이 올바르지 않습니다.");
 
         log.warn("ConstraintViolationException: {}", errorMessage);

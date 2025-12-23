@@ -36,7 +36,7 @@ public class BandController {
 
     /* 밴드 검색 */
 
-    @GetMapping("/artists/lists")
+    @GetMapping("/artists")
     public ResponseEntity<ApiResponse<List<BandListResponse>>> getBandList(
             @RequestParam(required = false, defaultValue = "") String query,
             @RequestParam(required = false, defaultValue = "0") int page,
