@@ -1,11 +1,19 @@
 package ceos.diggindie.domain.band.service;
 
+import ceos.diggindie.common.exception.GeneralException;
+import ceos.diggindie.domain.band.dto.BandListResponse;
+import ceos.diggindie.domain.band.dto.BandScrapRequest;
+import ceos.diggindie.domain.band.dto.BandScrapResponse;
 import ceos.diggindie.domain.band.entity.Artist;
 import ceos.diggindie.domain.band.entity.Band;
+import ceos.diggindie.domain.band.entity.BandScrap;
 import ceos.diggindie.domain.band.entity.BandsRawData;
 import ceos.diggindie.domain.band.repository.ArtistRepository;
 import ceos.diggindie.domain.band.repository.BandRepository;
+import ceos.diggindie.domain.band.repository.BandScrapRepository;
 import ceos.diggindie.domain.band.repository.BandsRawDataRepository;
+import ceos.diggindie.domain.member.entity.Member;
+import ceos.diggindie.domain.member.repository.MemberRepository;
 import ceos.diggindie.domain.openai.dto.PromptRequest;
 import ceos.diggindie.domain.openai.service.OpenAIService;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchRequest;
@@ -15,7 +23,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -31,6 +42,8 @@ public class BandService {
     private final OpenAIService openAIService;
     private final SpotifyService spotifyService;
     private final ObjectMapper objectMapper;
+    private final BandScrapRepository bandScrapRepository;
+    private final MemberRepository memberRepository;
 
     public void processArtists() {
 
@@ -219,5 +232,39 @@ public class BandService {
 
         log.info("========== 밴드 생성 완료 ==========");
         log.info("총 {}개 중 성공: {}개, 실패: {}개", total, completed, failed);
+    }
+
+    public Page<BandListResponse> getBandList(String query, Pageable pageable) {
+        Page<Band> bands = bandRepository.searchBands(query, pageable);
+        return bands.map(BandListResponse::from);
+    }
+
+    @Transactional
+    public void saveBandPreferences(Long userId, BandScrapRequest request) {
+        // 1. 기존 스크랩 삭제
+        bandScrapRepository.deleteAllByMemberId(userId);
+
+        // 2. 멤버 조회 (스크랩 저장을 위해 엔티티 필요)
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> GeneralException.notFound("사용자를 찾을 수 없습니다."));
+
+        // 3. 새로운 스크랩 저장
+        List<Band> bands = bandRepository.findAllById(request.bandIds());
+        List<BandScrap> scraps = bands.stream()
+                .map(band -> BandScrap.of(member, band))
+                .toList();
+
+        bandScrapRepository.saveAll(scraps);
+    }
+
+    public BandScrapResponse getBandPreferences(Long userId) {
+        // memberId로 스크랩 목록 조회
+        List<BandScrap> scraps = bandScrapRepository.findAllByMemberId(userId);
+
+        List<BandListResponse> bands = scraps.stream()
+                .map(scrap -> BandListResponse.from(scrap.getBand()))
+                .toList();
+
+        return BandScrapResponse.of(bands);
     }
 }

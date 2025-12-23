@@ -4,6 +4,7 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,16 @@ public class BandScrap extends BaseEntity {
     @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
+    @Builder
+    public BandScrap(Member member, Band band) {
+        this.member = member;
+        this.band = band;
+    }
+
+    public static BandScrap of(Member member, Band band) {
+        return BandScrap.builder()
+                .member(member)
+                .band(band)
+                .build();
+    }
 }
