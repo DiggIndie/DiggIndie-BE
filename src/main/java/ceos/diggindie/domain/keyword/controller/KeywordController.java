@@ -1,11 +1,12 @@
 package ceos.diggindie.domain.keyword.controller;
 
+import ceos.diggindie.common.config.security.CustomUserDetails;
+import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.common.response.ApiResponse;
 import ceos.diggindie.common.status.SuccessStatus;
 import ceos.diggindie.domain.keyword.dto.KeywordRequest;
 import ceos.diggindie.domain.keyword.dto.KeywordResponse;
 import ceos.diggindie.domain.keyword.service.KeywordService;
-import ceos.diggindie.domain.member.entity.Member;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,18 +32,22 @@ public class KeywordController {
 
     @PostMapping("/my/keywords")
     public ResponseEntity<ApiResponse<Void>> saveKeywordPreferences(
-            @AuthenticationPrincipal Member member,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody KeywordRequest request
     ) {
-        keywordService.setMyKeywords(member, request);
+        if (userDetails == null) throw GeneralException.loginRequired();
+
+        keywordService.setMyKeywords(userDetails.getUserId(), request);
         return ApiResponse.onSuccess(SuccessStatus._CREATED);
     }
 
     @GetMapping("/my/keywords")
     public ResponseEntity<ApiResponse<List<KeywordResponse>>> getMyKeywords(
-            @AuthenticationPrincipal Member member
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        List<KeywordResponse> keywords = keywordService.getMyKeywords(member.getId());
+        if (userDetails == null) throw GeneralException.loginRequired();
+
+        List<KeywordResponse> keywords = keywordService.getMyKeywords(userDetails.getUserId());
         return ApiResponse.onSuccess(SuccessStatus._OK, keywords);
     }
 

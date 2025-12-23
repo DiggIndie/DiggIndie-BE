@@ -9,6 +9,7 @@ import ceos.diggindie.domain.keyword.entity.MemberKeyword;
 import ceos.diggindie.domain.keyword.repository.KeywordRepository;
 import ceos.diggindie.domain.keyword.repository.MemberKeywordRepository;
 import ceos.diggindie.domain.member.entity.Member;
+import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ public class KeywordService {
 
     private final KeywordRepository keywordRepository;
     private final MemberKeywordRepository memberKeywordRepository;
+    private final MemberRepository memberRepository;
 
     public List<KeywordResponse> getAllKeywords() {
         return keywordRepository.findAll().stream()
@@ -38,7 +40,10 @@ public class KeywordService {
     }
 
     @Transactional
-    public void setMyKeywords(Member member, KeywordRequest request) {
+    public void setMyKeywords(Long memberId, KeywordRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> GeneralException.notFound("사용자를 찾을 수 없습니다."));
+
         memberKeywordRepository.deleteAllByMember(member);
 
         List<Keyword> keywords = keywordRepository.findAllById(request.keywordIds());

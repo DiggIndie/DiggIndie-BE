@@ -4,6 +4,7 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.band.entity.Band;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,16 @@ public class MemberBand extends BaseEntity {
     @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
+    @Builder
+    public MemberBand(Member member, Band band) {
+        this.member = member;
+        this.band = band;
+    }
+
+    public static MemberBand of(Member member, Band band) {
+        return MemberBand.builder()
+                .member(member)
+                .band(band)
+                .build();
+    }
 }
