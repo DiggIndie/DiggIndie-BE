@@ -1,16 +1,25 @@
 package ceos.diggindie.domain.band.dto;
 
 import lombok.Builder;
+import lombok.Getter;
 
 import java.util.List;
 
-@Builder
-public record BandScrapResponse(
-        List<BandListResponse> bands
-) {
-    public static BandScrapResponse of(List<BandListResponse> bands) {
-        return BandScrapResponse.builder()
-                .bands(bands)
-                .build();
+public class BandScrapResponse {
+
+    @Getter
+    @Builder
+    public static class BandScrapPageResponse {
+        private List<BandScrapInfoDTO> scraps;
+    }
+
+    @Getter
+    @Builder
+    public static class BandScrapInfoDTO {
+        private Long bandId;
+        private String bandName;
+        private List<String> keywords;
+        private String bandImage;
+        private String mainMusic;
     }
 }

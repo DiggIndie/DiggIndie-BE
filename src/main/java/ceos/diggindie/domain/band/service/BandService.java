@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -240,16 +241,14 @@ public class BandService {
     }
 
     @Transactional
-    public void saveBandPreferences(Long userId, BandScrapRequest request) {
-        // 1. 기존 스크랩 삭제
+    public void saveBandScraps(Long userId, BandScrapRequest request) {
         bandScrapRepository.deleteAllByMemberId(userId);
 
-        // 2. 멤버 조회 (스크랩 저장을 위해 엔티티 필요)
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> GeneralException.notFound("사용자를 찾을 수 없습니다."));
 
-        // 3. 새로운 스크랩 저장
         List<Band> bands = bandRepository.findAllById(request.bandIds());
+
         List<BandScrap> scraps = bands.stream()
                 .map(band -> BandScrap.of(member, band))
                 .toList();
@@ -257,14 +256,23 @@ public class BandService {
         bandScrapRepository.saveAll(scraps);
     }
 
-    public BandScrapResponse getBandPreferences(Long userId) {
-        // memberId로 스크랩 목록 조회
-        List<BandScrap> scraps = bandScrapRepository.findAllByMemberId(userId);
+    public Page<BandScrapResponse.BandScrapInfoDTO> getBandScraps(Long userId, Pageable pageable) {
+        Page<BandScrap> scrapPage = bandScrapRepository.findAllByMemberIdWithKeywords(userId, pageable);
 
-        List<BandListResponse> bands = scraps.stream()
-                .map(scrap -> BandListResponse.from(scrap.getBand()))
-                .toList();
+        return scrapPage.map(scrap -> {
+            Band band = scrap.getBand();
 
-        return BandScrapResponse.of(bands);
+            List<String> keywords = band.getBandKeywords().stream()
+                    .map(bk -> bk.getKeyword().getKeyword())
+                    .collect(Collectors.toList());
+
+            return BandScrapResponse.BandScrapInfoDTO.builder()
+                    .bandId(band.getId())
+                    .bandName(band.getBandName())
+                    .keywords(keywords)
+                    .bandImage(band.getMainImage())
+                    .mainMusic(band.getMainMusic())
+                    .build();
+        });
     }
 }

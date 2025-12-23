@@ -23,18 +23,26 @@ public class KeywordController {
 
     private final KeywordService keywordService;
 
+    @GetMapping("/keywords")
+    public ResponseEntity<ApiResponse<List<KeywordResponse>>> getAllKeywords() {
+        List<KeywordResponse> keywords = keywordService.getAllKeywords();
+        return ApiResponse.onSuccess(SuccessStatus._OK, keywords);
+    }
+
     @PostMapping("/my/keywords")
     public ResponseEntity<ApiResponse<Void>> saveKeywordPreferences(
             @AuthenticationPrincipal Member member,
             @Valid @RequestBody KeywordRequest request
     ) {
-        keywordService.saveKeywordPreferences(member, request);
+        keywordService.setMyKeywords(member, request);
         return ApiResponse.onSuccess(SuccessStatus._CREATED);
     }
 
     @GetMapping("/my/keywords")
-    public ResponseEntity<ApiResponse<List<KeywordResponse>>> getAllKeywords() {
-        List<KeywordResponse> keywords = keywordService.getAllKeywords();
+    public ResponseEntity<ApiResponse<List<KeywordResponse>>> getMyKeywords(
+            @AuthenticationPrincipal Member member
+    ) {
+        List<KeywordResponse> keywords = keywordService.getMyKeywords(member.getId());
         return ApiResponse.onSuccess(SuccessStatus._OK, keywords);
     }
 

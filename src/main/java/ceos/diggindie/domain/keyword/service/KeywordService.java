@@ -29,8 +29,16 @@ public class KeywordService {
                 .toList();
     }
 
+    public List<KeywordResponse> getMyKeywords(Long memberId) {
+        List<MemberKeyword> memberKeywords = memberKeywordRepository.findAllByMemberIdWithKeyword(memberId);
+
+        return memberKeywords.stream()
+                .map(mk -> KeywordResponse.from(mk.getKeyword()))
+                .toList();
+    }
+
     @Transactional
-    public void saveKeywordPreferences(Member member, KeywordRequest request) {
+    public void setMyKeywords(Member member, KeywordRequest request) {
         memberKeywordRepository.deleteAllByMember(member);
 
         List<Keyword> keywords = keywordRepository.findAllById(request.keywordIds());

@@ -36,7 +36,7 @@ public class ConcertScrapService {
                             .concertId(concert.getId())
                             .concertName(concert.getTitle())
                             .duration(formatDuration(startDate, endDate))
-                            .dDay(calculateDDay(startDate))
+                            .dDay(calculateDDay(startDate, endDate))
                             .imageUrl(concert.getMainImg())
                             .isFinished(concert.getEndDate() != null && concert.getEndDate().isBefore(LocalDateTime.now()))
                             .build();
@@ -48,10 +48,16 @@ public class ConcertScrapService {
                 .build();
     }
 
-    private String calculateDDay(LocalDate startDate) {
-        long days = ChronoUnit.DAYS.between(LocalDate.now(), startDate);
-        if (days == 0) return "D-Day";
-        return days > 0 ? "D-" + days : "D+" + Math.abs(days);
+    private String calculateDDay(LocalDate startDate, LocalDate endDate) {
+        LocalDate now = LocalDate.now();
+        if (now.isBefore(startDate)) {
+            long days = ChronoUnit.DAYS.between(now, startDate);
+            return days == 0 ? "D-Day" : "D-" + days;
+        } else if (now.isAfter(endDate)) {
+            return "종료";
+        } else {
+            return "진행 중";
+        }
     }
 
     private String formatDuration(LocalDate start, LocalDate end) {

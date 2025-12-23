@@ -1,6 +1,8 @@
 package ceos.diggindie.domain.band.repository;
 
 import ceos.diggindie.domain.band.entity.BandScrap;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,5 +16,11 @@ public interface BandScrapRepository extends JpaRepository<BandScrap, Long> {
     @Query("DELETE FROM BandScrap bs WHERE bs.member.id = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
 
-    List<BandScrap> findAllByMemberId(Long memberId);
+    @Query(value = "SELECT bs FROM BandScrap bs " +
+            "JOIN FETCH bs.band b " +
+            "LEFT JOIN FETCH b.bandKeywords bk " +
+            "LEFT JOIN FETCH bk.keyword " +
+            "WHERE bs.member.id = :memberId",
+            countQuery = "SELECT count(bs) FROM BandScrap bs WHERE bs.member.id = :memberId")
+    Page<BandScrap> findAllByMemberIdWithKeywords(@Param("memberId") Long memberId, Pageable pageable);
 }
