@@ -12,10 +12,17 @@ import java.util.Optional;
 public interface BandRepository extends JpaRepository<Band, Long> {
     Optional<Band> findByBandName(String bandName);
 
-    @Query("SELECT DISTINCT b FROM Band b " +
-            "LEFT JOIN b.bandKeywords bk " +
-            "LEFT JOIN bk.keyword k " +
+    @Query(value = "SELECT DISTINCT b FROM Band b " +
+            "LEFT JOIN FETCH b.bandKeywords bk " +
+            "LEFT JOIN FETCH bk.keyword k " +
             "WHERE :query IS NULL OR :query = '' OR " +
-            "b.bandName LIKE %:query% OR k.keyword LIKE %:query%")
+            "b.bandName ILIKE %:query% OR " + // ILIKE + GIN
+            "k.keyword ILIKE %:query%",
+            countQuery = "SELECT count(DISTINCT b) FROM Band b " +
+                    "LEFT JOIN b.bandKeywords bk " +
+                    "LEFT JOIN bk.keyword k " +
+                    "WHERE :query IS NULL OR :query = '' OR " +
+                    "b.bandName ILIKE %:query% OR " +
+                    "k.keyword ILIKE %:query%")
     Page<Band> searchBands(@Param("query") String query, Pageable pageable);
 }
