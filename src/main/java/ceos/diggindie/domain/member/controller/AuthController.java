@@ -6,6 +6,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,9 +19,9 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/users/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<Response<SignupResponse>> signup(
-            @RequestBody SignupRequest signupRequest,
+            @Valid @RequestBody SignupRequest signupRequest,
             HttpServletResponse httpResponse
     ) {
 

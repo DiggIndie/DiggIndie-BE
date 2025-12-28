@@ -30,13 +30,16 @@ public class AuthService {
     private Duration refreshTokenValidity;
 
     @Transactional(readOnly = true)
-    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
+    public Member findMemberByUserId(String userId) {
+        return memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+    }
 
-        Member member = memberRepository.findByUserId(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
+    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
+        Member member = findMemberByUserId(request.userId());
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
         String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
@@ -46,7 +49,10 @@ public class AuthService {
     }
 
     @Transactional
-    public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
+    public Member createMember(SignupRequest request) {
+        if (memberRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
 
         String encodedPassword = passwordEncoder.encode(request.password());
 
@@ -56,9 +62,13 @@ public class AuthService {
                 .email(request.email())
                 .build();
 
-        Member savedMember = memberRepository.save(member);
+        return memberRepository.save(member);
+    }
 
-        String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
+    public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
+        Member savedMember = createMember(request);
+
+        String accessToken = jwtTokenProvider.generateAccessToken(savedMember.getExternalId(), savedMember.getRole());
         setCookies(response, savedMember.getExternalId(), savedMember.getRole());
 
         return new SignupResponse(savedMember.getExternalId(), accessToken, accessTokenValidity.getSeconds(), savedMember.getUserId(), true);
@@ -91,7 +101,6 @@ public class AuthService {
     }
 
     public LogoutResponse logout(HttpServletResponse response, Long memberId) {
-
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
