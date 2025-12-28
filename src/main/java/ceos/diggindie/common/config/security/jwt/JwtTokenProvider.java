@@ -71,15 +71,6 @@ public class JwtTokenProvider implements InitializingBean {
 
     public String getAccessToken(HttpServletRequest request) {
 
-        // cookie 기반 토큰 추출
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("accessToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-
         // header 기반 토큰 추출
         String bearerToken = request.getHeader("Authorization");
 
