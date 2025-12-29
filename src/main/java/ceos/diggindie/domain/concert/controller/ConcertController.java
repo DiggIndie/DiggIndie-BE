@@ -1,7 +1,9 @@
 package ceos.diggindie.domain.concert.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
+import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
+import ceos.diggindie.domain.concert.dto.ConcertRecommendResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.service.ConcertService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +46,21 @@ public class ConcertController {
                 true,
                 "공연 위클리 캘린더 조회 API",
                 concertService.getConcertWeeklyCalendar(date, pageable)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "추천 공연 조회", description = "추천 공연 목록을 조회합니다.")
+    @GetMapping("/concerts/recommendations")
+    public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecmmedations(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+            ){
+        Response<ConcertRecommendResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "추천 공연 조회 API",
+                concertService.getRecommendation(userDetails.getMemberId())
         );
         return ResponseEntity.ok().body(response);
     }
