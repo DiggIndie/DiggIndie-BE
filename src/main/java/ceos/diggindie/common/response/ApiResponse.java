@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import java.util.List;
 
 @Getter
 @Builder
@@ -61,8 +62,7 @@ public class ApiResponse<T> {
     }
 
     // 성공 - 페이지네이션 포함
-// 성공 - 페이지네이션 포함
-    public static <T> ResponseEntity<ApiResponse<java.util.List<T>>> onSuccess(SuccessStatus status, Page<T> page) {
+    public static <T> ResponseEntity<ApiResponse<List<T>>> onSuccess(SuccessStatus status, Page<T> page) {
         PageInfo pageInfo = new PageInfo(
                 page.getNumber(),
                 page.getSize(),
@@ -73,7 +73,7 @@ public class ApiResponse<T> {
 
         return ResponseEntity
                 .status(status.getHttpStatus())
-                .body(ApiResponse.<java.util.List<T>>builder()
+                .body(ApiResponse.<List<T>>builder()
                         .statusCode(status.getHttpStatus().value())
                         .isSuccess(true)
                         .message(status.getMessage())
