@@ -5,6 +5,7 @@ import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -75,7 +76,22 @@ public class AuthController {
                 SuccessCode.GET_SUCCESS,
                 true,
                 "로그아웃 API",
-                authService.logout(httpResponse, userDetails.getMemberId())
+                authService.logout(httpResponse, userDetails.getExternalId(), userDetails.getUserId())
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PostMapping("/auth/reissue")
+    public ResponseEntity<Response<TokenReissueResponse>> reissue(
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    ) {
+
+        Response<TokenReissueResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "토큰 재발급 API",
+                authService.reissue(httpRequest, httpResponse)
         );
         return ResponseEntity.ok().body(response);
     }

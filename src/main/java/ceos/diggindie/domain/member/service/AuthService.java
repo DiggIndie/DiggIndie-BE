@@ -5,6 +5,8 @@ import ceos.diggindie.common.enums.Role;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Value("${jwt.access-token-validity}")
     private Duration accessTokenValidity;
@@ -43,7 +46,7 @@ public class AuthService {
         }
 
         String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
-        setCookies(response, member.getExternalId(), member.getRole());
+        setRefreshToken(response, member.getExternalId(), member.getRole());
 
         return new LoginResponse(member.getExternalId(), accessToken, accessTokenValidity.getSeconds(), member.getUserId(), false);
     }
@@ -68,19 +71,16 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
         Member savedMember = createMember(request);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(savedMember.getExternalId(), savedMember.getRole());
-        setCookies(response, savedMember.getExternalId(), savedMember.getRole());
+        String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
+        setRefreshToken(response, savedMember.getExternalId(), savedMember.getRole());
 
         return new SignupResponse(savedMember.getExternalId(), accessToken, accessTokenValidity.getSeconds(), savedMember.getUserId(), true);
     }
 
-    private void setCookies(HttpServletResponse response, String externalId, Role role) {
-
+    private void setRefreshToken(HttpServletResponse response, String externalId, Role role) {
         String refreshToken = jwtTokenProvider.generateRefreshToken(externalId, role);
+        refreshTokenService.save(externalId, refreshToken);
         addTokenCookie(response, "refreshToken", refreshToken, refreshTokenValidity);
-
-        // refresh token 저장 로직 추가 예정
-
     }
 
     private void addTokenCookie(HttpServletResponse response, String name, String value, Duration maxAge) {
@@ -100,13 +100,11 @@ public class AuthService {
         return new UserIdCheckResponse(isAvailable);
     }
 
-    public LogoutResponse logout(HttpServletResponse response, Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
+    @Transactional(readOnly = true)
+    public LogoutResponse logout(HttpServletResponse response, String externalId, String userId) {
+        refreshTokenService.delete(externalId);
         removeRefreshTokenCookie(response);
-
-        return new LogoutResponse(member.getExternalId(), member.getUserId());
+        return new LogoutResponse(externalId, userId);
     }
 
     private void removeRefreshTokenCookie(HttpServletResponse response) {
@@ -120,4 +118,41 @@ public class AuthService {
 
         response.addHeader("Set-Cookie", cookie.toString());
     }
+
+    @Transactional(readOnly = true)
+    public TokenReissueResponse reissue(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractRefreshTokenFromCookie(request);
+
+        if (refreshToken == null) {
+            throw new IllegalArgumentException("Refresh token이 존재하지 않습니다.");
+        }
+
+        String externalId = jwtTokenProvider.parseClaims(refreshToken).getSubject();
+
+        if (!refreshTokenService.validate(externalId, refreshToken)) {
+            refreshTokenService.delete(externalId);
+            removeRefreshTokenCookie(response);
+            throw new IllegalArgumentException("재로그인이 필요합니다.");
+        }
+
+        Member member = memberRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        String newAccessToken = jwtTokenProvider.generateAccessToken(externalId, member.getRole());
+        setRefreshToken(response, externalId, member.getRole());
+
+        return new TokenReissueResponse(newAccessToken, accessTokenValidity.getSeconds());
+    }
+
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
 }
