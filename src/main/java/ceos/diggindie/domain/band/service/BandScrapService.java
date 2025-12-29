@@ -24,24 +24,36 @@ import java.util.stream.Collectors;
 public class BandScrapService {
 
     private final BandScrapRepository bandScrapRepository;
-    private final MemberRepository memberRepository;
     private final BandRepository bandRepository;
 
     @Transactional
-    public void saveBandScraps(Long userId, BandScrapRequest request) {
-        bandScrapRepository.deleteAllByMemberId(userId);
-
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> GeneralException.notFound("사용자를 찾을 수 없습니다."));
+    public void toggleBandScraps(Long userId, BandScrapRequest request) {
 
         List<Band> bands = bandRepository.findAllById(request.bandIds());
-        // 위 부분에서 요청 밴드 중 일부가 없어도 예외 발생 안하도록 하는게 맞는지 수정 필요
+        if (bands.size() != request.bandIds().size()) {
+            throw GeneralException.notFound("존재하지 않는 밴드가 포함되어 있습니다.");
+        }
 
-        List<BandScrap> scraps = bands.stream()
-                .map(band -> BandScrap.of(member, band))
+        // 현재 스크랩된 밴드 ID 조회
+        List<Long> currentScrapBandIds = bandScrapRepository
+                .findAllByMemberId(userId).stream()
+                .map(scrap -> scrap.getBand().getId())
                 .toList();
 
-        bandScrapRepository.saveAll(scraps);
+        // 토글 처리
+        for (Band band : bands) {
+            if (currentScrapBandIds.contains(band.getId())) {
+                // 이미 스크랩된 밴드 → 삭제
+                bandScrapRepository.deleteByMemberIdAndBandId(userId, band.getId());
+            } else {
+                // 스크랩 안된 밴드 → 추가
+                BandScrap scrap = BandScrap.builder()
+                        .memberId(userId)
+                        .band(band)
+                        .build();
+                bandScrapRepository.save(scrap);
+            }
+        }
     }
 
     public Page<BandScrapResponse.BandScrapInfoDTO> getBandScraps(Long userId, Pageable pageable) {
@@ -52,7 +64,7 @@ public class BandScrapService {
 
             List<String> keywords = band.getBandKeywords().stream()
                     .map(bk -> bk.getKeyword().getKeyword())
-                    .collect(Collectors.toList());
+                    .toList();
 
             return BandScrapResponse.BandScrapInfoDTO.builder()
                     .bandId(band.getId())

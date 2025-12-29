@@ -19,24 +19,15 @@ public class BandScrap extends BaseEntity {
     @Column(name = "band_scrap_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Member member;
+    private Long memberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "band_id", nullable = false)
     private Band band;
 
     @Builder
-    public BandScrap(Member member, Band band) {
-        this.member = member;
+    public BandScrap(Long memberId, Band band) {
+        this.memberId = memberId;
         this.band = band;
-    }
-
-    public static BandScrap of(Member member, Band band) {
-        return BandScrap.builder()
-                .member(member)
-                .band(band)
-                .build();
     }
 }

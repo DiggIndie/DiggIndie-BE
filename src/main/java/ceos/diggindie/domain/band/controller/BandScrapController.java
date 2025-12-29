@@ -1,9 +1,7 @@
 package ceos.diggindie.domain.band.controller;
 
 import ceos.diggindie.common.config.security.CustomUserDetails;
-import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.common.response.ApiResponse;
-import ceos.diggindie.common.response.PageInfo;
 import ceos.diggindie.common.status.SuccessStatus;
 import ceos.diggindie.domain.band.dto.BandScrapRequest;
 import ceos.diggindie.domain.band.dto.BandScrapResponse;
@@ -14,8 +12,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,48 +24,28 @@ public class BandScrapController {
 
     private final BandScrapService bandScrapService;
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/my/artists")
-    public ResponseEntity<ApiResponse<Void>> saveBandScraps(
+    public ResponseEntity<ApiResponse<Void>> toggleBandScraps(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BandScrapRequest request
     ) {
-        if (userDetails == null) throw GeneralException.loginRequired();
-
-        bandScrapService.saveBandScraps(userDetails.getUserId(), request);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED);
+        bandScrapService.toggleBandScraps(userDetails.getUserId(), request);
+        return ApiResponse.onSuccess(SuccessStatus._OK, "밴드 스크랩이 처리되었습니다.");
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/my/artists")
-    public ResponseEntity<ApiResponse<BandScrapResponse.BandScrapPageResponse>> getBandScraps(
+    public ResponseEntity<ApiResponse<List<BandScrapResponse.BandScrapInfoDTO>>> getBandScraps(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        if (userDetails == null) throw GeneralException.loginRequired();
-
         Pageable pageable = PageRequest.of(page, size);
 
         Page<BandScrapResponse.BandScrapInfoDTO> scrapPage =
                 bandScrapService.getBandScraps(userDetails.getUserId(), pageable);
 
-        BandScrapResponse.BandScrapPageResponse payload =
-                BandScrapResponse.BandScrapPageResponse.builder()
-                        .scraps(scrapPage.getContent())
-                        .build();
-
-        return ResponseEntity.status(SuccessStatus._OK.getHttpStatus())
-                .body(ApiResponse.<BandScrapResponse.BandScrapPageResponse>builder()
-                        .statusCode(SuccessStatus._OK.getHttpStatus().value())
-                        .isSuccess(true)
-                        .message("스크랩 목록 조회 성공")
-                        .pageInfo(new PageInfo(
-                                scrapPage.getNumber(),
-                                scrapPage.getSize(),
-                                scrapPage.hasNext(),
-                                scrapPage.getTotalElements(),
-                                scrapPage.getTotalPages()
-                        ))
-                        .payload(payload)
-                        .build());
+        return ApiResponse.onSuccess(SuccessStatus._OK, scrapPage);
     }
 }
