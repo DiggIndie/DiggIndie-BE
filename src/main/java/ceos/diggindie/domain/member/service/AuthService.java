@@ -71,7 +71,7 @@ public class AuthService {
     public SignupResponse signup(SignupRequest request, HttpServletResponse response) {
         Member savedMember = createMember(request);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
+        String accessToken = jwtTokenProvider.generateAccessToken(savedMember.getExternalId(), savedMember.getRole());
         setRefreshToken(response, savedMember.getExternalId(), savedMember.getRole());
 
         return new SignupResponse(savedMember.getExternalId(), accessToken, accessTokenValidity.getSeconds(), savedMember.getUserId(), true);
