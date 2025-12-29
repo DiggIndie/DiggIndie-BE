@@ -12,31 +12,31 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.stream.Collectors;
+
 @Slf4j
 @RestControllerAdvice
 public class ExceptionAdvice {
 
-    // Bean Validation (@Valid) 제약 조건 위반
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException e) {
-        String errorMessage = e.getConstraintViolations().stream()
-                .map(violation -> violation.getMessage())
-                .findFirst()
-                .orElse("입력값이 올바르지 않습니다.");
+        // 로그로 상세 에러 기록
+        String detailedErrors = e.getConstraintViolations().stream()
+                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .collect(Collectors.joining(", "));
+        log.warn("ConstraintViolationException - Validation errors: [{}]", detailedErrors);
 
-        log.warn("ConstraintViolationException: {}", errorMessage);
-        return ApiResponse.onFailure(ErrorStatus.VALIDATION_ERROR, errorMessage);
+        return ApiResponse.onFailure(ErrorStatus.VALIDATION_ERROR, "입력값이 올바르지 않습니다.");
     }
 
-    // @RequestBody 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
-        String errorMessage = e.getBindingResult().getFieldError() != null
-                ? e.getBindingResult().getFieldError().getDefaultMessage()
-                : "입력값이 올바르지 않습니다.";
+        String detailedErrors = e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        log.warn("MethodArgumentNotValidException - Field errors: [{}]", detailedErrors);
 
-        log.warn("MethodArgumentNotValidException: {}", errorMessage);
-        return ApiResponse.onFailure(ErrorStatus.VALIDATION_ERROR, errorMessage);
+        return ApiResponse.onFailure(ErrorStatus.VALIDATION_ERROR, "입력값이 올바르지 않습니다.");
     }
 
     // 리소스를 찾을 수 없음
