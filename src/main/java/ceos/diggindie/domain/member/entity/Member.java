@@ -13,11 +13,13 @@ import ceos.diggindie.domain.concert.entity.ConcertScrap;
 import ceos.diggindie.domain.keyword.entity.MemberKeyword;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "member")
@@ -41,7 +43,7 @@ public class Member extends BaseEntity {
     private LoginPlatform recentLoginPlatform;
 
     @Column(nullable = false, length = 50)
-    private String nickname;
+    private String userId;
 
     @Column(length = 100)
     private String password;
@@ -49,14 +51,11 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 100, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String phone;
 
     @Column(name = "profile_img", length = 150)
     private String profileImg;
-
-    @Column(length = 200)
-    private String salt;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SocialAccount> socialAccounts = new ArrayList<>();
@@ -90,5 +89,15 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member")
     private List<Market> markets = new ArrayList<>();
+
+    @Builder
+    public Member(String userId, String password, String email, String phone) {
+        this.externalId = UUID.randomUUID().toString();
+        this.userId = userId;
+        this.password = password;
+        this.email = email;
+        this.role = Role.ROLE_USER;
+        this.phone = phone;
+    }
 
 }

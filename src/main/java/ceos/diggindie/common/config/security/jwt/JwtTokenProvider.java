@@ -5,6 +5,7 @@ import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.enums.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -70,6 +71,7 @@ public class JwtTokenProvider implements InitializingBean {
 
     public String getAccessToken(HttpServletRequest request) {
 
+        // header 기반 토큰 추출
         String bearerToken = request.getHeader("Authorization");
 
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
