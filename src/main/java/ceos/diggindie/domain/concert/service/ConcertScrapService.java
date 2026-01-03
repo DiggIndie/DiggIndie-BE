@@ -22,8 +22,8 @@ public class ConcertScrapService {
 
     private final ConcertScrapRepository concertScrapRepository;
 
-    public ConcertScrapResponse.ConcertScrapListDTO getMyScrappedConcerts(Long userId) {
-        List<ConcertScrap> scraps = concertScrapRepository.findAllByMemberIdWithConcert(userId);
+    public ConcertScrapResponse.ConcertScrapListDTO getMyScrappedConcerts(Long memberId) {
+        List<ConcertScrap> scraps = concertScrapRepository.findAllByMemberIdWithConcert(memberId);
 
         List<ConcertScrapResponse.ConcertScrapInfoDTO> concertInfos = scraps.stream()
                 .map(scrap -> {

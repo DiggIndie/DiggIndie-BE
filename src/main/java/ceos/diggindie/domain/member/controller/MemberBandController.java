@@ -26,7 +26,7 @@ public class MemberBandController {
     ) {
         if (userDetails == null) throw GeneralException.loginRequired();
 
-        memberBandService.saveBandPreferences(userDetails.getUserId(), request);
+        memberBandService.saveBandPreferences(userDetails.getMemberId(), request);
         return ApiResponse.onSuccess(SuccessStatus._CREATED, "밴드 취향 설정 API");
     }
 
@@ -36,7 +36,7 @@ public class MemberBandController {
     ) {
         if (userDetails == null) throw GeneralException.loginRequired();
 
-        BandPreferenceResponse response = memberBandService.getBandPreferences(userDetails.getUserId());
+        BandPreferenceResponse response = memberBandService.getBandPreferences(userDetails.getMemberId());
         return ApiResponse.onSuccess(SuccessStatus._OK, response);
     }
 }

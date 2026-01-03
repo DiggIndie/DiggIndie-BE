@@ -37,7 +37,7 @@ public class KeywordController {
     ) {
         if (userDetails == null) throw GeneralException.loginRequired();
 
-        keywordService.setMyKeywords(userDetails.getUserId(), request);
+        keywordService.setMyKeywords(userDetails.getMemberId(), request);
         return ApiResponse.onSuccess(SuccessStatus._CREATED);
     }
 
@@ -47,7 +47,7 @@ public class KeywordController {
     ) {
         if (userDetails == null) throw GeneralException.loginRequired();
 
-        List<KeywordResponse> keywords = keywordService.getMyKeywords(userDetails.getUserId());
+        List<KeywordResponse> keywords = keywordService.getMyKeywords(userDetails.getMemberId());
         return ApiResponse.onSuccess(SuccessStatus._OK, keywords);
     }
 
