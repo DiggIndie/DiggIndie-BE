@@ -17,8 +17,8 @@ public interface BandScrapRepository extends JpaRepository<BandScrap, Long> {
             "JOIN FETCH bs.band b " +
             "LEFT JOIN FETCH b.bandKeywords bk " +
             "LEFT JOIN FETCH bk.keyword " +
-            "WHERE bs.memberId = :memberId",
-            countQuery = "SELECT count(bs) FROM BandScrap bs WHERE bs.memberId = :memberId")
+            "WHERE bs.member.id = :memberId",
+            countQuery = "SELECT count(bs) FROM BandScrap bs WHERE bs.member.id = :memberId")
     Page<BandScrap> findAllByMemberIdWithKeywords(@Param("memberId") Long memberId, Pageable pageable);
 
     List<BandScrap> findAllByMemberId(Long memberId);

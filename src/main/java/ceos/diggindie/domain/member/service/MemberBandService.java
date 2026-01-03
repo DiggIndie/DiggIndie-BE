@@ -6,8 +6,10 @@ import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.band.repository.BandRepository;
 import ceos.diggindie.domain.member.dto.BandPreferenceRequest;
 import ceos.diggindie.domain.member.dto.BandPreferenceResponse;
+import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.entity.MemberBand;
 import ceos.diggindie.domain.member.repository.MemberBandRepository;
+import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +22,13 @@ import java.util.List;
 public class MemberBandService {
 
     private final MemberBandRepository memberBandRepository;
+    private final MemberRepository memberRepository;
     private final BandRepository bandRepository;  // memberRepository 제거
 
     @Transactional
-    public void saveBandPreferences(Long userId, BandPreferenceRequest request) {
+    public void saveBandPreferences(Long memberId, BandPreferenceRequest request) {
         // 1. 기존 취향 삭제
-        memberBandRepository.deleteAllByMemberId(userId);
+        memberBandRepository.deleteAllByMemberId(memberId);
 
         // 2. 밴드 조회 및 검증
         List<Band> bands = bandRepository.findAllById(request.bands());
@@ -34,15 +37,17 @@ public class MemberBandService {
         }
 
         // 3. 새로운 취향 저장 (memberId만 사용)
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> GeneralException.notFound("존재하지 않는 회원입니다."));
         List<MemberBand> memberBands = bands.stream()
-                .map(band -> MemberBand.of(userId, band))
+                .map(band -> MemberBand.of(member, band))
                 .toList();
 
         memberBandRepository.saveAll(memberBands);
     }
 
-    public BandPreferenceResponse getBandPreferences(Long userId) {
-        List<MemberBand> memberBands = memberBandRepository.findAllByMemberIdWithBand(userId);
+    public BandPreferenceResponse getBandPreferences(Long memberId) {
+        List<MemberBand> memberBands = memberBandRepository.findAllByMemberIdWithBand(memberId);
 
         List<BandListResponse> bands = memberBands.stream()
                 .map(mb -> BandListResponse.from(mb.getBand()))

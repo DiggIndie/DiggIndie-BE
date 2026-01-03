@@ -25,9 +25,13 @@ public class BandScrapService {
 
     private final BandScrapRepository bandScrapRepository;
     private final BandRepository bandRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public void toggleBandScraps(Long userId, BandScrapRequest request) {
+    public void toggleBandScraps(Long memberId, BandScrapRequest request) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> GeneralException.notFound("존재하지 않는 회원입니다."));
 
         List<Band> bands = bandRepository.findAllById(request.bandIds());
         if (bands.size() != request.bandIds().size()) {
@@ -36,7 +40,7 @@ public class BandScrapService {
 
         // 현재 스크랩된 밴드 ID 조회
         List<Long> currentScrapBandIds = bandScrapRepository
-                .findAllByMemberId(userId).stream()
+                .findAllByMemberId(memberId).stream()
                 .map(scrap -> scrap.getBand().getId())
                 .toList();
 
@@ -44,11 +48,11 @@ public class BandScrapService {
         for (Band band : bands) {
             if (currentScrapBandIds.contains(band.getId())) {
                 // 이미 스크랩된 밴드 → 삭제
-                bandScrapRepository.deleteByMemberIdAndBandId(userId, band.getId());
+                bandScrapRepository.deleteByMemberIdAndBandId(memberId, band.getId());
             } else {
                 // 스크랩 안된 밴드 → 추가
                 BandScrap scrap = BandScrap.builder()
-                        .memberId(userId)
+                        .member(member)
                         .band(band)
                         .build();
                 bandScrapRepository.save(scrap);
@@ -56,8 +60,8 @@ public class BandScrapService {
         }
     }
 
-    public Page<BandScrapResponse.BandScrapInfoDTO> getBandScraps(Long userId, Pageable pageable) {
-        Page<BandScrap> scrapPage = bandScrapRepository.findAllByMemberIdWithKeywords(userId, pageable);
+    public Page<BandScrapResponse.BandScrapInfoDTO> getBandScraps(Long memberId, Pageable pageable) {
+        Page<BandScrap> scrapPage = bandScrapRepository.findAllByMemberIdWithKeywords(memberId, pageable);
 
         return scrapPage.map(scrap -> {
             Band band = scrap.getBand();
