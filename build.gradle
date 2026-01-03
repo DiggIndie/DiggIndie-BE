@@ -57,6 +57,9 @@ dependencies {
 
 	// reddison
 	implementation 'org.redisson:redisson:3.27.0'
+
+	// swagger
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0"
 }
 
 tasks.named('test') {
