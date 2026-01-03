@@ -1,12 +1,12 @@
 name: Deploy to AWS
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: spring-vote-dev
+  ECR_REPOSITORY: diggindie-dev
 
 jobs:
   deploy:
