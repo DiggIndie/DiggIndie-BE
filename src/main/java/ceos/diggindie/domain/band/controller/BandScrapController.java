@@ -30,7 +30,7 @@ public class BandScrapController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BandScrapRequest request
     ) {
-        bandScrapService.toggleBandScraps(userDetails.getUserId(), request);
+        bandScrapService.toggleBandScraps(userDetails.getMemberId(), request);
         return ApiResponse.onSuccess(SuccessStatus._OK, "밴드 스크랩이 처리되었습니다.");
     }
 
@@ -44,7 +44,7 @@ public class BandScrapController {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<BandScrapResponse.BandScrapInfoDTO> scrapPage =
-                bandScrapService.getBandScraps(userDetails.getUserId(), pageable);
+                bandScrapService.getBandScraps(userDetails.getMemberId(), pageable);
 
         return ApiResponse.onSuccess(SuccessStatus._OK, scrapPage);
     }

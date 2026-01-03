@@ -24,7 +24,7 @@ public class ConcertController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         ConcertScrapResponse.ConcertScrapListDTO response =
-                concertScrapService.getMyScrappedConcerts(customUserDetails.getUserId());
+                concertScrapService.getMyScrappedConcerts(customUserDetails.getMemberId());
 
         return ApiResponse.onSuccess(SuccessStatus._OK, response);
     }

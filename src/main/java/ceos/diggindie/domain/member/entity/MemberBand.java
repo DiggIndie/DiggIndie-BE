@@ -16,21 +16,23 @@ public class MemberBand {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "band_id")
     private Band band;
 
     @Builder
-    public MemberBand(Long memberId, Band band) {
-        this.memberId = memberId;
+    public MemberBand(Member member, Band band) {
+        this.member = member;
         this.band = band;
     }
 
-    public static MemberBand of(Long memberId, Band band) {
+    public static MemberBand of(Member member, Band band) {
         return MemberBand.builder()
-                .memberId(memberId)
+                .member(member)
                 .band(band)
                 .build();
     }
