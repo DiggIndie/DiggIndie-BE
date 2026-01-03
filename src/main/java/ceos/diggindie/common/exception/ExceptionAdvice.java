@@ -29,6 +29,7 @@ public class ExceptionAdvice {
         return ApiResponse.onFailure(ErrorStatus.VALIDATION_ERROR, "입력값이 올바르지 않습니다.");
     }
 
+    // @RequestBody 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
         String detailedErrors = e.getBindingResult().getFieldErrors().stream()
