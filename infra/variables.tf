@@ -9,7 +9,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "프로젝트 이름"
   type        = string
-  default     = "spring-vote"
+  default     = "diggindie"
 }
 
 variable "environment" {
@@ -29,7 +29,7 @@ variable "vpc_cidr" {
 variable "instance_type" {
   description = "EC2 인스턴스 타입"
   type        = string
-  default     = "t2.nano"
+  default     = "t2.micro"
 }
 
 variable "key_name" {
@@ -41,13 +41,13 @@ variable "key_name" {
 variable "db_name" {
   description = "데이터베이스 이름"
   type        = string
-  default     = "springvote"
+  default     = "diggindie"
 }
 
 variable "db_username" {
   description = "데이터베이스 사용자명"
   type        = string
-  default     = "admin"
+  default     = "postgres"
 }
 
 variable "db_password" {
