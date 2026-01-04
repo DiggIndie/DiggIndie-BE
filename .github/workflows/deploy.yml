@@ -88,6 +88,12 @@ jobs:
                   - REDIS_HOST=redis
                   - REDIS_PORT=6379
                   - JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+                  - JWT_ACCESS_TOKEN_VALIDITY=3600000
+                  - JWT_REFRESH_TOKEN_VALIDITY=604800000
+                  - OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+                  - OPENAI_MODEL=gpt-4o-mini
+                  - SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
+                  - SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
                 depends_on:
                   - redis
                 restart: unless-stopped
