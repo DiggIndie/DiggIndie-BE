@@ -1,4 +1,21 @@
+version: "3.8"
+
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: diggindie-be
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    restart: unless-stopped
+
   redis:
     image: redis:7
     container_name: redis
