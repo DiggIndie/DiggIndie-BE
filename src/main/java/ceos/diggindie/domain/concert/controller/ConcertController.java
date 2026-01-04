@@ -53,8 +53,14 @@ public class ConcertController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "내 공연 스크랩 목록 조회", description = "로그인한 사용자의 공연 스크랩 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @GetMapping("/my/concerts")
     public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapListDTO>> getMyScrappedConcerts(
+            @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         ConcertScrapResponse.ConcertScrapListDTO response =

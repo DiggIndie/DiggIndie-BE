@@ -5,6 +5,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.band.dto.BandListResponse;
 import ceos.diggindie.domain.band.service.BandService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,10 +52,17 @@ public class BandController {
 
     /* 밴드 검색 */
 
+    @Operation(summary = "밴드 검색", description = "검색어와 페이징 조건으로 밴드 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
     @GetMapping("/artists")
     public ResponseEntity<Response<List<BandListResponse>>> getBandList(
+            @Parameter(description = "검색어", example = "리도어")
             @RequestParam(required = false, defaultValue = "") String query,
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             @RequestParam(required = false, defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기", example = "10")
             @RequestParam(required = false, defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);

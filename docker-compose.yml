@@ -13,6 +13,7 @@ services:
     env_file:
       - .env
     environment:
+      TZ: Asia/Seoul
       REDIS_HOST: redis
       REDIS_PORT: 6379
     restart: unless-stopped
@@ -25,6 +26,8 @@ services:
     volumes:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      TZ: Asia/Seoul
 
 volumes:
   redis-data:

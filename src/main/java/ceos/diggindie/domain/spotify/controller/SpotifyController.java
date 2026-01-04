@@ -61,6 +61,11 @@ public class SpotifyController {
 
     // 전체 밴드 앨범/곡 Import
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Spotify 전체 밴드 앨범/곡 Import [내부용]", description = "전체 밴드의 앨범/곡을 Spotify에서 가져옵니다. ADMIN 권한 필요.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Import 성공"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
+    })
     @PostMapping("/api/admin/spotify/import-albums")
     public ResponseEntity<Response<String>> importAllAlbums() {
         spotifyImportService.importAllBandsAlbums();
@@ -70,7 +75,12 @@ public class SpotifyController {
     }
 
     // 특정 밴드 앨범/곡 Import (bandId로)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRoles('ADMIN')")
+    @Operation(summary = "Spotify 특정 밴드 앨범/곡 Import [내부용]", description = "bandId로 특정 밴드의 앨범/곡을 Spotify에서 가져옵니다. ADMIN 권한 필요.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Import 성공"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
+    })
     @PostMapping("/api/admin/spotify/import-albums/{bandId}")
     public ResponseEntity<Response<String>> importBandAlbums(@PathVariable Long bandId) {
         return ResponseEntity.ok().body(
