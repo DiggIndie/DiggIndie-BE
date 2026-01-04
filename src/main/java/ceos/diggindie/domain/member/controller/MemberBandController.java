@@ -2,13 +2,14 @@ package ceos.diggindie.domain.member.controller;
 
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.exception.GeneralException;
-import ceos.diggindie.common.response.ApiResponse;
+import ceos.diggindie.common.response.CommonResponse;
 import ceos.diggindie.common.status.SuccessStatus;
 import ceos.diggindie.domain.member.dto.BandPreferenceRequest;
 import ceos.diggindie.domain.member.dto.BandPreferenceResponse;
 import ceos.diggindie.domain.member.service.MemberBandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,7 +31,7 @@ public class MemberBandController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PostMapping("/artists/preferences")
-    public ResponseEntity<ApiResponse<Void>> saveBandPreferences(
+    public ResponseEntity<CommonResponse<Void>> saveBandPreferences(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BandPreferenceRequest request
@@ -38,7 +39,7 @@ public class MemberBandController {
         if (userDetails == null) throw GeneralException.loginRequired();
 
         memberBandService.saveBandPreferences(userDetails.getMemberId(), request);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED, "밴드 취향 설정 API");
+        return CommonResponse.onSuccess(SuccessStatus._CREATED, "밴드 취향 설정 API");
     }
 
     @Operation(summary = "밴드 취향 조회", description = "로그인 사용자의 밴드 취향 정보를 조회합니다.")
@@ -47,13 +48,13 @@ public class MemberBandController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/artists/preferences")
-    public ResponseEntity<ApiResponse<BandPreferenceResponse>> getBandPreferences(
+    public ResponseEntity<CommonResponse<BandPreferenceResponse>> getBandPreferences(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if (userDetails == null) throw GeneralException.loginRequired();
 
         BandPreferenceResponse response = memberBandService.getBandPreferences(userDetails.getMemberId());
-        return ApiResponse.onSuccess(SuccessStatus._OK, response);
+        return CommonResponse.onSuccess(SuccessStatus._OK, response);
     }
 }

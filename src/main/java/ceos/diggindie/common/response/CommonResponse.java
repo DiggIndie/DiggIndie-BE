@@ -13,7 +13,7 @@ import java.util.List;
 @Getter
 @Builder
 @JsonPropertyOrder({"statusCode", "isSuccess", "message", "pageInfo", "payload"})
-public class ApiResponse<T> {
+public class CommonResponse<T> {
 
     private final Integer statusCode;
     private final Boolean isSuccess;
@@ -28,10 +28,10 @@ public class ApiResponse<T> {
     // ==================== 성공 응답 ====================
 
     // 성공 - 데이터 없음
-    public static ResponseEntity<ApiResponse<Void>> onSuccess(SuccessStatus status) {
+    public static ResponseEntity<CommonResponse<Void>> onSuccess(SuccessStatus status) {
         return ResponseEntity
                 .status(status.getHttpStatus())
-                .body(ApiResponse.<Void>builder()
+                .body(CommonResponse.<Void>builder()
                         .statusCode(status.getHttpStatus().value())
                         .isSuccess(true)
                         .message(status.getMessage())
@@ -39,10 +39,10 @@ public class ApiResponse<T> {
     }
 
     // 성공 - 커스텀 메시지
-    public static ResponseEntity<ApiResponse<Void>> onSuccess(SuccessStatus status, String message) {
+    public static ResponseEntity<CommonResponse<Void>> onSuccess(SuccessStatus status, String message) {
         return ResponseEntity
                 .status(status.getHttpStatus())
-                .body(ApiResponse.<Void>builder()
+                .body(CommonResponse.<Void>builder()
                         .statusCode(status.getHttpStatus().value())
                         .isSuccess(true)
                         .message(message)
@@ -50,10 +50,10 @@ public class ApiResponse<T> {
     }
 
     // 성공 - 데이터 포함
-    public static <T> ResponseEntity<ApiResponse<T>> onSuccess(SuccessStatus status, T payload) {
+    public static <T> ResponseEntity<CommonResponse<T>> onSuccess(SuccessStatus status, T payload) {
         return ResponseEntity
                 .status(status.getHttpStatus())
-                .body(ApiResponse.<T>builder()
+                .body(CommonResponse.<T>builder()
                         .statusCode(status.getHttpStatus().value())
                         .isSuccess(true)
                         .message(status.getMessage())
@@ -62,7 +62,7 @@ public class ApiResponse<T> {
     }
 
     // 성공 - 페이지네이션 포함
-    public static <T> ResponseEntity<ApiResponse<List<T>>> onSuccess(SuccessStatus status, Page<T> page) {
+    public static <T> ResponseEntity<CommonResponse<List<T>>> onSuccess(SuccessStatus status, Page<T> page) {
         PageInfo pageInfo = new PageInfo(
                 page.getNumber(),
                 page.getSize(),
@@ -73,7 +73,7 @@ public class ApiResponse<T> {
 
         return ResponseEntity
                 .status(status.getHttpStatus())
-                .body(ApiResponse.<List<T>>builder()
+                .body(CommonResponse.<List<T>>builder()
                         .statusCode(status.getHttpStatus().value())
                         .isSuccess(true)
                         .message(status.getMessage())
@@ -85,10 +85,10 @@ public class ApiResponse<T> {
     // ==================== 실패 응답 ====================
 
     // 실패 - 기본 에러 메시지
-    public static ResponseEntity<ApiResponse<Void>> onFailure(ErrorStatus error) {
+    public static ResponseEntity<CommonResponse<Void>> onFailure(ErrorStatus error) {
         return ResponseEntity
                 .status(error.getHttpStatus())
-                .body(ApiResponse.<Void>builder()
+                .body(CommonResponse.<Void>builder()
                         .statusCode(error.getHttpStatus().value())
                         .isSuccess(false)
                         .message(error.getMessage())
@@ -96,10 +96,10 @@ public class ApiResponse<T> {
     }
 
     // 실패 - 커스텀 에러 메시지
-    public static ResponseEntity<ApiResponse<Void>> onFailure(ErrorStatus error, String message) {
+    public static ResponseEntity<CommonResponse<Void>> onFailure(ErrorStatus error, String message) {
         return ResponseEntity
                 .status(error.getHttpStatus())
-                .body(ApiResponse.<Void>builder()
+                .body(CommonResponse.<Void>builder()
                         .statusCode(error.getHttpStatus().value())
                         .isSuccess(false)
                         .message(message != null && !message.isBlank() ? message : error.getMessage())
