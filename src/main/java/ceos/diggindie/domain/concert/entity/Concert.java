@@ -38,7 +38,7 @@ public class Concert extends BaseEntity {
     @Column(name = "on_site_price")
     private Integer onSitePrice;
 
-    @Column(name = "main_img", length = 200)
+    @Column(name = "main_img", length = 1000)
     private String mainImg;
 
     @Column(name = "main_url", length = 200)
