@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.band.service;
 
+import ceos.diggindie.domain.band.dto.BandListResponse;
 import ceos.diggindie.domain.band.entity.Artist;
 import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.band.entity.BandsRawData;
@@ -15,9 +16,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -219,5 +224,10 @@ public class BandService {
 
         log.info("========== 밴드 생성 완료 ==========");
         log.info("총 {}개 중 성공: {}개, 실패: {}개", total, completed, failed);
+    }
+
+    public Page<BandListResponse> getBandList(String query, Pageable pageable) {
+        Page<Band> bands = bandRepository.searchBands(query, pageable);
+        return bands.map(BandListResponse::from);
     }
 }

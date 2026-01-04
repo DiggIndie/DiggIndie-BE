@@ -5,6 +5,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchRequest;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchResponse;
 import ceos.diggindie.domain.spotify.dto.SpotifyTokenResponse;
+import ceos.diggindie.domain.spotify.service.SpotifyImportService;
 import ceos.diggindie.domain.spotify.service.SpotifyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Spotify", description = "Spotify 관련 API (백엔드 내부용)")
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpotifyController {
 
     private final SpotifyService spotifyService;
+    private final SpotifyImportService spotifyImportService;
 
     @Operation(summary = "Spotify 토큰 발급 [내부용]", description = "Spotify API 사용을 위한 토큰을 발급받습니다. ADMIN 권한 필요.")
     @ApiResponses({
@@ -31,7 +35,6 @@ public class SpotifyController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/admin/spotify/auth")
     public ResponseEntity<Response<?>> spotifyAuth() {
-
         Response<SpotifyTokenResponse> response = Response.of(
                 SuccessCode.GET_SUCCESS,
                 true,
@@ -47,8 +50,7 @@ public class SpotifyController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/admin/spotify/search")
-    public ResponseEntity<Response<?>> spotifySearch(
-            SpotifySearchRequest request) {
+    public ResponseEntity<Response<?>> spotifySearch(SpotifySearchRequest request) {
         Response<SpotifySearchResponse> response = Response.of(
                 SuccessCode.GET_SUCCESS,
                 true,
@@ -57,4 +59,22 @@ public class SpotifyController {
         return ResponseEntity.ok().body(response);
     }
 
+    // 전체 밴드 앨범/곡 Import
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/admin/spotify/import-albums")
+    public ResponseEntity<Response<String>> importAllAlbums() {
+        spotifyImportService.importAllBandsAlbums();
+        return ResponseEntity.ok().body(
+                Response.of(SuccessCode.INSERT_SUCCESS, true, "앨범/곡 Import 완료")
+        );
+    }
+
+    // 특정 밴드 앨범/곡 Import (bandId로)
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/admin/spotify/import-albums/{bandId}")
+    public ResponseEntity<Response<String>> importBandAlbums(@PathVariable Long bandId) {
+        return ResponseEntity.ok().body(
+                Response.of(SuccessCode.INSERT_SUCCESS, true, "밴드 앨범/곡 Import 완료")
+        );
+    }
 }

@@ -39,3 +39,7 @@ jwt:
 openai:
   client-id: ${OPENAI_API_KEY}
   model: ${OPENAI_MODEL}
+
+spotify:
+  client-id: ${SPOTIFY_CLIENT_ID}
+  client-secret: ${SPOTIFY_CLIENT_SECRET}
