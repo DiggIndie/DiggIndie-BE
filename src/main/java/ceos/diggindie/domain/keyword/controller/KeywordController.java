@@ -2,7 +2,7 @@ package ceos.diggindie.domain.keyword.controller;
 
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.exception.GeneralException;
-import ceos.diggindie.common.response.ApiResponse;
+import ceos.diggindie.common.response.CommonResponse;
 import ceos.diggindie.common.status.SuccessStatus;
 import ceos.diggindie.domain.keyword.dto.KeywordRequest;
 import ceos.diggindie.domain.keyword.dto.KeywordResponse;
@@ -34,9 +34,9 @@ public class KeywordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     @GetMapping("/keywords")
-    public ResponseEntity<ApiResponse<List<KeywordResponse>>> getAllKeywords() {
+    public ResponseEntity<CommonResponse<List<KeywordResponse>>> getAllKeywords() {
         List<KeywordResponse> keywords = keywordService.getAllKeywords();
-        return ApiResponse.onSuccess(SuccessStatus._OK, keywords);
+        return CommonResponse.onSuccess(SuccessStatus._OK, keywords);
     }
 
     @Operation(summary = "내 키워드 선호 저장", description = "로그인 사용자의 키워드 선호를 저장합니다.")
@@ -45,7 +45,7 @@ public class KeywordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PostMapping("/my/keywords")
-    public ResponseEntity<ApiResponse<Void>> saveKeywordPreferences(
+    public ResponseEntity<CommonResponse<Void>> saveKeywordPreferences(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody KeywordRequest request
@@ -53,7 +53,7 @@ public class KeywordController {
         if (userDetails == null) throw GeneralException.loginRequired();
 
         keywordService.setMyKeywords(userDetails.getMemberId(), request);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED);
+        return CommonResponse.onSuccess(SuccessStatus._CREATED);
     }
 
     @Operation(summary = "내 키워드 선호 조회", description = "로그인 사용자의 키워드 선호 목록을 조회합니다.")
@@ -62,14 +62,14 @@ public class KeywordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @GetMapping("/my/keywords")
-    public ResponseEntity<ApiResponse<List<KeywordResponse>>> getMyKeywords(
+    public ResponseEntity<CommonResponse<List<KeywordResponse>>> getMyKeywords(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         if (userDetails == null) throw GeneralException.loginRequired();
 
         List<KeywordResponse> keywords = keywordService.getMyKeywords(userDetails.getMemberId());
-        return ApiResponse.onSuccess(SuccessStatus._OK, keywords);
+        return CommonResponse.onSuccess(SuccessStatus._OK, keywords);
     }
 
 }
