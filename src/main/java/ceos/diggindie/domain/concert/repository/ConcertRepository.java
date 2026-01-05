@@ -17,7 +17,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             JOIN FETCH c.concertHall
             WHERE c.startDate >= :startOfDay
               AND c.startDate <  :endOfDay
-            ORDER BY c.startDate ASC
         """,
         countQuery = """
             SELECT COUNT(c)
