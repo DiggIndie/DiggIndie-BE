@@ -128,4 +128,97 @@ public class AuthController {
         return ResponseEntity.ok().body(response);
     }
 
+    // ===== 이메일 인증 API =====
+
+    @Operation(summary = "회원가입 인증 코드 발송", description = "회원가입을 위한 이메일 인증 코드를 발송합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
+            @ApiResponse(responseCode = "400", description = "이미 사용 중인 이메일")
+    })
+    @PostMapping("/auth/email/signup/send")
+    public ResponseEntity<Response<EmailVerificationResponse>> sendSignupVerificationCode(
+            @Valid @RequestBody EmailVerificationRequest request
+    ) {
+        Response<EmailVerificationResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "회원가입 인증 코드 발송 API",
+                authService.sendSignupVerificationCode(request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "회원가입 인증 코드 확인", description = "회원가입 이메일 인증 코드를 확인합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 성공"),
+            @ApiResponse(responseCode = "400", description = "인증 코드 불일치 또는 만료")
+    })
+    @PostMapping("/auth/email/signup/verify")
+    public ResponseEntity<Response<EmailVerificationResponse>> verifySignupCode(
+            @Valid @RequestBody EmailVerificationConfirmRequest request
+    ) {
+        Response<EmailVerificationResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "회원가입 인증 코드 확인 API",
+                authService.verifySignupCode(request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "비밀번호 재설정 인증 코드 발송", description = "비밀번호 재설정을 위한 이메일 인증 코드를 발송합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 코드 발송 성공"),
+            @ApiResponse(responseCode = "400", description = "등록되지 않은 이메일")
+    })
+    @PostMapping("/auth/email/password/send")
+    public ResponseEntity<Response<EmailVerificationResponse>> sendPasswordResetCode(
+            @Valid @RequestBody EmailVerificationRequest request
+    ) {
+        Response<EmailVerificationResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "비밀번호 재설정 인증 코드 발송 API",
+                authService.sendPasswordResetCode(request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "비밀번호 재설정 인증 코드 확인", description = "비밀번호 재설정 이메일 인증 코드를 확인합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "인증 성공"),
+            @ApiResponse(responseCode = "400", description = "인증 코드 불일치 또는 만료")
+    })
+    @PostMapping("/auth/email/password/verify")
+    public ResponseEntity<Response<EmailVerificationResponse>> verifyPasswordResetCode(
+            @Valid @RequestBody EmailVerificationConfirmRequest request
+    ) {
+        Response<EmailVerificationResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "비밀번호 재설정 인증 코드 확인 API",
+                authService.verifyPasswordResetCode(request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "비밀번호 재설정", description = "인증 완료 후 새 비밀번호를 설정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
+            @ApiResponse(responseCode = "400", description = "이메일 인증 필요 또는 등록되지 않은 이메일")
+    })
+    @PostMapping("/auth/password/reset")
+    public ResponseEntity<Response<EmailVerificationResponse>> resetPassword(
+            @Valid @RequestBody PasswordResetRequest request
+    ) {
+        Response<EmailVerificationResponse> response = Response.of(
+                SuccessCode.UPDATE_SUCCESS,
+                true,
+                "비밀번호 재설정 API",
+                authService.resetPassword(request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+
 }

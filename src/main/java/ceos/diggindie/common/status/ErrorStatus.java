@@ -14,6 +14,7 @@ public enum ErrorStatus {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON401", "인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "접근 권한이 없습니다."),
     _NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON404", "리소스를 찾을 수 없습니다."),
+    _CONFLICT(HttpStatus.CONFLICT, "COMMON409", "요청이 현재 상태와 충돌합니다."),
 
     // ==================== 입력값 검증 ====================
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALID400", "입력값이 올바르지 않습니다."),

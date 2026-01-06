@@ -2,6 +2,8 @@ package ceos.diggindie.domain.member.service;
 
 import ceos.diggindie.common.config.security.jwt.JwtTokenProvider;
 import ceos.diggindie.common.enums.Role;
+import ceos.diggindie.common.exception.GeneralException;
+import ceos.diggindie.common.status.ErrorStatus;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
@@ -25,6 +27,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
+    private final EmailVerificationService emailVerificationService;
+    private final EmailService emailService;
 
     @Value("${jwt.access-token-validity}")
     private Duration accessTokenValidity;
@@ -155,4 +159,84 @@ public class AuthService {
         return null;
     }
 
+    /**
+     * 회원가입용 이메일 인증 코드 발송
+     */
+    public EmailVerificationResponse sendSignupVerificationCode(EmailVerificationRequest request) {
+        if (memberRepository.existsByEmail(request.email())) {
+            throw new GeneralException(ErrorStatus._CONFLICT, "이미 존재하는 이메일입니다.");
+        }
+
+        String code = emailVerificationService.generateCode();
+        emailVerificationService.saveSignupCode(request.email(), code);
+        emailService.sendVerificationEmail(request.email(), code, "signup");
+
+        return new EmailVerificationResponse("인증 코드가 발송되었습니다.", true);
+    }
+
+    /**
+     * 회원가입용 이메일 인증 코드 확인
+     */
+    public EmailVerificationResponse verifySignupCode(EmailVerificationConfirmRequest request) {
+        boolean isValid = emailVerificationService.verifySignupCode(request.email(), request.code());
+
+        if (!isValid) {
+            throw new GeneralException(ErrorStatus.VALIDATION_ERROR, "인증 코드가 올바르지 않거나 만료되었습니다.");
+        }
+
+        return new EmailVerificationResponse("이메일 인증이 완료되었습니다.", true);
+    }
+
+    /**
+     * 비밀번호 재설정용 이메일 인증 코드 발송
+     */
+    public EmailVerificationResponse sendPasswordResetCode(EmailVerificationRequest request) {
+        if (!memberRepository.existsByEmail(request.email())) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST, "등록되지 않은 이메일입니다.");
+        }
+
+        String code = emailVerificationService.generateCode();
+        emailVerificationService.savePasswordResetCode(request.email(), code);
+        emailService.sendVerificationEmail(request.email(), code, "password");
+
+        return new EmailVerificationResponse("인증 코드가 발송되었습니다.", true);
+    }
+
+    /**
+     * 비밀번호 재설정용 이메일 인증 코드 확인
+     */
+    public EmailVerificationResponse verifyPasswordResetCode(EmailVerificationConfirmRequest request) {
+        boolean isValid = emailVerificationService.verifyPasswordResetCode(request.email(), request.code());
+
+        if (!isValid) {
+            throw new GeneralException(ErrorStatus.VALIDATION_ERROR, "인증 코드가 올바르지 않거나 만료되었습니다.");
+        }
+
+        // 인증 완료 표시 저장 (비밀번호 변경 시까지 유효)
+        emailVerificationService.markPasswordResetVerified(request.email());
+
+        return new EmailVerificationResponse("인증이 완료되었습니다. 새 비밀번호를 설정해주세요.", true);
+    }
+
+    /**
+     * 비밀번호 재설정
+     */
+    @Transactional
+    public EmailVerificationResponse resetPassword(PasswordResetRequest request) {
+        // 인증 완료 여부 확인
+        if (!emailVerificationService.isPasswordResetVerified(request.email())) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST, "이메일 인증이 필요합니다.");
+        }
+
+        Member member = memberRepository.findByEmail(request.email())
+                .orElseThrow(() -> new GeneralException(ErrorStatus._BAD_REQUEST, "등록되지 않은 이메일입니다."));
+
+        String encodedPassword = passwordEncoder.encode(request.newPassword());
+        member.updatePassword(encodedPassword);
+
+        // 인증 완료 표시 삭제
+        emailVerificationService.clearPasswordResetVerified(request.email());
+
+        return new EmailVerificationResponse("비밀번호가 성공적으로 변경되었습니다.", true);
+    }
 }
