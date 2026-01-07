@@ -63,13 +63,11 @@ public class OAuth2Service {
             isNewMember = true;
         }
 
-        // 메서드명 수정 + Role 파라미터 추가
         String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
         String refreshToken = jwtTokenProvider.generateRefreshToken(member.getExternalId(), member.getRole());
 
         refreshTokenService.save(member.getExternalId(), refreshToken);
 
-        // 쿠키 직접 설정
         setRefreshTokenCookie(response, refreshToken);
 
         return OAuth2LoginResponse.builder()
@@ -87,10 +85,9 @@ public class OAuth2Service {
      */
     @Transactional
     public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
-        Member member = memberRepository.findById(userDetails.getMemberId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus._NOT_FOUND, "회원을 찾을 수 없습니다."));
+        Long memberId = userDetails.getMemberId();
 
-        if (socialAccountRepository.existsByMemberIdAndPlatform(member.getId(), request.getPlatform())) {
+        if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, request.getPlatform())) {
             throw new GeneralException(ErrorStatus.OAUTH_ALREADY_LINKED);
         }
 
@@ -101,15 +98,16 @@ public class OAuth2Service {
             throw new GeneralException(ErrorStatus.OAUTH_ACCOUNT_EXISTS);
         }
 
+        Member memberRef = memberRepository.getReferenceById(memberId);
+
         SocialAccount socialAccount = SocialAccount.builder()
                 .platform(userInfo.getPlatform())
                 .platformId(userInfo.getPlatformId())
                 .email(userInfo.getEmail())
-                .member(member)
+                .member(memberRef)
                 .build();
 
         socialAccountRepository.save(socialAccount);
-        member.addSocialAccount(socialAccount);
 
         return OAuth2LinkResponse.builder()
                 .success(true)
@@ -124,6 +122,10 @@ public class OAuth2Service {
      */
     @Transactional
     public OAuth2UnlinkResponse unlinkSocialAccount(CustomUserDetails userDetails, LoginPlatform platform) {
+        if (platform == LoginPlatform.LOCAL) {
+            throw new GeneralException(ErrorStatus.OAUTH_INVALID_PLATFORM, "기본 회원가입은 연동 해제할 수 없습니다.");
+        }
+
         Member member = memberRepository.findById(userDetails.getMemberId())
                 .orElseThrow(() -> new GeneralException(ErrorStatus._NOT_FOUND, "회원을 찾을 수 없습니다."));
 

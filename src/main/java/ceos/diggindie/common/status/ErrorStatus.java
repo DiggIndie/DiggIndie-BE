@@ -52,6 +52,7 @@ public enum ErrorStatus {
     // ==================== OAuth ====================
     OAUTH_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "OAUTH4001", "지원하지 않는 소셜 로그인 제공자입니다."),
     OAUTH_CODE_INVALID(HttpStatus.BAD_REQUEST, "OAUTH4002", "유효하지 않은 인가 코드입니다."),
+    OAUTH_INVALID_PLATFORM(HttpStatus.BAD_REQUEST, "OAUTH4003", "유효하지 않은 플랫폼입니다."),
     OAUTH_TOKEN_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "OAUTH5001", "소셜 로그인 토큰 요청에 실패했습니다."),
     OAUTH_USER_INFO_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "OAUTH5002", "소셜 로그인 사용자 정보 요청에 실패했습니다."),
     OAUTH_ALREADY_LINKED(HttpStatus.CONFLICT, "OAUTH4091", "이미 연동된 소셜 계정입니다."),

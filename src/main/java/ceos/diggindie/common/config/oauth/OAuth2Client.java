@@ -31,14 +31,21 @@ public class OAuth2Client {
     }
 
     private String getAccessToken(LoginPlatform platform, String code) {
-        OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());
+        OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());;
+
+        String decodedCode;
+        try {
+            decodedCode = java.net.URLDecoder.decode(code, java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            decodedCode = code;
+        }
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", provider.getClientId());
         params.add("client_secret", provider.getClientSecret());
         params.add("redirect_uri", provider.getRedirectUri());
-        params.add("code", code);
+        params.add("code", decodedCode);
 
         if (platform == LoginPlatform.NAVER) {
             params.add("state", "STATE_STRING");
