@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ public class OAuth2Service {
     private final RefreshTokenService refreshTokenService;
     private final OAuth2Properties oAuth2Properties;
     private final OAuth2StateService oAuth2StateService;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${jwt.refresh-token-validity}")
     private java.time.Duration refreshTokenValidity;
@@ -42,40 +44,42 @@ public class OAuth2Service {
     /**
      * 소셜 로그인 (회원가입 포함)
      */
-    @Transactional
     public OAuth2LoginResponse login(OAuth2LoginRequest request, HttpServletResponse response) {
-
         validateState(request.getState(), request.getPlatform());
 
         OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(request.getPlatform(), request.getCode());
 
-        Optional<SocialAccount> existingSocialAccount = socialAccountRepository
-                .findByPlatformAndPlatformIdWithMember(userInfo.getPlatform(), userInfo.getPlatformId());
+        LoginResult result = transactionTemplate.execute(status -> {
+            Optional<SocialAccount> existingSocialAccount = socialAccountRepository
+                    .findByPlatformAndPlatformIdWithMember(userInfo.getPlatform(), userInfo.getPlatformId());
 
-        Member member;
-        boolean isNewMember = false;
+            Member member;
+            boolean isNewMember = false;
 
-        if (existingSocialAccount.isPresent()) {
-            member = existingSocialAccount.get().getMember();
-            member.updateRecentLoginPlatform(userInfo.getPlatform());
+            if (existingSocialAccount.isPresent()) {
+                member = existingSocialAccount.get().getMember();
+                member.updateRecentLoginPlatform(userInfo.getPlatform());
 
-            if (userInfo.getEmail() != null) {
-                existingSocialAccount.get().updateEmail(userInfo.getEmail());
+                if (userInfo.getEmail() != null) {
+                    existingSocialAccount.get().updateEmail(userInfo.getEmail());
+                }
+            } else {
+                member = createNewMember(userInfo);
+                isNewMember = true;
             }
-        } else {
-            member = createNewMember(userInfo);
-            isNewMember = true;
-        }
 
+            return new LoginResult(member, isNewMember);
+        });
+
+        Member member = result.member();
         String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
         String refreshToken = jwtTokenProvider.generateRefreshToken(member.getExternalId(), member.getRole());
 
         refreshTokenService.save(member.getExternalId(), refreshToken);
-
         setRefreshTokenCookie(response, refreshToken);
 
         return OAuth2LoginResponse.builder()
-                .newMember(isNewMember)
+                .newMember(result.isNewMember())
                 .memberId(member.getId())
                 .userId(member.getUserId())
                 .email(member.getEmail())
@@ -87,32 +91,35 @@ public class OAuth2Service {
     /**
      * 기존 계정에 소셜 계정 연동
      */
-    @Transactional
     public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
         validateState(request.getState(), request.getPlatform());
         Long memberId = userDetails.getMemberId();
 
-        if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, request.getPlatform())) {
-            throw new GeneralException(ErrorStatus.OAUTH_ALREADY_LINKED);
-        }
+        transactionTemplate.executeWithoutResult(status -> {
+            if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, request.getPlatform())) {
+                throw new GeneralException(ErrorStatus.OAUTH_ALREADY_LINKED);
+            }
+        });
 
         OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(request.getPlatform(), request.getCode());
 
-        if (socialAccountRepository.findByPlatformAndPlatformId(
-                userInfo.getPlatform(), userInfo.getPlatformId()).isPresent()) {
-            throw new GeneralException(ErrorStatus.OAUTH_ACCOUNT_EXISTS);
-        }
+        transactionTemplate.executeWithoutResult(status -> {
+            if (socialAccountRepository.findByPlatformAndPlatformId(
+                    userInfo.getPlatform(), userInfo.getPlatformId()).isPresent()) {
+                throw new GeneralException(ErrorStatus.OAUTH_ACCOUNT_EXISTS);
+            }
 
-        Member memberRef = memberRepository.getReferenceById(memberId);
+            Member memberRef = memberRepository.getReferenceById(memberId);
 
-        SocialAccount socialAccount = SocialAccount.builder()
-                .platform(userInfo.getPlatform())
-                .platformId(userInfo.getPlatformId())
-                .email(userInfo.getEmail())
-                .member(memberRef)
-                .build();
+            SocialAccount socialAccount = SocialAccount.builder()
+                    .platform(userInfo.getPlatform())
+                    .platformId(userInfo.getPlatformId())
+                    .email(userInfo.getEmail())
+                    .member(memberRef)
+                    .build();
 
-        socialAccountRepository.save(socialAccount);
+            socialAccountRepository.save(socialAccount);
+        });
 
         return OAuth2LinkResponse.builder()
                 .success(true)
@@ -234,4 +241,7 @@ public class OAuth2Service {
             throw new GeneralException(ErrorStatus.OAUTH_INVALID_STATE);
         }
     }
+
+    // 내부용 record
+    private record LoginResult(Member member, boolean isNewMember) {}
 }
