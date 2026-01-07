@@ -5,6 +5,8 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchRequest;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchResponse;
 import ceos.diggindie.domain.spotify.dto.SpotifyTokenResponse;
+import ceos.diggindie.domain.spotify.dto.TopTrackUpdateAllResponse;
+import ceos.diggindie.domain.spotify.dto.TopTrackUpdateResponse;
 import ceos.diggindie.domain.spotify.service.SpotifyImportService;
 import ceos.diggindie.domain.spotify.service.SpotifyService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,6 +87,37 @@ public class SpotifyController {
     public ResponseEntity<Response<String>> importBandAlbums(@PathVariable Long bandId) {
         return ResponseEntity.ok().body(
                 Response.of(SuccessCode.INSERT_SUCCESS, true, "밴드 앨범/곡 Import 완료")
+        );
+    }
+
+    // 특정 밴드 대표곡 업데이트 (bandId로)
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Spotify 특정 밴드 대표곡 업데이트 [내부용]", description = "bandId로 특정 밴드의 대표곡을 Spotify에서 가져옵니다. ADMIN 권한 필요.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "업데이트 성공"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
+    })
+    @PostMapping("/api/admin/spotify/update/top-track/{bandId}")
+    public ResponseEntity<Response<TopTrackUpdateResponse>> updateTopTrack(@PathVariable Long bandId) {
+        boolean success = spotifyService.updateTopTrackByBandId(bandId);
+        TopTrackUpdateResponse result = new TopTrackUpdateResponse(bandId, success);
+        return ResponseEntity.ok().body(
+                Response.of(SuccessCode.UPDATE_SUCCESS, true, result)
+        );
+    }
+
+    // 전체 밴드 대표곡 일괄 업데이트
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Spotify 전체 밴드 대표곡 일괄 업데이트 [내부용]", description = "전체 밴드의 대표곡을 Spotify에서 가져옵니다. ADMIN 권한 필요.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "업데이트 성공"),
+            @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
+    })
+    @PostMapping("/api/admin/spotify/update/top-track/all")
+    public ResponseEntity<Response<TopTrackUpdateAllResponse>> updateAllTopTracks() {
+        TopTrackUpdateAllResponse result = spotifyService.updateAllTopTrack();
+        return ResponseEntity.ok().body(
+                Response.of(SuccessCode.UPDATE_SUCCESS, true, result)
         );
     }
 }

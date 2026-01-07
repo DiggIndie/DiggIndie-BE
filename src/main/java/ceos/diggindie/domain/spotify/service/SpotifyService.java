@@ -1,17 +1,14 @@
 package ceos.diggindie.domain.spotify.service;
 
-import ceos.diggindie.domain.spotify.dto.SpotifyAlbumsResponse;
+import ceos.diggindie.domain.spotify.dto.*;
 import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.band.entity.TopTrack;
 import ceos.diggindie.domain.band.repository.BandRepository;
 import ceos.diggindie.domain.band.repository.TopTrackRepository;
-import ceos.diggindie.domain.spotify.dto.SpotifySearchRequest;
-import ceos.diggindie.domain.spotify.dto.SpotifySearchResponse;
-import ceos.diggindie.domain.spotify.dto.SpotifyTokenResponse;
-import ceos.diggindie.domain.spotify.dto.SpotifyTracksResponse;
-import ceos.diggindie.domain.spotify.dto.SpotifyTopTrackResponse;
+import ceos.diggindie.domain.spotify.dto.TopTrackUpdateAllResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ceos.diggindie.domain.spotify.dto.SpotifyTracksResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -192,76 +189,75 @@ public class SpotifyService {
         return response;
     }
 
-    @Transactional
-    public int syncAllTopTracks() {
-        // 모든 밴드 조회
+
+    public TopTrackUpdateAllResponse updateAllTopTrack() {
         List<Band> bands = bandRepository.findAll();
 
-        // Spotify access token 발급
         SpotifyTokenResponse tokenResponse = getSpotifyToken();
         if (tokenResponse == null || tokenResponse.accessToken() == null) {
             log.error("Spotify access token 발급 실패");
-            return 0;
+            return new TopTrackUpdateAllResponse(bands.size(), 0, bands.size());
         }
         String accessToken = tokenResponse.accessToken();
 
         int successCount = 0;
+        int failCount = 0;
+        int skippedCount = 0;
 
         for (Band band : bands) {
+            // 이미 TopTrack이 있으면 스킵
+            if (topTrackRepository.existsByBand(band)) {
+                log.debug("이미 TopTrack이 존재하는 밴드 스킵 - bandId: {}, bandName: {}", band.getId(), band.getBandName());
+                skippedCount++;
+                continue;
+            }
+
             String spotifyId = band.getSpotifyId();
 
             // spotifyId가 없는 밴드는 스킵
             if (spotifyId == null || spotifyId.isBlank()) {
                 log.info("Spotify ID가 없는 밴드 스킵 - bandId: {}, bandName: {}", band.getId(), band.getBandName());
+                failCount++;
                 continue;
             }
 
             try {
-                // 밴드의 스포티파이 ID로 top track 조회
                 SpotifyTopTrackResponse topTracksResponse = getTopTracks(spotifyId, accessToken);
 
                 if (topTracksResponse == null || topTracksResponse.tracks().isEmpty()) {
                     log.info("Top Track이 없는 밴드 스킵 - bandId: {}, bandName: {}", band.getId(), band.getBandName());
+                    failCount++;
                     continue;
                 }
 
-                // 첫 번째 트랙(가장 인기 있는 트랙)을 대표곡으로 저장
-                SpotifyTopTrackResponse.TrackDto topTrack = topTracksResponse.tracks().get(0);
+                SpotifyTopTrackResponse.TrackDto topTrack = topTracksResponse.tracks().getFirst();
                 String title = topTrack.name();
                 String externalUrl = topTrack.external_urls().spotify();
 
-                // 기존 TopTrack이 있는지 확인
-                Optional<TopTrack> existingTopTrack = topTrackRepository.findByBand(band);
-
-                if (existingTopTrack.isPresent()) {
-                    // 기존 TopTrack 업데이트
-                    existingTopTrack.get().update(title, externalUrl);
-                    log.info("TopTrack 업데이트 완료 - bandName: {}, title: {}", band.getBandName(), title);
-                } else {
-                    // 새로운 TopTrack 생성
-                    TopTrack newTopTrack = TopTrack.builder()
-                            .band(band)
-                            .title(title)
-                            .externalUrl(externalUrl)
-                            .build();
-                    topTrackRepository.save(newTopTrack);
-                    log.info("TopTrack 저장 완료 - bandName: {}, title: {}", band.getBandName(), title);
-                }
+                TopTrack newTopTrack = TopTrack.builder()
+                        .band(band)
+                        .title(title)
+                        .externalUrl(externalUrl)
+                        .build();
+                topTrackRepository.save(newTopTrack);
+                log.info("TopTrack 저장 완료 - bandName: {}, title: {}", band.getBandName(), title);
 
                 successCount++;
 
             } catch (Exception e) {
                 log.error("TopTrack 저장 실패 - bandId: {}, bandName: {}, error: {}",
                         band.getId(), band.getBandName(), e.getMessage());
+                failCount++;
             }
         }
 
-        log.info("TopTrack 동기화 완료 - 총 {}개 밴드 중 {}개 성공", bands.size(), successCount);
-        return successCount;
+        log.info("TopTrack 동기화 완료 - 총 {}개 밴드 중 {}개 성공, {}개 스킵, {}개 실패",
+                bands.size(), successCount, skippedCount, failCount);
+        return new TopTrackUpdateAllResponse(bands.size(), successCount, failCount);
     }
 
     @Transactional
-    public boolean syncTopTrackByBandId(Long bandId) {
+    public boolean updateTopTrackByBandId(Long bandId) {
         Band band = bandRepository.findById(bandId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 밴드입니다. bandId: " + bandId));
 
