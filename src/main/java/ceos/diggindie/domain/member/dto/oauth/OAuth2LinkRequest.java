@@ -18,4 +18,8 @@ import lombok.NoArgsConstructor;
         @Schema(description = "연동할 소셜 플랫폼")
         @NotNull(message = "플랫폼은 필수입니다.")
         private LoginPlatform platform;
+
+        @Schema(description = "CSRF 방지용 state")
+        @NotBlank(message = "state는 필수입니다.")
+        private String state;
     }

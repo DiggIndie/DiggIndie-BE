@@ -34,6 +34,7 @@ public class OAuth2Service {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
     private final OAuth2Properties oAuth2Properties;
+    private final OAuth2StateService oAuth2StateService;
 
     @Value("${jwt.refresh-token-validity}")
     private java.time.Duration refreshTokenValidity;
@@ -43,6 +44,9 @@ public class OAuth2Service {
      */
     @Transactional
     public OAuth2LoginResponse login(OAuth2LoginRequest request, HttpServletResponse response) {
+
+        validateState(request.getState(), request.getPlatform());
+
         OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(request.getPlatform(), request.getCode());
 
         Optional<SocialAccount> existingSocialAccount = socialAccountRepository
@@ -85,6 +89,7 @@ public class OAuth2Service {
      */
     @Transactional
     public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
+        validateState(request.getState(), request.getPlatform());
         Long memberId = userDetails.getMemberId();
 
         if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, request.getPlatform())) {
@@ -176,21 +181,24 @@ public class OAuth2Service {
     public OAuth2UrlResponse getAuthUrl(LoginPlatform platform) {
         OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());
 
+        String state = oAuth2StateService.generateState(platform.name());
+
         String authUrl = switch (platform) {
             case KAKAO -> String.format(
-                    "https://kauth.kakao.com/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=profile_nickname,account_email",
-                    provider.getClientId(), provider.getRedirectUri());
+                    "https://kauth.kakao.com/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=profile_nickname,account_email&state=%s",
+                    provider.getClientId(), provider.getRedirectUri(), state);
             case NAVER -> String.format(
-                    "https://nid.naver.com/oauth2.0/authorize?client_id=%s&redirect_uri=%s&response_type=code&state=STATE",
-                    provider.getClientId(), provider.getRedirectUri());
+                    "https://nid.naver.com/oauth2.0/authorize?client_id=%s&redirect_uri=%s&response_type=code&state=%s",
+                    provider.getClientId(), provider.getRedirectUri(), state);
             case GOOGLE -> String.format(
-                    "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=profile%%20email",
-                    provider.getClientId(), provider.getRedirectUri());
+                    "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=profile%%20email&state=%s",
+                    provider.getClientId(), provider.getRedirectUri(), state);
             default -> throw new GeneralException(ErrorStatus.OAUTH_PROVIDER_NOT_SUPPORTED);
         };
 
         return OAuth2UrlResponse.builder()
                 .authUrl(authUrl)
+                .state(state)
                 .build();
     }
 
@@ -218,5 +226,12 @@ public class OAuth2Service {
         cookie.setPath("/");
         cookie.setMaxAge((int) refreshTokenValidity.toSeconds());
         response.addCookie(cookie);
+    }
+
+    private void validateState(String state, LoginPlatform platform) {
+        if (!oAuth2StateService.validateAndConsume(state, platform.name())) {
+            log.warn("OAuth state validation failed - state: {}, platform: {}", state, platform);
+            throw new GeneralException(ErrorStatus.OAUTH_INVALID_STATE);
+        }
     }
 }

@@ -47,10 +47,6 @@ public class OAuth2Client {
         params.add("redirect_uri", provider.getRedirectUri());
         params.add("code", decodedCode);
 
-        if (platform == LoginPlatform.NAVER) {
-            params.add("state", "STATE_STRING");
-        }
-
         try {
             Map<String, Object> response = restClient.post()
                     .uri(provider.getTokenUri())

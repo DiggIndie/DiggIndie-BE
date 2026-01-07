@@ -18,4 +18,8 @@ public class OAuth2LoginRequest {
     @Schema(description = "소셜 로그인 플랫폼", example = "KAKAO")
     @NotNull(message = "플랫폼은 필수입니다.")
     private LoginPlatform platform;
+
+    @Schema(description = "CSRF 방지용 state")
+    @NotBlank(message = "state는 필수입니다.")
+    private String state;
 }
