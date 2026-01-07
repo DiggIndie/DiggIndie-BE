@@ -47,7 +47,19 @@ public enum ErrorStatus {
     INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "SEARCH400", "검색어는 공백일 수 없습니다."),
 
     // ==================== 페이징 ====================
-    INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "PAGE400", "page는 0 이상, size는 1~100 사이여야 합니다.");
+    INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "PAGE400", "page는 0 이상, size는 1~100 사이여야 합니다."),
+
+    // ==================== OAuth ====================
+    OAUTH_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "OAUTH4001", "지원하지 않는 소셜 로그인 제공자입니다."),
+    OAUTH_CODE_INVALID(HttpStatus.BAD_REQUEST, "OAUTH4002", "유효하지 않은 인가 코드입니다."),
+    OAUTH_TOKEN_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "OAUTH5001", "소셜 로그인 토큰 요청에 실패했습니다."),
+    OAUTH_USER_INFO_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "OAUTH5002", "소셜 로그인 사용자 정보 요청에 실패했습니다."),
+    OAUTH_ALREADY_LINKED(HttpStatus.CONFLICT, "OAUTH4091", "이미 연동된 소셜 계정입니다."),
+    OAUTH_ACCOUNT_EXISTS(HttpStatus.CONFLICT, "OAUTH4092", "해당 소셜 계정으로 가입된 회원이 이미 존재합니다."),
+    OAUTH_UNLINK_DENIED(HttpStatus.BAD_REQUEST, "OAUTH4003", "마지막 로그인 수단은 연동 해제할 수 없습니다."),
+    OAUTH_NOT_LINKED(HttpStatus.NOT_FOUND, "OAUTH4041", "연동되지 않은 소셜 계정입니다."),
+
+    ;
 
     private final HttpStatus httpStatus;
     private final String code;

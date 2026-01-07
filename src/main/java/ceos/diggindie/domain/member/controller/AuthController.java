@@ -2,9 +2,12 @@ package ceos.diggindie.domain.member.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
+import ceos.diggindie.common.enums.LoginPlatform;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
+import ceos.diggindie.domain.member.dto.oauth.*;
 import ceos.diggindie.domain.member.service.AuthService;
+import ceos.diggindie.domain.member.service.OAuth2Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final OAuth2Service oAuth2Service;
 
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -124,6 +128,103 @@ public class AuthController {
                 true,
                 "토큰 재발급 API",
                 authService.reissue(httpRequest, httpResponse)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+
+    @Operation(summary = "소셜 로그인", description = "소셜 로그인을 처리합니다. (카카오, 네이버, 구글)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그인 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "502", description = "OAuth Provider 통신 실패")
+    })
+    @PostMapping("/auth/oauth2/login")
+    public ResponseEntity<Response<OAuth2LoginResponse>> oAuth2Login(
+            @Valid @RequestBody OAuth2LoginRequest request,
+            HttpServletResponse httpResponse
+    ) {
+        Response<OAuth2LoginResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "소셜 로그인 API",
+                oAuth2Service.login(request, httpResponse)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "소셜 계정 연동", description = "기존 계정에 소셜 계정을 연동합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "연동 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "409", description = "이미 연동된 계정")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/auth/oauth2/link")
+    public ResponseEntity<Response<OAuth2LinkResponse>> linkSocialAccount(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody OAuth2LinkRequest request
+    ) {
+        Response<OAuth2LinkResponse> response = Response.of(
+                SuccessCode.INSERT_SUCCESS,
+                true,
+                "소셜 계정 연동 API",
+                oAuth2Service.linkSocialAccount(userDetails, request)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "소셜 계정 연동 해제", description = "연동된 소셜 계정을 해제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "연동 해제 성공"),
+            @ApiResponse(responseCode = "400", description = "마지막 로그인 수단은 해제 불가"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "연동되지 않은 계정")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/auth/oauth2/unlink/{platform}")
+    public ResponseEntity<Response<OAuth2UnlinkResponse>> unlinkSocialAccount(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable LoginPlatform platform
+    ) {
+        Response<OAuth2UnlinkResponse> response = Response.of(
+                SuccessCode.DELETE_SUCCESS,
+                true,
+                "소셜 계정 연동 해제 API",
+                oAuth2Service.unlinkSocialAccount(userDetails, platform)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "연동된 소셜 계정 목록 조회", description = "현재 회원에게 연동된 소셜 계정 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/auth/oauth2/accounts")
+    public ResponseEntity<Response<LinkedSocialAccountResponse>> getLinkedAccounts(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Response<LinkedSocialAccountResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "연동된 소셜 계정 목록 조회 API",
+                oAuth2Service.getLinkedAccounts(userDetails)
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "OAuth2 인증 URL 조회", description = "소셜 로그인을 위한 인증 URL을 반환합니다.")
+    @GetMapping("/auth/oauth2/url/{platform}")
+    public ResponseEntity<Response<OAuth2UrlResponse>> getOAuth2AuthUrl(
+            @PathVariable LoginPlatform platform
+    ) {
+        Response<OAuth2UrlResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "OAuth2 인증 URL 조회 API",
+                oAuth2Service.getAuthUrl(platform)
         );
         return ResponseEntity.ok().body(response);
     }
