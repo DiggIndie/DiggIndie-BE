@@ -42,7 +42,7 @@ public class ConcertController {
     @GetMapping("/concerts")
     public ResponseEntity<Response<ConcertsListResponse>> getConcerts(
             @Parameter(description = "정렬 기준 (recent: 공연임박순, view: 조회순, scrap: 스크랩순)", example = "recent")
-            @RequestParam(required = false, defaultValue = "RECENT") ConcertSortType order,
+            @RequestParam(required = false, defaultValue = "recent") ConcertSortType order,
             @Parameter(description = "검색어 (공연명, 밴드명)", example = "펜타포트")
             @RequestParam(required = false) String query,
             @PageableDefault(size = 20) Pageable pageable

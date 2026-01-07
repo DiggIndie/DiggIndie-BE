@@ -36,10 +36,12 @@ public class ConcertService {
     @Transactional(readOnly = true)
     public ConcertsListResponse getConcertList(String query, ConcertSortType order, Pageable pageable) {
 
+        String normalizedQuery = (query == null) ? null : query.toLowerCase();
+
         Page<Concert> concertPage = switch (order) {
-            case RECENT -> concertRepository.findAllByRecent(query, LocalDateTime.now(), pageable);
-            case VIEW -> concertRepository.findAllByViews(query, pageable);
-            case SCRAP -> concertRepository.findAllByScrapCount(query, pageable);
+            case recent -> concertRepository.findAllByRecent(normalizedQuery, LocalDateTime.now(), pageable);
+            case view -> concertRepository.findAllByViews(normalizedQuery, pageable);
+            case scrap -> concertRepository.findAllByScrapCount(normalizedQuery, pageable);
         };
 
         return ConcertsListResponse.fromPagedConcerts(concertPage);

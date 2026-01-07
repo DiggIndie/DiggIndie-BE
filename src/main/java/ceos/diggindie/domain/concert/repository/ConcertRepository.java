@@ -37,14 +37,14 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             LEFT JOIN FETCH c.bandConcerts bc
             LEFT JOIN FETCH bc.band
             WHERE c.startDate >= :now
-              AND (:query IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')))
+              AND (:query IS NULL OR c.title LIKE CONCAT('%', :query, '%'))
             ORDER BY c.startDate ASC
         """,
             countQuery = """
             SELECT COUNT(c)
             FROM Concert c
             WHERE c.startDate >= :now
-              AND (:query IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')))
+                AND (:query IS NULL OR c.title LIKE CONCAT('%', :query, '%'))
         """)
     Page<Concert> findAllByRecent(@Param("query") String query,
                                    @Param("now") LocalDateTime now,
@@ -57,13 +57,13 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             LEFT JOIN FETCH c.concertHall
             LEFT JOIN FETCH c.bandConcerts bc
             LEFT JOIN FETCH bc.band
-            WHERE (:query IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')))
+            WHERE (:query IS NULL OR c.title LIKE CONCAT('%', :query, '%'))
             ORDER BY c.views DESC, c.startDate ASC
         """,
             countQuery = """
             SELECT COUNT(c)
             FROM Concert c
-            WHERE (:query IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')))
+            WHERE (:query IS NULL OR c.title LIKE CONCAT('%', :query, '%'))
         """)
     Page<Concert> findAllByViews(@Param("query") String query,
                                   Pageable pageable);
@@ -76,14 +76,14 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             LEFT JOIN FETCH c.bandConcerts bc
             LEFT JOIN FETCH bc.band
             LEFT JOIN c.concertScraps cs
-            WHERE (:query IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')))
+            WHERE (:query IS NULL OR c.title LIKE CONCAT('%', :query, '%'))
             GROUP BY c.id
             ORDER BY COUNT(cs) DESC, c.startDate ASC
         """,
             countQuery = """
             SELECT COUNT(c)
             FROM Concert c
-            WHERE (:query IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :query, '%')))
+            WHERE (:query IS NULL OR c.title LIKE CONCAT('%', :query, '%'))
         """)
     Page<Concert> findAllByScrapCount(@Param("query") String query,
                                        Pageable pageable);
