@@ -12,8 +12,8 @@ public class OAuth2LoginResponse {
     @Schema(description = "신규 회원 여부")
     private boolean newMember;
 
-    @Schema(description = "회원 ID (PK)")
-    private Long memberId;
+    @Schema(description = "외부 공개용 회원 ID")
+    private String externalId;
 
     @Schema(description = "사용자 ID")
     private String userId;

@@ -80,7 +80,7 @@ public class OAuth2Service {
 
         return OAuth2LoginResponse.builder()
                 .newMember(result.isNewMember())
-                .memberId(member.getId())
+                .externalId(member.getExternalId())
                 .userId(member.getUserId())
                 .email(member.getEmail())
                 .platform(userInfo.getPlatform())
