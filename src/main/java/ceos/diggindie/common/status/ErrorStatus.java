@@ -58,7 +58,7 @@ public enum ErrorStatus {
     OAUTH_USER_INFO_REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "OAUTH5002", "소셜 로그인 사용자 정보 요청에 실패했습니다."),
     OAUTH_ALREADY_LINKED(HttpStatus.CONFLICT, "OAUTH4091", "이미 연동된 소셜 계정입니다."),
     OAUTH_ACCOUNT_EXISTS(HttpStatus.CONFLICT, "OAUTH4092", "해당 소셜 계정으로 가입된 회원이 이미 존재합니다."),
-    OAUTH_UNLINK_DENIED(HttpStatus.BAD_REQUEST, "OAUTH4003", "마지막 로그인 수단은 연동 해제할 수 없습니다."),
+    OAUTH_UNLINK_DENIED(HttpStatus.BAD_REQUEST, "OAUTH4093", "마지막 로그인 수단은 연동 해제할 수 없습니다."),
     OAUTH_NOT_LINKED(HttpStatus.NOT_FOUND, "OAUTH4041", "연동되지 않은 소셜 계정입니다."),
 
     ;
