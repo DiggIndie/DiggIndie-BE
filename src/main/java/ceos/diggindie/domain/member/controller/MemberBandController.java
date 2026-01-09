@@ -1,9 +1,9 @@
 package ceos.diggindie.domain.member.controller;
 
+import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.exception.GeneralException;
-import ceos.diggindie.common.response.CommonResponse;
-import ceos.diggindie.common.status.SuccessStatus;
+import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.BandPreferenceRequest;
 import ceos.diggindie.domain.member.dto.BandPreferenceResponse;
 import ceos.diggindie.domain.member.service.MemberBandService;
@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,16 +31,21 @@ public class MemberBandController {
             @ApiResponse(responseCode = "201", description = "저장 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/artists/preferences")
-    public ResponseEntity<CommonResponse<Void>> saveBandPreferences(
+    public ResponseEntity<Response<Void>> saveBandPreferences(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BandPreferenceRequest request
     ) {
-        if (userDetails == null) throw GeneralException.loginRequired();
 
         memberBandService.saveBandPreferences(userDetails.getMemberId(), request);
-        return CommonResponse.onSuccess(SuccessStatus._CREATED, "밴드 취향 설정 API");
+        Response<Void> response = Response.success(
+                SuccessCode.INSERT_SUCCESS,
+                "밴드 취향 설정 API"
+        );
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @Operation(summary = "밴드 취향 조회", description = "로그인 사용자의 밴드 취향 정보를 조회합니다.")
@@ -47,14 +53,20 @@ public class MemberBandController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/artists/preferences")
-    public ResponseEntity<CommonResponse<BandPreferenceResponse>> getBandPreferences(
+    public ResponseEntity<Response<BandPreferenceResponse>> getBandPreferences(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        if (userDetails == null) throw GeneralException.loginRequired();
 
-        BandPreferenceResponse response = memberBandService.getBandPreferences(userDetails.getMemberId());
-        return CommonResponse.onSuccess(SuccessStatus._OK, response);
+        BandPreferenceResponse bandPreferenceResponse = memberBandService.getBandPreferences(userDetails.getMemberId());
+        Response<BandPreferenceResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                bandPreferenceResponse,
+                "밴드 취향 조회 API"
+        );
+
+        return ResponseEntity.ok().body(response);
     }
 }

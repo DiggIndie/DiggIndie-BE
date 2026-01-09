@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static ceos.diggindie.common.response.Response.success;
+
 @Tag(name = "Band Scrap", description = "밴드 스크랩 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class BandScrapController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "밴드 스크랩 토글", description = "로그인 사용자의 밴드 스크랩을 추가/해제합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "처리 성공"),
+            @ApiResponse(responseCode = "201", description = "스크랩 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PostMapping("/my/artists")
@@ -42,8 +44,14 @@ public class BandScrapController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BandScrapRequest request
     ) {
+
         bandScrapService.toggleBandScraps(userDetails.getMemberId(), request);
-        return Response.success(SuccessCode.GET_SUCCESS, "밴드 스크랩이 처리되었습니다.");
+        Response<Void> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                "밴드 스크랩이 처리되었습니다."
+        );
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -61,11 +69,16 @@ public class BandScrapController {
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(defaultValue = "20") int size
     ) {
+
         Pageable pageable = PageRequest.of(page, size);
-
-        Page<BandScrapResponse.BandScrapInfoDTO> scrapPage =
+        Page<BandScrapResponse.BandScrapInfoDTO> scrapPageReponse =
                 bandScrapService.getBandScraps(userDetails.getMemberId(), pageable);
+        Response<List<BandScrapResponse.BandScrapInfoDTO>> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                scrapPageReponse,
+                "밴드 스크랩 목록 조회 API"
+        );
 
-        return Response.success(SuccessCode.GET_SUCCESS, scrapPage);
+        return ResponseEntity.ok().body(response);
     }
 }
