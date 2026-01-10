@@ -2,7 +2,6 @@ package ceos.diggindie.domain.concert.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
-import ceos.diggindie.common.enums.ConcertSortType;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
@@ -42,18 +41,17 @@ public class ConcertController {
     @GetMapping("/concerts")
     public ResponseEntity<Response<ConcertsListResponse>> getConcerts(
             @Parameter(description = "정렬 기준 (recent: 공연임박순, view: 조회순, scrap: 스크랩순)", example = "recent")
-            @RequestParam(required = false, defaultValue = "recent") ConcertSortType order,
+            @RequestParam(name="order", required = false, defaultValue = "recent") String order,
             @Parameter(description = "검색어 (공연명, 밴드명)", example = "펜타포트")
-            @RequestParam(required = false) String query,
-            @PageableDefault(size = 20) Pageable pageable
+            @RequestParam(name="query", required = false) String query,
+            @PageableDefault(size = 20, page = 0) Pageable pageable
     ) {
         ConcertsListResponse result = concertService.getConcertList(query, order, pageable);
 
-        Response<ConcertsListResponse> response = Response.of(
+        Response<ConcertsListResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "공연 목록 조회 성공",
-                result
+                result,
+                "공연 목록 조회 성공"
         );
         return ResponseEntity.ok().body(response);
     }
