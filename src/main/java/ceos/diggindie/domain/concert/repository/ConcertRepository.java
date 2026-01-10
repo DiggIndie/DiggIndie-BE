@@ -8,8 +8,19 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long> {
+
+    @Query("""
+            SELECT c
+            FROM Concert c
+            JOIN FETCH c.concertHall
+            LEFT JOIN FETCH c.bandConcerts bc
+            LEFT JOIN FETCH bc.band
+            WHERE c.id = :concertId
+        """)
+    Optional<Concert> findByIdWithDetails(@Param("concertId") Long concertId);
 
     @Query(value = """
             SELECT c

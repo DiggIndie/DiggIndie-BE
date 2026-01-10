@@ -1,11 +1,15 @@
 package ceos.diggindie.domain.concert.service;
 
+import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.common.code.GeneralErrorCode;
+import ceos.diggindie.domain.concert.dto.ConcertDetailResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.dto.ConcertsListResponse;
 import ceos.diggindie.domain.concert.entity.Concert;
 import ceos.diggindie.domain.concert.repository.ConcertRepository;
+import ceos.diggindie.domain.concert.repository.ConcertScrapRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +24,7 @@ import java.time.LocalDateTime;
 public class ConcertService {
 
     private final ConcertRepository concertRepository;
+    private final ConcertScrapRepository concertScrapRepository;
 
     // 공연 위클리 캘린더 반환
     @Transactional(readOnly = true)
@@ -48,5 +53,19 @@ public class ConcertService {
         };
 
         return ConcertsListResponse.fromPagedConcerts(concertPage);
+    }
+
+    // 공연 상세 조회
+    @Transactional(readOnly = true)
+    public ConcertDetailResponse getConcertDetail(Long concertId, Long memberId) {
+        Concert concert = concertRepository.findByIdWithDetails(concertId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.CONCERT_NOT_FOUND));
+
+        boolean isScrapped = false;
+        if (memberId != null) {
+            isScrapped = concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId);
+        }
+
+        return ConcertDetailResponse.fromConcert(concert, isScrapped);
     }
 }

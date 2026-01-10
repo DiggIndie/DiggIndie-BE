@@ -3,6 +3,7 @@ package ceos.diggindie.domain.concert.controller;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
+import ceos.diggindie.domain.concert.dto.ConcertDetailResponse;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.dto.ConcertsListResponse;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,6 +54,29 @@ public class ConcertController {
                 SuccessCode.GET_SUCCESS,
                 result,
                 "공연 목록 조회 성공"
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "공연 상세 조회", description = "개별 공연의 상세 정보를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "공연을 찾을 수 없음")
+    })
+    @GetMapping("/concerts/{concertId}")
+    public ResponseEntity<Response<ConcertDetailResponse>> getConcertDetail(
+            @Parameter(description = "공연 ID", example = "1")
+            @PathVariable Long concertId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Long memberId = customUserDetails != null ? customUserDetails.getMemberId() : null;
+        ConcertDetailResponse result = concertService.getConcertDetail(concertId, memberId);
+
+        Response<ConcertDetailResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "공연 상세 조회 성공"
         );
         return ResponseEntity.ok().body(response);
     }

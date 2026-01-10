@@ -26,6 +26,9 @@ public enum BusinessErrorCode implements Code {
     ALREADY_SCRAPPED(409, "이미 스크랩한 항목입니다."),
     SCRAP_NOT_FOUND(404, "스크랩 기록을 찾을 수 없습니다."),
 
+    // ==================== 공연 ====================
+    CONCERT_NOT_FOUND(404, "공연을 찾을 수 없습니다."),
+
     ;
 
     private final int statusCode;
