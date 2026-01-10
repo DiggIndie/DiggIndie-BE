@@ -1,7 +1,7 @@
 package ceos.diggindie.common.exception;
 
-import ceos.diggindie.common.response.CommonResponse;
-import ceos.diggindie.common.status.ErrorStatus;
+import ceos.diggindie.common.code.ErrorCode;
+import ceos.diggindie.common.response.Response;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionFailedException;
@@ -16,59 +16,65 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
-public class ExceptionAdvice {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<CommonResponse<Void>> handleConstraintViolation(ConstraintViolationException e) {
-        // 로그로 상세 에러 기록
+    public ResponseEntity<Response<Void>> handleConstraintViolation(ConstraintViolationException e) {
+
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         String detailedErrors = e.getConstraintViolations().stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .collect(Collectors.joining(", "));
         log.warn("ConstraintViolationException - Validation errors: [{}]", detailedErrors);
 
-        return CommonResponse.onFailure(ErrorStatus.VALIDATION_ERROR, "입력값이 올바르지 않습니다.");
+        return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
     }
 
     // @RequestBody 검증 실패
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<CommonResponse<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+    public ResponseEntity<Response<Void>> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         String detailedErrors = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
         log.warn("MethodArgumentNotValidException - Field errors: [{}]", detailedErrors);
 
-        return CommonResponse.onFailure(ErrorStatus.VALIDATION_ERROR, "입력값이 올바르지 않습니다.");
+        return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
     }
 
     // 리소스를 찾을 수 없음
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<CommonResponse<Void>> handleNoResourceFound(NoResourceFoundException e) {
+    public ResponseEntity<Response<Void>> handleNoResourceFound(NoResourceFoundException e) {
+        ErrorCode errorCode = ErrorCode.NOT_FOUND;
         log.warn("NoResourceFoundException: {}", e.getMessage());
-        return CommonResponse.onFailure(ErrorStatus._NOT_FOUND);
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
     }
 
     // 타입 변환 실패 (PathVariable, RequestParam 등)
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, ConversionFailedException.class})
-    public ResponseEntity<CommonResponse<Void>> handleTypeMismatch(Exception e) {
+    public ResponseEntity<Response<Void>> handleTypeMismatch(Exception e) {
+        ErrorCode errorCode = ErrorCode.BAD_REQUEST;
         log.warn("TypeMismatchException: {}", e.getMessage());
-        return CommonResponse.onFailure(ErrorStatus._BAD_REQUEST);
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
     }
 
     // 커스텀 비즈니스 예외
+    // 추후 에러 핸들링 세팅에서 수정해주시길 바랍니다!
     @ExceptionHandler(GeneralException.class)
-    public ResponseEntity<CommonResponse<Void>> handleGeneralException(GeneralException e) {
-        if (e.getErrorStatus().getHttpStatus().is5xxServerError()) {
-            log.error("GeneralException: {} - {}", e.getErrorStatus().getCode(), e.getMessage());
-        } else {
-            log.warn("GeneralException: {} - {}", e.getErrorStatus().getCode(), e.getMessage());
-        }
-        return CommonResponse.onFailure(e.getErrorStatus(), e.getMessage());
+    public ResponseEntity<Response<Void>> handleGeneralException(GeneralException e) {
+        return null;
     }
 
     // 그 외 모든 예외
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<CommonResponse<Void>> handleException(Exception e) {
+    public ResponseEntity<Response<Void>> handleException(Exception e) {
+
+        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
         log.error("Unhandled Exception: ", e);
-        return CommonResponse.onFailure(ErrorStatus._INTERNAL_SERVER_ERROR);
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
     }
 }
