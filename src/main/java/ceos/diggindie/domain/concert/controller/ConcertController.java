@@ -23,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -122,5 +123,32 @@ public class ConcertController {
         );
 
         return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "공연 스크랩 생성", description = "로그인한 사용자가 특정 공연을 스크랩합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "스크랩 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "공연을 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "이미 스크랩한 공연")
+    })
+    @PostMapping("/my/concerts/{concertId}")
+    public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapCreateDTO>> createConcertScrap(
+            @Parameter(description = "공연 ID", example = "1")
+            @PathVariable Long concertId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        ConcertScrapResponse.ConcertScrapCreateDTO result =
+                concertScrapService.createConcertScrap(customUserDetails.getMemberId(), concertId);
+
+        Response<ConcertScrapResponse.ConcertScrapCreateDTO> response = Response.success(
+                SuccessCode.INSERT_SUCCESS,
+                result,
+                "공연 스크랩 성공"
+        );
+
+        return ResponseEntity.status(201).body(response);
     }
 }

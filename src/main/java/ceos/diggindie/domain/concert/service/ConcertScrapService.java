@@ -1,9 +1,14 @@
 package ceos.diggindie.domain.concert.service;
 
+import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.entity.Concert;
 import ceos.diggindie.domain.concert.entity.ConcertScrap;
+import ceos.diggindie.domain.concert.repository.ConcertRepository;
 import ceos.diggindie.domain.concert.repository.ConcertScrapRepository;
+import ceos.diggindie.domain.member.entity.Member;
+import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +26,8 @@ import java.util.stream.Collectors;
 public class ConcertScrapService {
 
     private final ConcertScrapRepository concertScrapRepository;
+    private final ConcertRepository concertRepository;
+    private final MemberRepository memberRepository;
 
     public ConcertScrapResponse.ConcertScrapListDTO getMyScrappedConcerts(Long memberId) {
         List<ConcertScrap> scraps = concertScrapRepository.findAllByMemberIdWithConcert(memberId);
@@ -44,6 +51,32 @@ public class ConcertScrapService {
 
         return ConcertScrapResponse.ConcertScrapListDTO.builder()
                 .concerts(concertInfos)
+                .build();
+    }
+
+    @Transactional
+    public ConcertScrapResponse.ConcertScrapCreateDTO createConcertScrap(Long memberId, Long concertId) {
+        // 이미 스크랩한 경우 예외 처리
+        if (concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId)) {
+            throw new BusinessException(BusinessErrorCode.ALREADY_SCRAPPED);
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
+
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.CONCERT_NOT_FOUND));
+
+        ConcertScrap concertScrap = ConcertScrap.builder()
+                .member(member)
+                .concert(concert)
+                .build();
+
+        concertScrapRepository.save(concertScrap);
+
+        return ConcertScrapResponse.ConcertScrapCreateDTO.builder()
+                .memberId(member.getExternalId())
+                .concertId(concert.getId())
                 .build();
     }
 
