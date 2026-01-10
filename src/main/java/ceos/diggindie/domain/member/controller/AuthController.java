@@ -28,7 +28,7 @@ public class AuthController {
 
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "회원가입 성공"),
+            @ApiResponse(responseCode = "201", description = "회원가입 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패)"),
             @ApiResponse(responseCode = "409", description = "이미 존재하는 아이디")
     })
@@ -38,13 +38,14 @@ public class AuthController {
             HttpServletResponse httpResponse
     ) {
 
-        Response<SignupResponse> response = Response.of(
+        SignupResponse signupResponse = authService.signup(signupRequest, httpResponse);
+        Response<SignupResponse> response = Response.success(
                 SuccessCode.INSERT_SUCCESS,
-                true,
-                "회원 가입 API",
-                authService.signup(signupRequest, httpResponse)
+                signupResponse,
+                "회원 가입 API"
         );
-        return ResponseEntity.ok().body(response);
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인합니다.")
@@ -58,12 +59,13 @@ public class AuthController {
             HttpServletResponse httpResponse
     ) {
 
-        Response<LoginResponse> response = Response.of(
+        LoginResponse loginResponse = authService.login(loginRequest, httpResponse);
+        Response<LoginResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "일반 로그인 API",
-                authService.login(loginRequest, httpResponse)
+                loginResponse,
+                "일반 로그인 API"
         );
+
         return ResponseEntity.ok().body(response);
     }
 
@@ -77,11 +79,11 @@ public class AuthController {
             @RequestParam String userId
     ) {
 
-        Response<UserIdCheckResponse> response = Response.of(
+        UserIdCheckResponse userIdCheckResponse = authService.checkExists(userId);
+        Response<UserIdCheckResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "아이디 중복 확인 API",
-                authService.checkExists(userId)
+                userIdCheckResponse,
+                "아이디 중복 확인 API"
         );
 
         return ResponseEntity.ok().body(response);
@@ -99,12 +101,13 @@ public class AuthController {
             HttpServletResponse httpResponse
     ) {
 
-        Response<LogoutResponse> response = Response.of(
+        LogoutResponse logoutResponse = authService.logout(httpResponse, userDetails.getExternalId(), userDetails.getUserId());
+        Response<LogoutResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "로그아웃 API",
-                authService.logout(httpResponse, userDetails.getExternalId(), userDetails.getUserId())
+                logoutResponse,
+                "로그아웃 API"
         );
+
         return ResponseEntity.ok().body(response);
     }
 
@@ -119,12 +122,13 @@ public class AuthController {
             HttpServletResponse httpResponse
     ) {
 
-        Response<TokenReissueResponse> response = Response.of(
+        TokenReissueResponse tokenReissueResponse = authService.reissue(httpRequest, httpResponse);
+        Response<TokenReissueResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "토큰 재발급 API",
-                authService.reissue(httpRequest, httpResponse)
+                tokenReissueResponse,
+                "토큰 재발급 API"
         );
+
         return ResponseEntity.ok().body(response);
     }
 

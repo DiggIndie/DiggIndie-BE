@@ -35,9 +35,8 @@ public class SpotifyController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/admin/spotify/auth")
     public ResponseEntity<Response<?>> spotifyAuth() {
-        Response<SpotifyTokenResponse> response = Response.of(
+        Response<SpotifyTokenResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
                 spotifyService.getSpotifyToken()
         );
         return ResponseEntity.ok().body(response);
@@ -51,9 +50,8 @@ public class SpotifyController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/admin/spotify/search")
     public ResponseEntity<Response<?>> spotifySearch(SpotifySearchRequest request) {
-        Response<SpotifySearchResponse> response = Response.of(
+        Response<SpotifySearchResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
                 spotifyService.searchSpotify(request)
         );
         return ResponseEntity.ok().body(response);
@@ -63,15 +61,19 @@ public class SpotifyController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Spotify 전체 밴드 앨범/곡 Import [내부용]", description = "전체 밴드의 앨범/곡을 Spotify에서 가져옵니다. ADMIN 권한 필요.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Import 성공"),
+            @ApiResponse(responseCode = "201", description = "Import 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
     @PostMapping("/api/admin/spotify/import-albums")
     public ResponseEntity<Response<String>> importAllAlbums() {
+
         spotifyImportService.importAllBandsAlbums();
-        return ResponseEntity.ok().body(
-                Response.of(SuccessCode.INSERT_SUCCESS, true, "앨범/곡 Import 완료")
+        Response<String> response = Response.success(
+                SuccessCode.INSERT_SUCCESS,
+                "앨범/곡 Import 완료"
         );
+
+        return ResponseEntity.status(201).body(response);
     }
 
     // 특정 밴드 앨범/곡 Import (bandId로)
@@ -83,8 +85,12 @@ public class SpotifyController {
     })
     @PostMapping("/api/admin/spotify/import-albums/{bandId}")
     public ResponseEntity<Response<String>> importBandAlbums(@PathVariable Long bandId) {
-        return ResponseEntity.ok().body(
-                Response.of(SuccessCode.INSERT_SUCCESS, true, "밴드 앨범/곡 Import 완료")
+
+        Response<String> response = Response.success(
+                SuccessCode.INSERT_SUCCESS,
+                "밴드 앨범/곡 Import 완료"
         );
+
+        return ResponseEntity.ok().body(response);
     }
 }

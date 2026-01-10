@@ -67,14 +67,15 @@ public class ConcertController {
             @Parameter(description = "조회할 날짜 (yyyy-mm-dd)", example = "2025-02-07")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @Parameter(description = "페이지 번호 (0부터 시작)")
-            Pageable pageable
-            ) {
-        Response<ConcertWeeklyCalendarResponse> response = Response.of(
+            Pageable pageable) {
+
+        ConcertWeeklyCalendarResponse concertWeeklyCalendarResponse = concertService.getConcertWeeklyCalendar(date, pageable);
+        Response<ConcertWeeklyCalendarResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "공연 위클리 캘린더 조회 API",
-                concertService.getConcertWeeklyCalendar(date, pageable)
+                concertWeeklyCalendarResponse,
+                "공연 위클리 캘린더 조회 API"
         );
+
         return ResponseEntity.ok().body(response);
     }
 
@@ -89,9 +90,14 @@ public class ConcertController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        ConcertScrapResponse.ConcertScrapListDTO response =
+        ConcertScrapResponse.ConcertScrapListDTO concertsScrapResponse =
                 concertScrapService.getMyScrappedConcerts(customUserDetails.getMemberId());
+        Response<ConcertScrapResponse.ConcertScrapListDTO> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                concertsScrapResponse,
+        "스크랩 공연 반환 API"
+        );
 
-        return Response.success(SuccessCode.GET_SUCCESS, response);
+        return ResponseEntity.ok().body(response);
     }
 }
