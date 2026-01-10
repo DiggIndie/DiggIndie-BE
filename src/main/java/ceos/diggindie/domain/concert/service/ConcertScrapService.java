@@ -80,6 +80,24 @@ public class ConcertScrapService {
                 .build();
     }
 
+    @Transactional
+    public ConcertScrapResponse.ConcertScrapCreateDTO deleteConcertScrap(Long memberId, Long concertId) {
+
+        if (!concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId)) {
+            throw new BusinessException(BusinessErrorCode.SCRAP_NOT_FOUND);
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
+
+        concertScrapRepository.deleteByMemberIdAndConcertId(memberId, concertId);
+
+        return ConcertScrapResponse.ConcertScrapCreateDTO.builder()
+                .memberId(member.getExternalId())
+                .concertId(concertId)
+                .build();
+    }
+
     private String calculateDDay(LocalDate startDate, LocalDate endDate) {
         LocalDate now = LocalDate.now();
         if (now.isBefore(startDate)) {
