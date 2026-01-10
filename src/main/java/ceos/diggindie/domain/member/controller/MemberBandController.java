@@ -2,7 +2,6 @@ package ceos.diggindie.domain.member.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
-import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.BandPreferenceRequest;
 import ceos.diggindie.domain.member.dto.BandPreferenceResponse;
@@ -28,7 +27,7 @@ public class MemberBandController {
 
     @Operation(summary = "밴드 취향 저장", description = "로그인 사용자의 밴드 취향 정보를 저장합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "저장 성공"),
+            @ApiResponse(responseCode = "204", description = "저장 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
@@ -45,7 +44,7 @@ public class MemberBandController {
                 "밴드 취향 설정 API"
         );
 
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(204).body(response);
     }
 
     @Operation(summary = "밴드 취향 조회", description = "로그인 사용자의 밴드 취향 정보를 조회합니다.")

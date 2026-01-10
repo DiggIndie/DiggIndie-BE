@@ -2,7 +2,6 @@ package ceos.diggindie.domain.keyword.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
-import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.keyword.dto.KeywordRequest;
 import ceos.diggindie.domain.keyword.dto.KeywordResponse;
@@ -49,7 +48,7 @@ public class KeywordController {
 
     @Operation(summary = "키워드 설정 API", description = "로그인 사용자의 키워드 선호를 저장합니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "저장 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "저장 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
@@ -66,7 +65,7 @@ public class KeywordController {
         );
         keywordService.setMyKeywords(userDetails.getMemberId(), request);
 
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(204).body(response);
     }
 
     @Operation(summary = "사용자 키워드 반환 API", description = "로그인 사용자의 키워드 선호 목록을 조회합니다.")

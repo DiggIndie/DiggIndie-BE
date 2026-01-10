@@ -41,13 +41,14 @@ public class BandController {
 
     @Operation(summary = "아티스트 정보 업데이트 [내부용]", description = "아티스트 정보를 업데이트합니다. ADMIN 권한 필요.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "업데이트 성공"),
+            @ApiResponse(responseCode = "204", description = "업데이트 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/admin/bands/artists/update")
-    public void updateArtists() {
+    public ResponseEntity<Void> updateArtists() {
         bandService.processArtists();
+        return ResponseEntity.noContent().build();
     }
 
     /* 밴드 검색 */

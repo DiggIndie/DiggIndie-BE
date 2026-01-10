@@ -23,8 +23,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static ceos.diggindie.common.response.Response.success;
-
 @Tag(name = "Band Scrap", description = "밴드 스크랩 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -35,7 +33,7 @@ public class BandScrapController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "밴드 스크랩 토글", description = "로그인 사용자의 밴드 스크랩을 추가/해제합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "스크랩 성공"),
+            @ApiResponse(responseCode = "204", description = "스크랩 처리 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PostMapping("/my/artists")
@@ -51,7 +49,7 @@ public class BandScrapController {
                 "밴드 스크랩이 처리되었습니다."
         );
 
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(204).body(response);
     }
 
     @PreAuthorize("isAuthenticated()")
