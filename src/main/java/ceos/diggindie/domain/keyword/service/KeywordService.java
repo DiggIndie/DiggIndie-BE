@@ -1,6 +1,6 @@
 package ceos.diggindie.domain.keyword.service;
 
-import ceos.diggindie.common.code.ErrorCode;
+import ceos.diggindie.common.code.GeneralErrorCode;
 import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.domain.keyword.dto.KeywordRequest;
 import ceos.diggindie.domain.keyword.dto.KeywordResponse;
@@ -54,7 +54,7 @@ public class KeywordService {
                 .toList();
 
         if (!invalidIds.isEmpty()) {
-            throw new GeneralException(ErrorCode.BAD_REQUEST,
+            throw new GeneralException(GeneralErrorCode.BAD_REQUEST,
                     "유효하지 않은 키워드 ID: " + invalidIds);
         }
 

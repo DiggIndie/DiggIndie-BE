@@ -1,6 +1,6 @@
 package ceos.diggindie.common.config.security.jwt;
 
-import ceos.diggindie.common.code.ErrorCode;
+import ceos.diggindie.common.code.GeneralErrorCode;
 import ceos.diggindie.common.response.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -29,7 +29,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        Response<Void> body = Response.fail(ErrorCode.FORBIDDEN);
+        Response<Void> body = Response.fail(GeneralErrorCode.FORBIDDEN);
         response.getWriter().write(objectMapper.writeValueAsString(body));
         response.getWriter().flush();
     }
