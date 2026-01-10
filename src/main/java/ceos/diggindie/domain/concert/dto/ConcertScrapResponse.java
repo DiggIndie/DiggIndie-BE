@@ -23,4 +23,11 @@ public class ConcertScrapResponse {
         private String imageUrl;
         private boolean isFinished;
     }
+
+    @Getter
+    @Builder
+    public static class ConcertScrapCreateDTO {
+        private String memberId;
+        private Long concertId;
+    }
 }
