@@ -61,10 +61,12 @@ public class ConcertService {
     }
 
     // 공연 상세 조회
-    @Transactional(readOnly = true)
+    @Transactional
     public ConcertDetailResponse getConcertDetail(Long concertId, Long memberId) {
         Concert concert = concertRepository.findByIdWithDetails(concertId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CONCERT_NOT_FOUND));
+
+        concert.increaseViews();
 
         boolean isScrapped = false;
         if (memberId != null) {

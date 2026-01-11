@@ -60,4 +60,7 @@ public class Concert extends BaseEntity {
     @OneToMany(mappedBy = "concert")
     private List<ConcertScrap> concertScraps = new ArrayList<>();
 
+    public void increaseViews() {
+        this.views++;
+    }
 }
