@@ -61,12 +61,26 @@ public record ConcertsListResponse(
         }
 
         private static String formatPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-            String start = startDate.format(DATE_FORMATTER);
-            if (endDate == null) {
-                return start + " ~ " + start;
+            LocalDate start = startDate.toLocalDate();
+            LocalDate end = (endDate != null) ? endDate.toLocalDate() : start;
+
+            // 하루짜리 공연
+            if (start.equals(end)) {
+                return start.format(DATE_FORMATTER);
             }
-            String end = endDate.format(DATE_FORMATTER);
-            return start + " ~ " + end;
+
+            // 같은 년/월인 경우: "2025.12.11 ~ 17"
+            if (start.getYear() == end.getYear() && start.getMonth() == end.getMonth()) {
+                return start.format(DATE_FORMATTER) + " ~ " + end.getDayOfMonth();
+            }
+
+            // 같은 년도인 경우: "2025.12.11 ~ 01.05"
+            if (start.getYear() == end.getYear()) {
+                return start.format(DATE_FORMATTER) + " ~ " + end.format(DateTimeFormatter.ofPattern("MM.dd"));
+            }
+
+            // 다른 년도인 경우: "2025.12.31 ~ 2026.01.01"
+            return start.format(DATE_FORMATTER) + " ~ " + end.format(DATE_FORMATTER);
         }
     }
 

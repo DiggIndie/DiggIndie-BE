@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Tag(name = "Concert", description = "공연 관련 API")
 @RestController
@@ -88,7 +89,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/calendar")
+    @GetMapping("/concerts/calendar/weekly")
     public ResponseEntity<Response<ConcertWeeklyCalendarResponse>> getConcertWeeklyCalendar(
             @Parameter(description = "조회할 날짜 (yyyy-mm-dd)", example = "2025-02-07")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -121,6 +122,26 @@ public class ConcertController {
                 SuccessCode.GET_SUCCESS,
                 result,
                 "월별 공연 캘린더 조회 성공"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "여러 날짜 공연 목록 조회", description = "선택한 날짜들의 공연 목록을 페이징하여 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    @GetMapping("/concerts/calendar")
+    public ResponseEntity<Response<ConcertsListResponse>> getConcertsByDates(
+            @Parameter(description = "조회할 날짜 목록 (yyyy-MM-dd, 콤마로 구분)", example = "2026-01-11,2026-01-12,2026-01-13")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) List<LocalDate> dates,
+            @PageableDefault(size = 20, page = 0) Pageable pageable) {
+
+        ConcertsListResponse result = concertService.getConcertsByDates(dates, pageable);
+        Response<ConcertsListResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "여러 날짜 공연 목록 조회 성공"
         );
 
         return ResponseEntity.ok().body(response);

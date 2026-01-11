@@ -113,4 +113,19 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             @Param("startOfMonth") LocalDateTime startOfMonth,
             @Param("endOfMonth") LocalDateTime endOfMonth);
 
+    // 여러 날짜의 공연 조회 (날짜순 정렬)
+    @Query(value = """
+            SELECT c
+            FROM Concert c
+            JOIN FETCH c.concertHall
+            WHERE CAST(c.startDate AS LocalDate) IN :dates
+            ORDER BY c.startDate ASC
+        """,
+            countQuery = """
+            SELECT COUNT(c)
+            FROM Concert c
+            WHERE CAST(c.startDate AS LocalDate) IN :dates
+        """)
+    Page<Concert> findByDates(@Param("dates") List<LocalDate> dates, Pageable pageable);
+
 }

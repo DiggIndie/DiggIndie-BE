@@ -43,7 +43,7 @@ public class ConcertService {
         return ConcertWeeklyCalendarResponse.fromPagedConcerts(concertPage);
     }
 
-    // 공연 목록 반환 (검색, 정렬, 페이지네이션)
+    // 공연 목록 반환
     @Transactional(readOnly = true)
     public ConcertsListResponse getConcertList(String query, String order, Pageable pageable) {
 
@@ -87,5 +87,12 @@ public class ConcertService {
         Set<LocalDate> concertDateSet = new HashSet<>(concertDates);
 
         return ConcertMonthlyCalendarResponse.from(year, month, concertDateSet);
+    }
+
+    // 여러 날짜의 공연 목록 반환
+    @Transactional(readOnly = true)
+    public ConcertsListResponse getConcertsByDates(List<LocalDate> dates, Pageable pageable) {
+        Page<Concert> concertPage = concertRepository.findByDates(dates, pageable);
+        return ConcertsListResponse.fromPagedConcerts(concertPage);
     }
 }
