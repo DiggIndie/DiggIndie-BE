@@ -244,13 +244,15 @@ public class BandService {
 
     public BandDetailResponse getBandDetail(Long bandId, Long memberId) {
 
+        // 밴드 + 키워드 조회
         Band bandWithKeywords = bandRepository.findByIdWithKeywords(bandId)
-                .orElseThrow(() -> new  BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
 
         List<String> keywords = bandWithKeywords.getBandKeywords().stream()
                 .map(bk -> bk.getKeyword().getKeyword())
                 .toList();
 
+        // 멤버 조회
         Band bandWithArtists = bandRepository.findByIdWithArtists(bandId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
 
@@ -258,6 +260,7 @@ public class BandService {
                 .map(Artist::getArtistName)
                 .toList();
 
+        // 대표곡 조회
         TopTrackResponse topTrack = topTrackRepository.findByBandId(bandId)
                 .map(tt -> TopTrackResponse.builder()
                         .title(tt.getTitle())
@@ -265,11 +268,13 @@ public class BandService {
                         .build())
                 .orElse(null);
 
+        // 앨범 조회
         List<AlbumResponse> albums = albumRepository.findByBandIdOrderByReleaseDateDesc(bandId)
                 .stream()
                 .map(this::mapToAlbumResponse)
                 .toList();
 
+        // 공연 조회
         LocalDateTime now = LocalDateTime.now();
         List<Concert> concerts = concertRepository.findConcertsByBandId(bandId);
 
@@ -283,11 +288,8 @@ public class BandService {
                 .map(c -> mapToConcertResponse(c, false))
                 .toList();
 
-        // 7. 스크랩 여부 확인 (로그인 안 했으면 false)
-        boolean isScraped = false;
-        if (memberId != null) {
-            isScraped = bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId);
-        }
+        // 스크랩 여부
+        boolean isScraped = memberId != null && bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId);
 
         return BandDetailResponse.builder()
                 .artistId(bandWithKeywords.getId())
