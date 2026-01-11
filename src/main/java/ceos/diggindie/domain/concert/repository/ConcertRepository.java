@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long> {
@@ -99,5 +101,16 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
     Page<Concert> findAllByScrapCount(@Param("query") String query,
                                       @Param("now") LocalDateTime now,
                                       Pageable pageable);
+
+    // 특정 월에 공연이 있는 날짜 목록 조회
+    @Query("""
+            SELECT DISTINCT CAST(c.startDate AS LocalDate)
+            FROM Concert c
+            WHERE c.startDate >= :startOfMonth
+              AND c.startDate < :endOfMonth
+        """)
+    List<LocalDate> findDistinctConcertDatesByMonth(
+            @Param("startOfMonth") LocalDateTime startOfMonth,
+            @Param("endOfMonth") LocalDateTime endOfMonth);
 
 }

@@ -4,6 +4,7 @@ import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.concert.dto.ConcertDetailResponse;
+import ceos.diggindie.domain.concert.dto.ConcertMonthlyCalendarResponse;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.dto.ConcertsListResponse;
@@ -99,6 +100,27 @@ public class ConcertController {
                 SuccessCode.GET_SUCCESS,
                 concertWeeklyCalendarResponse,
                 "공연 위클리 캘린더 조회 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "공연 월별 캘린더 조회", description = "특정 월의 날짜별 공연 존재 여부를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    @GetMapping("/concerts/calendar/monthly")
+    public ResponseEntity<Response<ConcertMonthlyCalendarResponse>> getConcertMonthlyCalendar(
+            @Parameter(description = "조회할 연도", example = "2026")
+            @RequestParam(required = true) int year,
+            @Parameter(description = "조회할 월 (1-12)", example = "2")
+            @RequestParam(required = true) int month) {
+
+        ConcertMonthlyCalendarResponse result = concertService.getMonthlyCalendar(year, month);
+        Response<ConcertMonthlyCalendarResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "월별 공연 캘린더 조회 성공"
         );
 
         return ResponseEntity.ok().body(response);

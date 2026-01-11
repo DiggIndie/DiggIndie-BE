@@ -5,6 +5,7 @@ import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.common.code.GeneralErrorCode;
 import ceos.diggindie.domain.concert.dto.ConcertDetailResponse;
+import ceos.diggindie.domain.concert.dto.ConcertMonthlyCalendarResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.dto.ConcertsListResponse;
 import ceos.diggindie.domain.concert.entity.Concert;
@@ -18,6 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -67,5 +72,18 @@ public class ConcertService {
         }
 
         return ConcertDetailResponse.fromConcert(concert, isScrapped);
+    }
+
+    // 월별 공연 캘린더 반환
+    @Transactional(readOnly = true)
+    public ConcertMonthlyCalendarResponse getMonthlyCalendar(int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDateTime startOfMonth = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime endOfMonth = yearMonth.plusMonths(1).atDay(1).atStartOfDay();
+
+        List<LocalDate> concertDates = concertRepository.findDistinctConcertDatesByMonth(startOfMonth, endOfMonth);
+        Set<LocalDate> concertDateSet = new HashSet<>(concertDates);
+
+        return ConcertMonthlyCalendarResponse.from(year, month, concertDateSet);
     }
 }
