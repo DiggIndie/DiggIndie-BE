@@ -1,12 +1,19 @@
 package ceos.diggindie.domain.band.service;
 
+import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.exception.BusinessException;
+import ceos.diggindie.domain.band.dto.AlbumResponse;
+import ceos.diggindie.domain.band.dto.BandDetailResponse;
 import ceos.diggindie.domain.band.dto.BandListResponse;
+import ceos.diggindie.domain.band.entity.Album;
+import ceos.diggindie.domain.band.repository.*;
+import ceos.diggindie.domain.concert.dto.ConcertSummaryResponse;
+import ceos.diggindie.domain.band.dto.TopTrackResponse;
 import ceos.diggindie.domain.band.entity.Artist;
 import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.band.entity.BandsRawData;
-import ceos.diggindie.domain.band.repository.ArtistRepository;
-import ceos.diggindie.domain.band.repository.BandRepository;
-import ceos.diggindie.domain.band.repository.BandsRawDataRepository;
+import ceos.diggindie.domain.concert.entity.Concert;
+import ceos.diggindie.domain.concert.repository.ConcertRepository;
 import ceos.diggindie.domain.openai.dto.PromptRequest;
 import ceos.diggindie.domain.openai.service.OpenAIService;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchRequest;
@@ -19,10 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,6 +43,10 @@ public class BandService {
     private final OpenAIService openAIService;
     private final SpotifyService spotifyService;
     private final ObjectMapper objectMapper;
+    private final TopTrackRepository topTrackRepository;
+    private final ConcertRepository concertRepository;
+    private final BandScrapRepository bandScrapRepository;
+    private final AlbumRepository albumRepository;
 
     public void processArtists() {
 
@@ -229,5 +240,105 @@ public class BandService {
     public Page<BandListResponse> getBandList(String query, Pageable pageable) {
         Page<Band> bands = bandRepository.searchBands(query, pageable);
         return bands.map(BandListResponse::from);
+    }
+
+    public BandDetailResponse getBandDetail(Long bandId, Long memberId) {
+
+        Band bandWithKeywords = bandRepository.findByIdWithKeywords(bandId)
+                .orElseThrow(() -> new  BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
+
+        List<String> keywords = bandWithKeywords.getBandKeywords().stream()
+                .map(bk -> bk.getKeyword().getKeyword())
+                .toList();
+
+        Band bandWithArtists = bandRepository.findByIdWithArtists(bandId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
+
+        List<String> members = bandWithArtists.getArtists().stream()
+                .map(Artist::getArtistName)
+                .toList();
+
+        TopTrackResponse topTrack = topTrackRepository.findByBandId(bandId)
+                .map(tt -> TopTrackResponse.builder()
+                        .title(tt.getTitle())
+                        .externalUrl(tt.getExternalUrl())
+                        .build())
+                .orElse(null);
+
+        List<AlbumResponse> albums = albumRepository.findByBandIdOrderByReleaseDateDesc(bandId)
+                .stream()
+                .map(this::mapToAlbumResponse)
+                .toList();
+
+        LocalDateTime now = LocalDateTime.now();
+        List<Concert> concerts = concertRepository.findConcertsByBandId(bandId);
+
+        List<ConcertSummaryResponse> scheduledConcerts = concerts.stream()
+                .filter(c -> c.getStartDate().isAfter(now) || c.getStartDate().isEqual(now))
+                .map(c -> mapToConcertResponse(c, true))
+                .toList();
+
+        List<ConcertSummaryResponse> endedConcerts = concerts.stream()
+                .filter(c -> c.getStartDate().isBefore(now))
+                .map(c -> mapToConcertResponse(c, false))
+                .toList();
+
+        // 7. 스크랩 여부 확인 (로그인 안 했으면 false)
+        boolean isScraped = false;
+        if (memberId != null) {
+            isScraped = bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId);
+        }
+
+        return BandDetailResponse.builder()
+                .artistId(bandWithKeywords.getId())
+                .artistName(bandWithKeywords.getBandName())
+                .keywords(keywords)
+                .artistImage(bandWithKeywords.getMainImage())
+                .description(bandWithKeywords.getDescription())
+                .members(members)
+                .topTrack(topTrack)
+                .albums(albums)
+                .scheduledConcerts(scheduledConcerts)
+                .endedConcerts(endedConcerts)
+                .isScraped(isScraped)
+                .build();
+    }
+
+    private AlbumResponse mapToAlbumResponse(Album album) {
+        String releaseYear = null;
+        if (album.getReleaseDate() != null && album.getReleaseDate().length() >= 4) {
+            releaseYear = album.getReleaseDate().substring(0, 4);
+        }
+
+        return AlbumResponse.builder()
+                .albumId(album.getId())
+                .albumName(album.getTitle())
+                .albumImage(album.getAlbumImage())
+                .releaseYear(releaseYear)
+                .build();
+    }
+
+    private ConcertSummaryResponse mapToConcertResponse(Concert concert, boolean isScheduled) {
+        List<String> lineUp = concert.getBandConcerts().stream()
+                .map(bc -> bc.getBand().getBandName())
+                .toList();
+
+        String dDay = null;
+        if (isScheduled) {
+            long days = ChronoUnit.DAYS.between(
+                    LocalDateTime.now().toLocalDate(),
+                    concert.getStartDate().toLocalDate()
+            );
+            dDay = days == 0 ? "D-Day" : "D-" + days;
+        }
+
+        return ConcertSummaryResponse.builder()
+                .concertId(concert.getId())
+                .concertName(concert.getTitle())
+                .concertImage(concert.getMainImg())
+                .dDay(dDay)
+                .lineUp(lineUp)
+                .concertDate(concert.getStartDate().toLocalDate().toString())
+                .build();
     }
 }

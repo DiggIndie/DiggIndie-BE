@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long> {
 
@@ -29,4 +30,10 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
                              @Param("endOfDay") LocalDateTime endOfDay,
                              Pageable pageable);
 
+    @Query("SELECT DISTINCT c FROM Concert c " +
+            "JOIN FETCH c.bandConcerts cb " +
+            "JOIN FETCH cb.band " +
+            "WHERE cb.band.id = :bandId " +
+            "ORDER BY c.startDate DESC")
+    List<Concert> findConcertsByBandId(@Param("bandId") Long bandId);
 }

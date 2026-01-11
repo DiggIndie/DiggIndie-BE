@@ -1,7 +1,9 @@
 package ceos.diggindie.domain.band.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
+import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
+import ceos.diggindie.domain.band.dto.BandDetailResponse;
 import ceos.diggindie.domain.band.dto.BandListResponse;
 import ceos.diggindie.domain.band.service.BandService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -72,6 +75,32 @@ public class BandController {
                 SuccessCode.GET_SUCCESS,
                 bands,
                 "온보딩 밴드 검색 및 목록 반환 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    // 아티스트 상세 조회
+    @PreAuthorize("permitAll()")
+    @Operation(summary = "아티스트 상세 조회", description = "아티스트의 상세 정보를 조회합니다. 로그인 시 스크랩 여부가 포함됩니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 아티스트")
+    })
+    @GetMapping("/artists/{bandId}")
+    public ResponseEntity<Response<BandDetailResponse>> getBandDetail(
+            @Parameter(description = "아티스트 ID", example = "12")
+            @PathVariable Long bandId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
+        BandDetailResponse bandDetail = bandService.getBandDetail(bandId, memberId);
+
+        Response<BandDetailResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                bandDetail,
+                "아티스트 상세 조회 성공"
         );
 
         return ResponseEntity.ok().body(response);

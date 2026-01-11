@@ -25,4 +25,17 @@ public interface BandRepository extends JpaRepository<Band, Long> {
                     "b.bandName ILIKE %:query% OR " +
                     "k.keyword ILIKE %:query%")
     Page<Band> searchBands(@Param("query") String query, Pageable pageable);
+
+    Optional<Band> findById(Long bandId);
+
+    @Query("SELECT b FROM Band b " +
+            "LEFT JOIN FETCH b.bandKeywords bk " +
+            "LEFT JOIN FETCH bk.keyword " +
+            "WHERE b.id = :bandId")
+    Optional<Band> findByIdWithKeywords(@Param("bandId") Long bandId);
+
+    @Query("SELECT b FROM Band b " +
+            "LEFT JOIN FETCH b.artists " +
+            "WHERE b.id = :bandId")
+    Optional<Band> findByIdWithArtists(@Param("bandId") Long bandId);
 }
