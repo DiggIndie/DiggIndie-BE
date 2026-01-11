@@ -26,10 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -82,17 +85,17 @@ public class BandService {
 
                 // 3. GPT를 활용해 아티스트 이름 가공 및 파싱
                 String prompt = """
-                    다음 텍스트에서 아티스트 이름만 추출해줘.
-                    - [1], [2] 같은 숫자 표기는 제거
-                    - 괄호 안의 포지션 정보(기타, 보컬, 드럼 등)는 제거하고 이름만 추출
-                    - 반드시 JSON 배열만 반환 (다른 텍스트 없이)
-                    - 형식: ["이름1", "이름2", "이름3"]
-                    
-                    예시 입력: "권선제(베이스, 보컬), 양지연(드럼, 코러스)"
-                    예시 출력: ["권선제", "양지연"]
-                    
-                    텍스트: %s
-                    """.formatted(raw.getArtist());
+                        다음 텍스트에서 아티스트 이름만 추출해줘.
+                        - [1], [2] 같은 숫자 표기는 제거
+                        - 괄호 안의 포지션 정보(기타, 보컬, 드럼 등)는 제거하고 이름만 추출
+                        - 반드시 JSON 배열만 반환 (다른 텍스트 없이)
+                        - 형식: ["이름1", "이름2", "이름3"]
+                        
+                        예시 입력: "권선제(베이스, 보컬), 양지연(드럼, 코러스)"
+                        예시 출력: ["권선제", "양지연"]
+                        
+                        텍스트: %s
+                        """.formatted(raw.getArtist());
 
                 String response = openAIService.callOpenAI(new PromptRequest(prompt));
 
@@ -106,7 +109,8 @@ public class BandService {
                 try {
                     // 4. 응답에서 JSON 배열 부분만 추출
                     String jsonPart = extractJsonArray(response);
-                    artistNames = objectMapper.readValue(jsonPart, new TypeReference<List<String>>() {});
+                    artistNames = objectMapper.readValue(jsonPart, new TypeReference<List<String>>() {
+                    });
                 } catch (Exception e) {
                     failed++;
                     log.warn("[{}/{}] {} - JSON 파싱 오류: {}", completed + failed + skipped, total, bandName, e.getMessage());
@@ -242,26 +246,23 @@ public class BandService {
         return bands.map(BandListResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public BandDetailResponse getBandDetail(Long bandId, Long memberId) {
 
-        // 밴드 + 키워드 조회
-        Band bandWithKeywords = bandRepository.findByIdWithKeywords(bandId)
+        LocalDateTime now = LocalDateTime.now();
+
+        Band band = bandRepository.findByIdWithDetails(bandId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
 
-        List<String> keywords = bandWithKeywords.getBandKeywords().stream()
+        List<String> keywords = band.getBandKeywords().stream()
                 .map(bk -> bk.getKeyword().getKeyword())
                 .toList();
 
-        // 멤버 조회
-        Band bandWithArtists = bandRepository.findByIdWithArtists(bandId)
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
-
-        List<String> members = bandWithArtists.getArtists().stream()
+        List<String> members = band.getArtists().stream()
                 .map(Artist::getArtistName)
                 .toList();
 
-        // 대표곡 조회
-        TopTrackResponse topTrack = topTrackRepository.findByBandId(bandId)
+        TopTrackResponse topTrack = Optional.ofNullable(band.getTopTrack())
                 .map(tt -> TopTrackResponse.builder()
                         .title(tt.getTitle())
                         .externalUrl(tt.getExternalUrl())
@@ -275,34 +276,57 @@ public class BandService {
                 .toList();
 
         // 공연 조회
-        LocalDateTime now = LocalDateTime.now();
         List<Concert> concerts = concertRepository.findConcertsByBandId(bandId);
 
+        LocalDate today = now.toLocalDate();
+
         List<ConcertSummaryResponse> scheduledConcerts = concerts.stream()
-                .filter(c -> c.getStartDate().isAfter(now) || c.getStartDate().isEqual(now))
-                .map(c -> mapToConcertResponse(c, true))
+                .filter(c -> !c.getStartDate().toLocalDate().isBefore(today))
+                .map(c -> mapToConcertResponse(c, today, true))
                 .toList();
 
         List<ConcertSummaryResponse> endedConcerts = concerts.stream()
-                .filter(c -> c.getStartDate().isBefore(now))
-                .map(c -> mapToConcertResponse(c, false))
+                .filter(c -> c.getStartDate().toLocalDate().isBefore(today))
+                .map(c -> mapToConcertResponse(c, today, false))
                 .toList();
 
         // 스크랩 여부
-        boolean isScraped = memberId != null && bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId);
+        boolean isScraped = memberId != null
+                && bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId);
 
         return BandDetailResponse.builder()
-                .artistId(bandWithKeywords.getId())
-                .artistName(bandWithKeywords.getBandName())
+                .artistId(band.getId())
+                .artistName(band.getBandName())
                 .keywords(keywords)
-                .artistImage(bandWithKeywords.getMainImage())
-                .description(bandWithKeywords.getDescription())
+                .artistImage(band.getMainImage())
+                .description(band.getDescription())
                 .members(members)
                 .topTrack(topTrack)
                 .albums(albums)
                 .scheduledConcerts(scheduledConcerts)
                 .endedConcerts(endedConcerts)
                 .isScraped(isScraped)
+                .build();
+    }
+
+    private ConcertSummaryResponse mapToConcertResponse(Concert concert, LocalDate today, boolean isScheduled) {
+        List<String> lineUp = concert.getBandConcerts().stream()
+                .map(bc -> bc.getBand().getBandName())
+                .toList();
+
+        String dDay = null;
+        if (isScheduled) {
+            long days = ChronoUnit.DAYS.between(today, concert.getStartDate().toLocalDate());
+            dDay = days == 0 ? "D-Day" : "D-" + days;
+        }
+
+        return ConcertSummaryResponse.builder()
+                .concertId(concert.getId())
+                .concertName(concert.getTitle())
+                .concertImage(concert.getMainImg())
+                .dDay(dDay)
+                .lineUp(lineUp)
+                .concertDate(concert.getStartDate().toLocalDate().toString())
                 .build();
     }
 
@@ -317,30 +341,6 @@ public class BandService {
                 .albumName(album.getTitle())
                 .albumImage(album.getAlbumImage())
                 .releaseYear(releaseYear)
-                .build();
-    }
-
-    private ConcertSummaryResponse mapToConcertResponse(Concert concert, boolean isScheduled) {
-        List<String> lineUp = concert.getBandConcerts().stream()
-                .map(bc -> bc.getBand().getBandName())
-                .toList();
-
-        String dDay = null;
-        if (isScheduled) {
-            long days = ChronoUnit.DAYS.between(
-                    LocalDateTime.now().toLocalDate(),
-                    concert.getStartDate().toLocalDate()
-            );
-            dDay = days == 0 ? "D-Day" : "D-" + days;
-        }
-
-        return ConcertSummaryResponse.builder()
-                .concertId(concert.getId())
-                .concertName(concert.getTitle())
-                .concertImage(concert.getMainImg())
-                .dDay(dDay)
-                .lineUp(lineUp)
-                .concertDate(concert.getStartDate().toLocalDate().toString())
                 .build();
     }
 }
