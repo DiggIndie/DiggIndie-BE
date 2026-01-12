@@ -93,9 +93,9 @@ public class BandController {
             @Parameter(description = "페이지 크기", example = "20")
             @RequestParam(required = false, defaultValue = "20") int size
     ) {
+        
         Pageable pageable = PageRequest.of(page, size);
         BandSearchResponse.ArtistListDTO result = bandService.searchArtists(query, order, pageable);
-
         Response<BandSearchResponse.ArtistListDTO> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 result,

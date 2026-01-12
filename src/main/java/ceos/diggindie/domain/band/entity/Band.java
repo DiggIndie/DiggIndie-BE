@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ public class Band extends BaseEntity {
     @OneToMany(mappedBy = "band")
     private List<MemberBand> memberBands = new ArrayList<>();
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "band")
     private List<BandKeyword> bandKeywords = new ArrayList<>();
 

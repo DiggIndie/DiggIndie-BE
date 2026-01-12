@@ -13,31 +13,41 @@ public class BandSearchResponse {
 
     @Getter
     @Builder
+    public static class TopTrackInfo {
+        private String title;
+        private String externalUrl;
+
+        public static TopTrackInfo from(TopTrack topTrack) {
+            if (topTrack == null) {
+                return null;
+            }
+            return TopTrackInfo.builder()
+                    .title(topTrack.getTitle())
+                    .externalUrl(topTrack.getExternalUrl())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class ArtistInfo {
         private Long artistId;
         private String artistName;
         private List<String> keywords;
         private String artistImage;
-        private String topTrack;
+        private TopTrackInfo topTrack;
 
         public static ArtistInfo from(Band band) {
             List<String> keywordList = band.getBandKeywords().stream()
                     .map(bk -> bk.getKeyword().getKeyword())
                     .toList();
 
-            // TopTrack 테이블에서 title 가져오기
-            String topTrackTitle = null;
-            TopTrack topTrack = band.getTopTrack();
-            if (topTrack != null) {
-                topTrackTitle = topTrack.getTitle();
-            }
-
             return ArtistInfo.builder()
                     .artistId(band.getId())
                     .artistName(band.getBandName())
                     .keywords(keywordList)
                     .artistImage(band.getMainImage())
-                    .topTrack(topTrackTitle)
+                    .topTrack(TopTrackInfo.from(band.getTopTrack()))
                     .build();
         }
     }
