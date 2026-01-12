@@ -105,11 +105,14 @@ public class SpotifyController {
     })
     @PostMapping("/api/admin/spotify/update/top-track/{bandId}")
     public ResponseEntity<Response<TopTrackUpdateResponse>> updateTopTrack(@PathVariable Long bandId) {
-        boolean success = spotifyService.updateTopTrackByBandId(bandId);
-        TopTrackUpdateResponse result = new TopTrackUpdateResponse(bandId, success);
-        return ResponseEntity.ok().body(
-                Response.of(SuccessCode.UPDATE_SUCCESS, true, result)
+        
+        TopTrackUpdateResponse result = spotifyService.updateTopTrackByBandId(bandId);
+        Response<TopTrackUpdateResponse> response = Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                result,
+                "개별 밴드 대표곡 업데이트 성공"
         );
+        return ResponseEntity.ok().body(response);
     }
 
     // 전체 밴드 대표곡 일괄 업데이트
@@ -121,9 +124,14 @@ public class SpotifyController {
     })
     @PostMapping("/api/admin/spotify/update/top-track/all")
     public ResponseEntity<Response<TopTrackUpdateAllResponse>> updateAllTopTracks() {
+        
         TopTrackUpdateAllResponse result = spotifyService.updateAllTopTrack();
-        return ResponseEntity.ok().body(
-                Response.of(SuccessCode.UPDATE_SUCCESS, true, result)
+        Response<TopTrackUpdateAllResponse> response = Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                result,
+                "전체 밴드 대표곡 업데이트 성공"
         );
+
+        return ResponseEntity.ok().body(response);
     }
 }
