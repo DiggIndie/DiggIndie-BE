@@ -1,8 +1,11 @@
 package ceos.diggindie.domain.band.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
+import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.band.dto.BandListResponse;
+import ceos.diggindie.domain.band.dto.BandRecommendResponse;
+import ceos.diggindie.domain.band.service.BandRecommendService;
 import ceos.diggindie.domain.band.service.BandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +29,7 @@ import java.util.List;
 public class BandController {
 
     private final BandService bandService;
+    private final BandRecommendService bandRecommendService;
 
     @Operation(summary = "밴드 정보 업데이트 [내부용]", description = "Raw 데이터를 기반으로 밴드 정보를 업데이트합니다. ADMIN 권한 필요.")
     @ApiResponses({
@@ -72,6 +77,26 @@ public class BandController {
                 SuccessCode.GET_SUCCESS,
                 bands,
                 "온보딩 밴드 검색 및 목록 반환 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "추천 밴드 조회 API", description = "로그인한 회원의 추천 밴드 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/artists/recommendations/users")
+    public ResponseEntity<Response<BandRecommendResponse.BandListDTO>> getRecommendedBands(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        BandRecommendResponse.BandListDTO result = bandRecommendService.getRecommendedBands(userDetails.getMemberId());
+        Response<BandRecommendResponse.BandListDTO> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "추천 밴드 반환 API"
         );
 
         return ResponseEntity.ok().body(response);
