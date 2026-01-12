@@ -61,8 +61,10 @@ public class SecurityConfig {
 
         config.setAllowedOrigins(List.of(
                 "https://diggindie.com",
+                "https://api.diggindie.com",
                 "https://www.diggindie.com",
                 "http://localhost:3000",
+                "http://localhost:8080",
                 "https://digg-indie-fe.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
