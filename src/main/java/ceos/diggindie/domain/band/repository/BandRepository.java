@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BandRepository extends JpaRepository<Band, Long> {
@@ -44,7 +45,7 @@ public interface BandRepository extends JpaRepository<Band, Long> {
     Page<Band> searchBandsByRecent(@Param("query") String query, Pageable pageable);
 
     // 가나다순 정렬 
-    @Query(value = "SELECT b.* FROM band b " +
+    @Query(value = "SELECT b.band_id FROM band b " +
             "WHERE b.band_id IN (" +
             "  SELECT DISTINCT b2.band_id FROM band b2 " +
             "  LEFT JOIN band_keyword bk ON b2.band_id = bk.band_id " +
@@ -61,7 +62,11 @@ public interface BandRepository extends JpaRepository<Band, Long> {
                     "b.band_name ILIKE CONCAT('%', :query, '%') OR " +
                     "k.keyword ILIKE CONCAT('%', :query, '%')",
             nativeQuery = true)
-    Page<Band> searchBandsByAlphabet(@Param("query") String query, Pageable pageable);
+    Page<Long> searchBandIdsByAlphabet(@Param("query") String query, Pageable pageable);
+
+    // ID 목록으로 Band + TopTrack 함께 조회 (N+1 방지)
+    @Query("SELECT DISTINCT b FROM Band b LEFT JOIN FETCH b.topTrack WHERE b.id IN :ids")
+    List<Band> findByIdInWithTopTrack(@Param("ids") List<Long> ids);
 
     // 스크랩순 정렬 
     @Query(value = "SELECT b FROM Band b " +

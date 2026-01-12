@@ -25,6 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -233,12 +236,28 @@ public class BandService {
         return bands.map(BandListResponse::from);
     }
 
-    // 아티스트 검색 (정렬 지원)
     @Transactional(readOnly = true)
     public BandSearchResponse.ArtistListDTO searchArtists(String query, String order, Pageable pageable) {
+
+        if ("alphabet".equals(order)) {
+            Page<Long> bandIdPage = bandRepository.searchBandIdsByAlphabet(query, pageable);
+            List<Long> bandIds = bandIdPage.getContent();
+
+            // Band + TopTrack 한 번에 조회 (N+1 방지)
+            List<Band> bands = bandRepository.findByIdInWithTopTrack(bandIds);
+
+            // 정렬 순서 유지
+            Map<Long, Band> bandMap = bands.stream()
+                    .collect(Collectors.toMap(Band::getId, Function.identity()));
+            List<Band> orderedBands = bandIds.stream()
+                    .map(bandMap::get)
+                    .toList();
+
+            return BandSearchResponse.ArtistListDTO.from(orderedBands, bandIdPage);
+        }
+
         Page<Band> bandPage = switch (order) {
             case "recent" -> bandRepository.searchBandsByRecent(query, pageable);
-            case "alphabet" -> bandRepository.searchBandsByAlphabet(query, pageable);
             case "scrap" -> bandRepository.searchBandsByScrap(query, pageable);
             default -> throw new GeneralException(GeneralErrorCode.BAD_REQUEST,
                     "지원하지 않는 정렬 타입입니다: " + order + ". (recent, alphabet, scrap 중 선택해주세요.)");
