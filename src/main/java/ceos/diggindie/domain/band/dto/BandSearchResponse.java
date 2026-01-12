@@ -2,6 +2,7 @@ package ceos.diggindie.domain.band.dto;
 
 import ceos.diggindie.common.response.PageInfo;
 import ceos.diggindie.domain.band.entity.Band;
+import ceos.diggindie.domain.band.entity.TopTrack;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
@@ -24,12 +25,19 @@ public class BandSearchResponse {
                     .map(bk -> bk.getKeyword().getKeyword())
                     .toList();
 
+            // TopTrack 테이블에서 title 가져오기
+            String topTrackTitle = null;
+            TopTrack topTrack = band.getTopTrack();
+            if (topTrack != null) {
+                topTrackTitle = topTrack.getTitle();
+            }
+
             return ArtistInfo.builder()
                     .artistId(band.getId())
                     .artistName(band.getBandName())
                     .keywords(keywordList)
                     .artistImage(band.getMainImage())
-                    .topTrack(band.getMainMusic())
+                    .topTrack(topTrackTitle)
                     .build();
         }
     }

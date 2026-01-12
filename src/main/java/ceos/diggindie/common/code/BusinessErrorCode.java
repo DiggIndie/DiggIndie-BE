@@ -26,6 +26,14 @@ public enum BusinessErrorCode implements Code {
     ALREADY_SCRAPPED(409, "이미 스크랩한 항목입니다."),
     SCRAP_NOT_FOUND(404, "스크랩 기록을 찾을 수 없습니다."),
 
+    // ==================== 밴드 ====================
+    BAND_NOT_FOUND(404, "밴드를 찾을 수 없습니다."),
+
+    // ==================== Spotify ====================
+    SPOTIFY_TOKEN_ERROR(500, "Spotify 토큰 발급에 실패했습니다."),
+    SPOTIFY_ID_NOT_FOUND(404, "해당 밴드에 Spotify ID가 없습니다."),
+    TOP_TRACK_NOT_FOUND(404, "해당 밴드의 Top Track을 찾을 수 없습니다."),
+
     ;
 
     private final int statusCode;
