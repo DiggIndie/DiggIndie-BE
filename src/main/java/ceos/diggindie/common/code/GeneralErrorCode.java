@@ -28,7 +28,10 @@ public enum GeneralErrorCode implements Code {
     INVALID_SEARCH_KEYWORD(400, "검색어는 공백일 수 없습니다."),
 
     // ==================== 페이징 ====================
-    INVALID_PAGE_REQUEST(400, "page는 0 이상, size는 1~100 사이여야 합니다.");
+    INVALID_PAGE_REQUEST(400, "page는 0 이상, size는 1~100 사이여야 합니다."),
+
+    // ==================== 파라미터 ====================
+    INVALID_REQUEST_PARAMETER(400, "잘못된 요청 파라미터입니다.");
 
     private final int statusCode;
     private final String message;
