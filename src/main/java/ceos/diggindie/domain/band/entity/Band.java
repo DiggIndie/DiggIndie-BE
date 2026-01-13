@@ -60,8 +60,11 @@ public class Band extends BaseEntity {
     @OneToMany(mappedBy = "band")
     private List<BandRecommend> artistRecommends = new ArrayList<>();
 
-    @OneToMany(mappedBy = "band")
-    private List<BandScrap> artistScraps = new ArrayList<>();
+    @OneToMany(mappedBy = "band", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<BandScrap> bandScraps = new ArrayList<>();
+
+    @OneToOne(mappedBy = "band", fetch = FetchType.LAZY)
+    private TopTrack topTrack;
 
     @Builder
     public Band(

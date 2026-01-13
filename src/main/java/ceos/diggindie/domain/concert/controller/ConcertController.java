@@ -4,7 +4,9 @@ import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.concert.dto.ConcertRecommendResponse;
+import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
+import ceos.diggindie.domain.concert.service.ConcertScrapService;
 import ceos.diggindie.domain.concert.service.ConcertService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,9 +14,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +31,7 @@ import java.time.LocalDate;
 public class ConcertController {
 
     private final ConcertService concertService;
+    private final ConcertScrapService concertScrapService;
 
     @Operation(summary = "공연 위클리 캘린더 조회", description = "특정 날짜의 공연 목록을 페이징하여 조회합니다.")
     @ApiResponses({
@@ -39,14 +42,15 @@ public class ConcertController {
             @Parameter(description = "조회할 날짜 (yyyy-mm-dd)", example = "2025-02-07")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @Parameter(description = "페이지 번호 (0부터 시작)")
-            Pageable pageable
-            ) {
-        Response<ConcertWeeklyCalendarResponse> response = Response.of(
+            Pageable pageable) {
+
+        ConcertWeeklyCalendarResponse concertWeeklyCalendarResponse = concertService.getConcertWeeklyCalendar(date, pageable);
+        Response<ConcertWeeklyCalendarResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "공연 위클리 캘린더 조회 API",
-                concertService.getConcertWeeklyCalendar(date, pageable)
+                concertWeeklyCalendarResponse,
+                "공연 위클리 캘린더 조회 API"
         );
+
         return ResponseEntity.ok().body(response);
     }
 
@@ -54,8 +58,7 @@ public class ConcertController {
     @Operation(summary = "추천 공연 조회", description = "추천 공연 목록을 조회합니다.")
     @GetMapping("/concerts/recommendations")
     public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-            ){
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Response<ConcertRecommendResponse> response = Response.of(
                 SuccessCode.GET_SUCCESS,
                 true,
@@ -65,4 +68,25 @@ public class ConcertController {
         return ResponseEntity.ok().body(response);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "내 공연 스크랩 목록 조회", description = "로그인한 사용자의 공연 스크랩 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @GetMapping("/my/concerts")
+    public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapListDTO>> getMyScrappedConcerts(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        ConcertScrapResponse.ConcertScrapListDTO concertsScrapResponse =
+                concertScrapService.getMyScrappedConcerts(customUserDetails.getMemberId());
+        Response<ConcertScrapResponse.ConcertScrapListDTO> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                concertsScrapResponse,
+                "스크랩 공연 반환 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
 }

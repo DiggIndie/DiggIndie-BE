@@ -1,4 +1,23 @@
+version: "3.8"
+
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: diggindie-be
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Seoul
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    restart: unless-stopped
+
   redis:
     image: redis:7
     container_name: redis
@@ -7,6 +26,8 @@ services:
     volumes:
       - redis-data:/data
     command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      TZ: Asia/Seoul
 
 volumes:
   redis-data:

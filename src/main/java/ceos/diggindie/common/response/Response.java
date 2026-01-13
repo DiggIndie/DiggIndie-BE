@@ -2,14 +2,19 @@ package ceos.diggindie.common.response;
 
 import ceos.diggindie.common.code.Code;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 @Getter
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({"statusCode", "isSuccess", "message", "pageInfo", "payload"})
 public class Response<T> {
 
     private int statusCode;
@@ -23,48 +28,81 @@ public class Response<T> {
 
     private T payload;
 
-    @JsonProperty("isSuccess")
-    public boolean isSuccess() {
-        return isSuccess;
-    }
-
-    // Non-paginated
-    public static <T> Response<T> of(Code code, boolean isSuccess, T payload) {
+    public static <T> Response<T> success(Code code) {
         return Response.<T>builder()
                 .statusCode(code.getStatusCode())
-                .isSuccess(isSuccess)
+                .isSuccess(true)
+                .message(code.getMessage())
+                .build();
+    }
+
+    public static <T> Response<T> success(Code code, T payload) {
+        return Response.<T>builder()
+                .statusCode(code.getStatusCode())
+                .isSuccess(true)
                 .message(code.getMessage())
                 .payload(payload)
                 .build();
     }
 
-    public static <T> Response<T> of(Code code, boolean isSuccess, String message, T payload) {
+    public static <T> Response<T> success(Code code, String message) {
         return Response.<T>builder()
                 .statusCode(code.getStatusCode())
-                .isSuccess(isSuccess)
+                .isSuccess(true)
+                .message(message)
+                .build();
+    }
+
+    public static <T> Response<T> success(Code code, T payload, String message) {
+        return Response.<T>builder()
+                .statusCode(code.getStatusCode())
+                .isSuccess(true)
                 .message(message)
                 .payload(payload)
                 .build();
     }
 
-    // Paginated
-    public static <T> Response<T> of(Code code, boolean isSuccess, T payload, PageInfo pageInfo) {
-        return Response.<T>builder()
+    public static <T> Response<List<T>> success(Code code, Page<T> page) {
+        PageInfo pageInfo = new PageInfo(
+                page.getNumber(),
+                page.getSize(),
+                page.hasNext(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+
+        return Response.<List<T>>builder()
                 .statusCode(code.getStatusCode())
-                .isSuccess(isSuccess)
+                .isSuccess(true)
                 .message(code.getMessage())
                 .pageInfo(pageInfo)
-                .payload(payload)
+                .payload(page.getContent())
                 .build();
     }
 
-    public static <T> Response<T> of(Code code, boolean isSuccess, String message, T payload, PageInfo pageInfo) {
-        return Response.<T>builder()
+    public static <T> Response<List<T>> success(Code code, Page<T> page, String message) {
+        PageInfo pageInfo = new PageInfo(
+                page.getNumber(),
+                page.getSize(),
+                page.hasNext(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
+
+        return Response.<List<T>>builder()
                 .statusCode(code.getStatusCode())
-                .isSuccess(isSuccess)
+                .isSuccess(true)
                 .message(message)
                 .pageInfo(pageInfo)
-                .payload(payload)
+                .payload(page.getContent())
+                .build();
+    }
+
+    public static <T> Response<T> fail(Code code) {
+        return Response.<T>builder()
+                .statusCode(code.getStatusCode())
+                .isSuccess(false)
+                .message(code.getMessage())
                 .build();
     }
 }
