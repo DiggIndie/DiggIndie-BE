@@ -63,7 +63,7 @@ public class Band extends BaseEntity {
     @OneToMany(mappedBy = "band", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<BandScrap> bandScraps = new ArrayList<>();
 
-    @OneToOne(mappedBy = "band", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "band", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private TopTrack topTrack;
 
     @Builder

@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.band.dto;
 
 import ceos.diggindie.domain.concert.dto.ConcertSummaryResponse;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import java.util.List;
@@ -39,6 +40,7 @@ public record BandDetailResponse(
         List<ConcertSummaryResponse> endedConcerts,
 
         @Schema(description = "스크랩 여부 (비로그인 시 false)", example = "true")
+        @JsonProperty("isScraped")
         boolean isScraped
 ) {
 }
