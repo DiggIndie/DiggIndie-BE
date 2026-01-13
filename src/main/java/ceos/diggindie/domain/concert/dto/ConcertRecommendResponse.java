@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.concert.dto;
 
 import ceos.diggindie.domain.concert.entity.Concert;
+import ceos.diggindie.domain.concert.util.ConcertDDayCalculator;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,7 +29,7 @@ public record ConcertRecommendResponse(
                         concert.getId(),
                         concert.getTitle(),
                         formatDuration(concert),
-                        calculateDDay(concert),
+                        ConcertDDayCalculator.calculateWithPastDays(concert.getStartDate()),
                         concert.getMainImg(),
                         concert.getBandConcerts().stream()
                                 .map(bc -> new LineUp(
@@ -51,20 +52,6 @@ public record ConcertRecommendResponse(
             return String.format("%d.%d.%d ~ %d.%d", start.getYear(), start.getMonthValue(), start.getDayOfMonth(), end.getMonthValue(), end.getDayOfMonth());
         } else {
             return String.format("%d.%d.%d ~ %d.%d.%d", start.getYear(), start.getMonthValue(), start.getDayOfMonth(), end.getYear(), end.getMonthValue(), end.getDayOfMonth());
-        }
-    }
-
-    private static String calculateDDay(Concert concert) {
-        if (concert.getStartDate() == null) return "";
-        LocalDate today = java.time.LocalDate.now();
-        LocalDate start = concert.getStartDate().toLocalDate();
-        long days = java.time.temporal.ChronoUnit.DAYS.between(today, start);
-        if (days > 0) {
-            return "D-" + days;
-        } else if (days == 0) {
-            return "D-DAY";
-        } else {
-            return "D+" + Math.abs(days);
         }
     }
 }

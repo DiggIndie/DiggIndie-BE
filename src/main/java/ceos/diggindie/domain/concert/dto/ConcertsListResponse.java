@@ -2,12 +2,12 @@ package ceos.diggindie.domain.concert.dto;
 
 import ceos.diggindie.common.response.PageInfo;
 import ceos.diggindie.domain.concert.entity.Concert;
+import ceos.diggindie.domain.concert.util.ConcertDDayCalculator;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public record ConcertsListResponse(
@@ -31,7 +31,7 @@ public record ConcertsListResponse(
                     .toList();
 
             // D-Day 계산
-            String dDay = calculateDDay(concert.getStartDate());
+            String dDay = ConcertDDayCalculator.calculate(concert.getStartDate());
 
             // 기간 포맷팅
             String period = formatPeriod(concert.getStartDate(), concert.getEndDate());
@@ -46,19 +46,6 @@ public record ConcertsListResponse(
             );
         }
 
-        private static String calculateDDay(LocalDateTime startDate) {
-            LocalDate today = LocalDate.now();
-            LocalDate concertDate = startDate.toLocalDate();
-            long daysUntil = ChronoUnit.DAYS.between(today, concertDate);
-
-            if (daysUntil < 0) {
-                return "공연 종료";
-            } else if (daysUntil == 0) {
-                return "D-Day";
-            } else {
-                return "D-" + daysUntil;
-            }
-        }
 
         private static String formatPeriod(LocalDateTime startDate, LocalDateTime endDate) {
             LocalDate start = startDate.toLocalDate();

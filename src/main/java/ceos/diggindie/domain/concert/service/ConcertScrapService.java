@@ -7,6 +7,7 @@ import ceos.diggindie.domain.concert.entity.Concert;
 import ceos.diggindie.domain.concert.entity.ConcertScrap;
 import ceos.diggindie.domain.concert.repository.ConcertRepository;
 import ceos.diggindie.domain.concert.repository.ConcertScrapRepository;
+import ceos.diggindie.domain.concert.util.ConcertDDayCalculator;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +42,7 @@ public class ConcertScrapService {
                             .concertId(concert.getId())
                             .concertName(concert.getTitle())
                             .duration(formatDuration(startDate, endDate))
-                            .dDay(calculateDDay(startDate, endDate))
+                            .dDay(ConcertDDayCalculator.calculate(startDate, endDate))
                             .imageUrl(concert.getMainImg())
                             .isFinished(concert.getEndDate() != null && concert.getEndDate().isBefore(LocalDateTime.now()))
                             .build();
@@ -98,17 +98,6 @@ public class ConcertScrapService {
                 .build();
     }
 
-    private String calculateDDay(LocalDate startDate, LocalDate endDate) {
-        LocalDate now = LocalDate.now();
-        if (now.isBefore(startDate)) {
-            long days = ChronoUnit.DAYS.between(now, startDate);
-            return days == 0 ? "D-Day" : "D-" + days;
-        } else if (now.isAfter(endDate)) {
-            return "종료";
-        } else {
-            return "진행 중";
-        }
-    }
 
     private static final DateTimeFormatter FULL_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.d");
     private static final DateTimeFormatter MONTH_DAY_FORMAT = DateTimeFormatter.ofPattern("MM.d");
