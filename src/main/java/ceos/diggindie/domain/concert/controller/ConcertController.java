@@ -3,6 +3,7 @@ package ceos.diggindie.domain.concert.controller;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
+import ceos.diggindie.domain.concert.dto.ConcertRecommendResponse;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.service.ConcertScrapService;
@@ -43,13 +44,28 @@ public class ConcertController {
             @Parameter(description = "조회할 날짜 (yyyy-mm-dd)", example = "2025-02-07")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @Parameter(description = "페이지 번호 (0부터 시작)")
-            @PageableDefault(sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable
-            ) {
-        Response<ConcertWeeklyCalendarResponse> response = Response.of(
+            @PageableDefault(sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        ConcertWeeklyCalendarResponse concertWeeklyCalendarResponse = concertService.getConcertWeeklyCalendar(date, pageable);
+        Response<ConcertWeeklyCalendarResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                concertWeeklyCalendarResponse,
+                "공연 위클리 캘린더 조회 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "추천 공연 조회", description = "추천 공연 목록을 조회합니다.")
+    @GetMapping("/concerts/recommendations")
+    public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Response<ConcertRecommendResponse> response = Response.of(
                 SuccessCode.GET_SUCCESS,
                 true,
-                "공연 위클리 캘린더 조회 API",
-                concertService.getConcertWeeklyCalendar(date, pageable)
+                "추천 공연 조회 API",
+                concertService.getRecommendation(userDetails.getMemberId())
         );
         return ResponseEntity.ok().body(response);
     }
@@ -65,9 +81,14 @@ public class ConcertController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        ConcertScrapResponse.ConcertScrapListDTO response =
+        ConcertScrapResponse.ConcertScrapListDTO concertsScrapResponse =
                 concertScrapService.getMyScrappedConcerts(customUserDetails.getMemberId());
+        Response<ConcertScrapResponse.ConcertScrapListDTO> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                concertsScrapResponse,
+                "스크랩 공연 반환 API"
+        );
 
-        return Response.success(SuccessCode.GET_SUCCESS, response);
+        return ResponseEntity.ok().body(response);
     }
 }
