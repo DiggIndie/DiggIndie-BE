@@ -80,6 +80,7 @@ jobs:
                 ports:
                   - "8080:8080"
                 environment:
+                  - TZ=Asia/Seoul
                   - DB_HOST=${{ secrets.DB_HOST }}
                   - DB_PORT=5432
                   - DB_NAME=${{ secrets.DB_NAME }}
@@ -102,8 +103,10 @@ jobs:
                 image: redis:alpine
                 ports:
                   - "6379:6379"
+                environment:
+                  - TZ=Asia/Seoul
                 restart: unless-stopped
-            EOF
+              EOF
             
             aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com
             
