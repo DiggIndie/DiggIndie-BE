@@ -34,6 +34,9 @@ public enum BusinessErrorCode implements Code {
     SPOTIFY_ID_NOT_FOUND(404, "해당 밴드에 Spotify ID가 없습니다."),
     TOP_TRACK_NOT_FOUND(404, "해당 밴드의 Top Track을 찾을 수 없습니다."),
 
+    // ==================== 공연 ====================
+    CONCERT_NOT_FOUND(404, "공연을 찾을 수 없습니다."),
+
     ;
 
     private final int statusCode;

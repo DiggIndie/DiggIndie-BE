@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BandRepository extends JpaRepository<Band, Long> {
+    
     Optional<Band> findByBandName(String bandName);
 
+    // 온보딩용 기본 밴드 검색
     @Query(value = "SELECT DISTINCT b FROM Band b " +
             "LEFT JOIN FETCH b.bandKeywords bk " +
             "LEFT JOIN FETCH bk.keyword k " +
@@ -27,7 +29,7 @@ public interface BandRepository extends JpaRepository<Band, Long> {
                     "k.keyword ILIKE %:query%")
     Page<Band> searchBands(@Param("query") String query, Pageable pageable);
 
-    // 최신순 정렬 
+    // [최신순] 아티스트 검색
     @Query(value = "SELECT DISTINCT b FROM Band b " +
             "LEFT JOIN FETCH b.topTrack " +
             "LEFT JOIN b.bandKeywords bk " +
@@ -44,7 +46,7 @@ public interface BandRepository extends JpaRepository<Band, Long> {
                     "k.keyword ILIKE %:query%")
     Page<Band> searchBandsByRecent(@Param("query") String query, Pageable pageable);
 
-    // 가나다순 정렬 
+    // [가나다순] 아티스트 검색 (Native Query)
     @Query(value = "SELECT b.band_id FROM band b " +
             "WHERE b.band_id IN (" +
             "  SELECT DISTINCT b2.band_id FROM band b2 " +
@@ -68,7 +70,7 @@ public interface BandRepository extends JpaRepository<Band, Long> {
     @Query("SELECT DISTINCT b FROM Band b LEFT JOIN FETCH b.topTrack WHERE b.id IN :ids")
     List<Band> findByIdInWithTopTrack(@Param("ids") List<Long> ids);
 
-    // 스크랩순 정렬 
+    // [스크랩순] 아티스트 검색
     @Query(value = "SELECT b FROM Band b " +
             "LEFT JOIN FETCH b.topTrack " +
             "LEFT JOIN b.bandKeywords bk " +
@@ -87,4 +89,12 @@ public interface BandRepository extends JpaRepository<Band, Long> {
                     "k.keyword ILIKE %:query%")
     Page<Band> searchBandsByScrap(@Param("query") String query, Pageable pageable);
 
+    // 아티스트 상세 조회 (연관된 모든 정보 Fetch Join)
+    @Query("SELECT DISTINCT b FROM Band b " +
+            "LEFT JOIN FETCH b.bandKeywords bk " +
+            "LEFT JOIN FETCH bk.keyword " +
+            "LEFT JOIN FETCH b.artists " +
+            "LEFT JOIN FETCH b.topTrack " +
+            "WHERE b.id = :bandId")
+    Optional<Band> findByIdWithDetails(@Param("bandId") Long bandId);
 }

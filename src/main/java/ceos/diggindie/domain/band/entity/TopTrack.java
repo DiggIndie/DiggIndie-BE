@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.band.entity;
 
+import ceos.diggindie.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import org.hibernate.annotations.BatchSize;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @BatchSize(size = 100)
-public class TopTrack {
+public class TopTrack extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,13 +21,13 @@ public class TopTrack {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "band_id", nullable = false)
+    @JoinColumn(name = "band_id", nullable = false, unique = true) 
     private Band band;
 
-    @Column(name = "title", nullable = false, length = 200)
+    @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(nullable = false, length = 300)
+    @Column(name = "external_url", nullable = false, length = 300)
     private String externalUrl;
 
     @Builder
