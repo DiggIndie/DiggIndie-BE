@@ -15,6 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +44,7 @@ public class ConcertController {
             @Parameter(description = "조회할 날짜 (yyyy-mm-dd)", example = "2025-02-07")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @Parameter(description = "페이지 번호 (0부터 시작)")
-            Pageable pageable) {
+            @PageableDefault(sort = "startDate", direction = Sort.Direction.ASC) Pageable pageable) {
 
         ConcertWeeklyCalendarResponse concertWeeklyCalendarResponse = concertService.getConcertWeeklyCalendar(date, pageable);
         Response<ConcertWeeklyCalendarResponse> response = Response.success(
