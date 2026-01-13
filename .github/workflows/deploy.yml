@@ -78,7 +78,7 @@ jobs:
             mkdir -p /home/ubuntu/app
             cd /home/ubuntu/app
             
-            cat > docker-compose.yml <<EOF
+            cat > docker-compose.yml <<-'INNER_EOF'
             version: '3.8'
             services:
               app:
@@ -104,7 +104,6 @@ jobs:
                 depends_on:
                   - redis
                 restart: unless-stopped
-            
               redis:
                 image: redis:alpine
                 ports:
@@ -112,7 +111,7 @@ jobs:
                 environment:
                   - TZ=Asia/Seoul
                 restart: unless-stopped
-EOF
+            INNER_EOF
 
             aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
             
