@@ -3,6 +3,7 @@ package ceos.diggindie.domain.concert.controller;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
+import ceos.diggindie.domain.concert.dto.ConcertRecommendResponse;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.dto.ConcertWeeklyCalendarResponse;
 import ceos.diggindie.domain.concert.service.ConcertScrapService;
@@ -54,6 +55,20 @@ public class ConcertController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "추천 공연 조회", description = "추천 공연 목록을 조회합니다.")
+    @GetMapping("/concerts/recommendations")
+    public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Response<ConcertRecommendResponse> response = Response.of(
+                SuccessCode.GET_SUCCESS,
+                true,
+                "추천 공연 조회 API",
+                concertService.getRecommendation(userDetails.getMemberId())
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "내 공연 스크랩 목록 조회", description = "로그인한 사용자의 공연 스크랩 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
@@ -69,7 +84,7 @@ public class ConcertController {
         Response<ConcertScrapResponse.ConcertScrapListDTO> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 concertsScrapResponse,
-        "스크랩 공연 반환 API"
+                "스크랩 공연 반환 API"
         );
 
         return ResponseEntity.ok().body(response);

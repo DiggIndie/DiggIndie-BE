@@ -10,6 +10,9 @@ import java.util.List;
 
 public interface MemberBandRepository extends JpaRepository<MemberBand, Long> {
 
+    @Query("SELECT mb.band.id FROM MemberBand mb WHERE mb.member.id = :memberId")
+    List<Long> findBandIdsByMemberId(@Param("memberId") Long memberId);
+
     @Modifying
     @Query("DELETE FROM MemberBand mb WHERE mb.member.id = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
