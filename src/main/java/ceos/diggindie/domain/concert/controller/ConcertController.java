@@ -58,14 +58,16 @@ public class ConcertController {
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "추천 공연 조회", description = "추천 공연 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
     @GetMapping("/concerts/recommendations")
     public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Response<ConcertRecommendResponse> response = Response.of(
+        Response<ConcertRecommendResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "추천 공연 조회 API",
-                concertService.getRecommendation(userDetails.getMemberId())
+                concertService.getRecommendation(userDetails.getMemberId()),
+                "추천 공연 조회 API"
         );
         return ResponseEntity.ok().body(response);
     }
