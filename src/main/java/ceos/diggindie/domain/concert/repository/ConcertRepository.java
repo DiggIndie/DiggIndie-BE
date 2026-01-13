@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.List;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long> {
 
@@ -42,7 +41,13 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
                              @Param("endOfDay") LocalDateTime endOfDay,
                              Pageable pageable);
 
-    // 최근(빠른 시작일) 순 정렬
+    @Query("SELECT DISTINCT c FROM Concert c " +
+            "JOIN FETCH c.bandConcerts cb " +
+            "JOIN FETCH cb.band " +
+            "WHERE cb.band.id = :bandId " +
+            "ORDER BY c.startDate DESC")
+    List<Concert> findConcertsByBandId(@Param("bandId") Long bandId);
+
     @Query(value = """
             SELECT c
             FROM Concert c
@@ -61,7 +66,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
                                   @Param("now") LocalDateTime now,
                                   Pageable pageable);
 
-    // 조회수 순 정렬
     @Query(value = """
             SELECT c
             FROM Concert c
@@ -80,7 +84,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
                                  @Param("now") LocalDateTime now,
                                  Pageable pageable);
 
-    // 스크랩 수 순 정렬
     @Query(value = """
             SELECT c
             FROM Concert c
@@ -102,7 +105,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
                                       @Param("now") LocalDateTime now,
                                       Pageable pageable);
 
-    // 특정 월에 공연이 있는 날짜 목록 조회
     @Query("""
             SELECT DISTINCT CAST(c.startDate AS LocalDate)
             FROM Concert c
@@ -113,7 +115,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             @Param("startOfMonth") LocalDateTime startOfMonth,
             @Param("endOfMonth") LocalDateTime endOfMonth);
 
-    // 여러 날짜의 공연 조회 (날짜순 정렬)
     @Query(value = """
             SELECT c
             FROM Concert c
@@ -135,5 +136,4 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             WHERE c.id IN :ids
             """)
     List<Concert> findAllByIdWithBandConcerts(@Param("ids") List<Long> ids);
-
 }
