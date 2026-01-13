@@ -12,6 +12,14 @@ public enum BusinessErrorCode implements Code {
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
 
+    // ==================== 이메일 인증 ====================
+    EMAIL_SEND_FAILED(500, "이메일 발송에 실패했습니다."),
+    EMAIL_CODE_INVALID(400, "인증 코드가 올바르지 않습니다."),
+    EMAIL_CODE_EXPIRED(400, "인증 코드가 만료되었습니다."),
+    EMAIL_NOT_REGISTERED(404, "등록되지 않은 이메일입니다."),
+    EMAIL_ALREADY_EXISTS(409, "이미 존재하는 이메일입니다."),
+    PASSWORD_TOO_SHORT(400, "비밀번호는 최소 8자 이상이어야 합니다."),
+
     // ==================== 아티스트 ====================
     ARTIST_NOT_FOUND(404, "아티스트를 찾을 수 없습니다."),
 
