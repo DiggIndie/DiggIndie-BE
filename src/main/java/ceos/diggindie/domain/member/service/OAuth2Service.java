@@ -1,12 +1,14 @@
 package ceos.diggindie.domain.member.service;
 
+import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.code.GeneralErrorCode;
 import ceos.diggindie.common.config.oauth.OAuth2Client;
 import ceos.diggindie.common.config.oauth.OAuth2Properties;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.config.security.jwt.JwtTokenProvider;
 import ceos.diggindie.common.enums.LoginPlatform;
+import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.common.exception.GeneralException;
-import ceos.diggindie.common.status.ErrorStatus;
 import ceos.diggindie.domain.member.dto.oauth.*;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.entity.SocialAccount;
@@ -97,7 +99,7 @@ public class OAuth2Service {
 
         transactionTemplate.executeWithoutResult(status -> {
             if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, request.getPlatform())) {
-                throw new GeneralException(ErrorStatus.OAUTH_ALREADY_LINKED);
+                throw new BusinessException(BusinessErrorCode.OAUTH_ALREADY_LINKED);
             }
         });
 
@@ -106,7 +108,7 @@ public class OAuth2Service {
         transactionTemplate.executeWithoutResult(status -> {
             if (socialAccountRepository.findByPlatformAndPlatformId(
                     userInfo.getPlatform(), userInfo.getPlatformId()).isPresent()) {
-                throw new GeneralException(ErrorStatus.OAUTH_ACCOUNT_EXISTS);
+                throw new BusinessException(BusinessErrorCode.OAUTH_ACCOUNT_EXISTS);
             }
 
             Member memberRef = memberRepository.getReferenceById(memberId);
@@ -135,21 +137,21 @@ public class OAuth2Service {
     @Transactional
     public OAuth2UnlinkResponse unlinkSocialAccount(CustomUserDetails userDetails, LoginPlatform platform) {
         if (platform == LoginPlatform.LOCAL) {
-            throw new GeneralException(ErrorStatus.OAUTH_INVALID_PLATFORM, "기본 회원가입은 연동 해제할 수 없습니다.");
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_PLATFORM, "기본 회원가입은 연동 해제할 수 없습니다.");
         }
 
         Member member = memberRepository.findById(userDetails.getMemberId())
-                .orElseThrow(() -> new GeneralException(ErrorStatus._NOT_FOUND, "회원을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND, "회원을 찾을 수 없습니다."));
 
         long linkedCount = socialAccountRepository.countByMemberId(member.getId());
         boolean hasPassword = member.getPassword() != null;
 
         if (linkedCount <= 1 && !hasPassword) {
-            throw new GeneralException(ErrorStatus.OAUTH_UNLINK_DENIED);
+            throw new BusinessException(BusinessErrorCode.OAUTH_UNLINK_DENIED);
         }
 
         if (!socialAccountRepository.existsByMemberIdAndPlatform(member.getId(), platform)) {
-            throw new GeneralException(ErrorStatus.OAUTH_NOT_LINKED);
+            throw new BusinessException(BusinessErrorCode.OAUTH_NOT_LINKED);
         }
 
         socialAccountRepository.deleteByMemberIdAndPlatform(member.getId(), platform);
@@ -200,7 +202,7 @@ public class OAuth2Service {
             case GOOGLE -> String.format(
                     "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=profile%%20email&state=%s",
                     provider.getClientId(), provider.getRedirectUri(), state);
-            default -> throw new GeneralException(ErrorStatus.OAUTH_PROVIDER_NOT_SUPPORTED);
+            default -> throw new BusinessException(BusinessErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
         };
 
         return OAuth2UrlResponse.builder()
@@ -238,7 +240,7 @@ public class OAuth2Service {
     private void validateState(String state, LoginPlatform platform) {
         if (!oAuth2StateService.validateAndConsume(state, platform.name())) {
             log.warn("OAuth state validation failed - state: {}, platform: {}", state, platform);
-            throw new GeneralException(ErrorStatus.OAUTH_INVALID_STATE);
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
         }
     }
 
