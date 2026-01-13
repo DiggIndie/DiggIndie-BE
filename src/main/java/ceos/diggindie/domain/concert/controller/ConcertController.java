@@ -61,11 +61,10 @@ public class ConcertController {
     @GetMapping("/concerts/recommendations")
     public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Response<ConcertRecommendResponse> response = Response.of(
+        Response<ConcertRecommendResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                true,
-                "추천 공연 조회 API",
-                concertService.getRecommendation(userDetails.getMemberId())
+                concertService.getRecommendation(userDetails.getMemberId()),
+                "추천 공연 조회 API"
         );
         return ResponseEntity.ok().body(response);
     }
