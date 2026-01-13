@@ -7,6 +7,7 @@ import ceos.diggindie.domain.band.dto.BandSearchResponse;
 import ceos.diggindie.domain.band.entity.Artist;
 import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.band.entity.BandsRawData;
+import ceos.diggindie.common.enums.BandSortOrder;
 import ceos.diggindie.domain.band.repository.ArtistRepository;
 import ceos.diggindie.domain.band.repository.BandRepository;
 import ceos.diggindie.domain.band.repository.BandsRawDataRepository;
@@ -237,9 +238,9 @@ public class BandService {
     }
 
     @Transactional(readOnly = true)
-    public BandSearchResponse.ArtistListDTO searchArtists(String query, String order, Pageable pageable) {
+    public BandSearchResponse.ArtistListDTO searchArtists(String query, BandSortOrder order, Pageable pageable) {
 
-        if ("alphabet".equals(order)) {
+        if (order == BandSortOrder.alphabet) {
             Page<Long> bandIdPage = bandRepository.searchBandIdsByAlphabet(query, pageable);
             List<Long> bandIds = bandIdPage.getContent();
 
@@ -257,10 +258,10 @@ public class BandService {
         }
 
         Page<Band> bandPage = switch (order) {
-            case "recent" -> bandRepository.searchBandsByRecent(query, pageable);
-            case "scrap" -> bandRepository.searchBandsByScrap(query, pageable);
+            case recent -> bandRepository.searchBandsByRecent(query, pageable);
+            case scrap -> bandRepository.searchBandsByScrap(query, pageable);
             default -> throw new GeneralException(GeneralErrorCode.BAD_REQUEST,
-                    "지원하지 않는 정렬 타입입니다: " + order + ". (recent, alphabet, scrap 중 선택해주세요.)");
+                    "지원하지 않는 정렬 타입입니다: " + order);
         };
 
         return BandSearchResponse.ArtistListDTO.from(bandPage);

@@ -54,7 +54,7 @@ public interface BandRepository extends JpaRepository<Band, Long> {
             "  b2.band_name ILIKE CONCAT('%', :query, '%') OR " +
             "  k.keyword ILIKE CONCAT('%', :query, '%')" +
             ") " +
-            "ORDER BY LOWER(b.band_name) COLLATE \"C\" ASC",
+            "ORDER BY LOWER(b.band_name) COLLATE \"ko_KR.utf8\" ASC",
             countQuery = "SELECT count(DISTINCT b.band_id) FROM band b " +
                     "LEFT JOIN band_keyword bk ON b.band_id = bk.band_id " +
                     "LEFT JOIN keyword k ON k.keyword_id = bk.keyword_id " +
@@ -78,7 +78,7 @@ public interface BandRepository extends JpaRepository<Band, Long> {
             "b.bandName ILIKE %:query% OR " +
             "k.keyword ILIKE %:query% " +
             "GROUP BY b.id, b.topTrack.id " +
-            "ORDER BY COUNT(bs) DESC, b.createdAt DESC",
+            "ORDER BY COUNT(DISTINCT bs.id) DESC, b.createdAt DESC",
             countQuery = "SELECT count(DISTINCT b) FROM Band b " +
                     "LEFT JOIN b.bandKeywords bk " +
                     "LEFT JOIN bk.keyword k " +

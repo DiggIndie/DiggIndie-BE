@@ -4,6 +4,7 @@ import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.band.dto.BandListResponse;
 import ceos.diggindie.domain.band.dto.BandSearchResponse;
+import ceos.diggindie.common.enums.BandSortOrder;
 import ceos.diggindie.domain.band.service.BandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -85,7 +86,7 @@ public class BandController {
     @GetMapping("/artists/search")
     public ResponseEntity<Response<BandSearchResponse.ArtistListDTO>> searchArtists(
             @Parameter(description = "정렬 기준 (recent: 최신순, alphabet: 가나다순, scrap: 스크랩순)", example = "recent")
-            @RequestParam(required = false, defaultValue = "recent") String order,
+            @RequestParam(required = false, defaultValue = "recent") BandSortOrder order,
             @Parameter(description = "검색어 (아티스트명, 키워드)", example = "쏜애플")
             @RequestParam(required = false, defaultValue = "") String query,
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
