@@ -57,44 +57,50 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ap-northeast-2
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION
+          envs: AWS_ACCOUNT_ID,DB_HOST,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,OPENAI_API_KEY,SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET
           script: |
-            sudo cp /tmp/nginx/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com
+            sudo cp /tmp/nginx/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com || sudo cp /tmp/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com
             sudo nginx -t && sudo systemctl reload nginx
             
             mkdir -p /home/ubuntu/app
             cd /home/ubuntu/app
             
-            cat > docker-compose.yml << EOF
+            cat > docker-compose.yml <<EOF
             version: '3.8'
             services:
               app:
-                image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/diggindie-dev:latest
+                image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/diggindie-dev:latest
                 ports:
                   - "8080:8080"
                 environment:
                   - TZ=Asia/Seoul
-                  - DB_HOST=${{ secrets.DB_HOST }}
+                  - DB_HOST=${DB_HOST}
                   - DB_PORT=5432
-                  - DB_NAME=${{ secrets.DB_NAME }}
-                  - DB_USERNAME=${{ secrets.DB_USERNAME }}
-                  - DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+                  - DB_NAME=${DB_NAME}
+                  - DB_USERNAME=${DB_USERNAME}
+                  - DB_PASSWORD=${DB_PASSWORD}
                   - REDIS_HOST=redis
                   - REDIS_PORT=6379
-                  - JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+                  - JWT_SECRET_KEY=${JWT_SECRET_KEY}
                   - JWT_ACCESS_TOKEN_VALIDITY=3600000
                   - JWT_REFRESH_TOKEN_VALIDITY=604800000
-                  - OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+                  - OPENAI_API_KEY=${OPENAI_API_KEY}
                   - OPENAI_MODEL=gpt-4o-mini
-                  - SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
-                  - SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
+                  - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+                  - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
                 depends_on:
                   - redis
                 restart: unless-stopped
@@ -106,10 +112,9 @@ jobs:
                 environment:
                   - TZ=Asia/Seoul
                 restart: unless-stopped
-              EOF
+EOF
+
+            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
             
-            aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com
-            
-            docker-compose down || true
             docker-compose pull
-            docker-compose up -d
+            docker-compose up -d --force-recreate app
