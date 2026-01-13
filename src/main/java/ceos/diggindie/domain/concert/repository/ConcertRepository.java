@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.List;
 
 public interface ConcertRepository extends JpaRepository<Concert, Long> {
 
@@ -30,7 +31,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             JOIN FETCH c.concertHall
             WHERE c.startDate >= :startOfDay
               AND c.startDate <  :endOfDay
-            ORDER BY c.startDate ASC
         """,
             countQuery = """
             SELECT COUNT(c)
@@ -127,5 +127,13 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             WHERE CAST(c.startDate AS LocalDate) IN :dates
         """)
     Page<Concert> findByDates(@Param("dates") List<LocalDate> dates, Pageable pageable);
+
+    @Query("""
+            SELECT c FROM Concert c
+            LEFT JOIN FETCH c.bandConcerts bc
+            LEFT JOIN FETCH bc.band
+            WHERE c.id IN :ids
+            """)
+    List<Concert> findAllByIdWithBandConcerts(@Param("ids") List<Long> ids);
 
 }
