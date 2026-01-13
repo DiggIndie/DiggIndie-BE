@@ -95,6 +95,8 @@ jobs:
                   - OPENAI_MODEL=gpt-4o-mini
                   - SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}
                   - SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}
+                  - MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+                  - MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
                 depends_on:
                   - redis
                 restart: unless-stopped
