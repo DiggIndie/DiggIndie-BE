@@ -4,6 +4,7 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,5 +27,9 @@ public class ConcertScrap extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-
+    @Builder
+    public ConcertScrap(Concert concert, Member member) {
+        this.concert = concert;
+        this.member = member;
+    }
 }
