@@ -18,6 +18,7 @@ public record CommentResponse(
         Boolean isLiked,
         List<ReplyResponse> replies
 ) {
+    // 상세 조회용
     public static CommentResponse from(BoardComment comment, Long memberId,
                                        AnonymousNumberGenerator anonGenerator) {
         List<ReplyResponse> allReplies = new ArrayList<>();
@@ -40,6 +41,23 @@ public record CommentResponse(
                 .likeCount(comment.getLikes().size())
                 .isLiked(liked)
                 .replies(allReplies)
+                .build();
+    }
+
+    // 댓글 작성 응답용
+    public static CommentResponse from(BoardComment comment, Long memberId) {
+        String writerNick = comment.getIsAnonymous()
+                ? "익명"
+                : comment.getMember().getUserId();
+
+        return CommentResponse.builder()
+                .commentId(comment.getId())
+                .writerNickname(writerNick)
+                .createdAt(TimeUtils.toRelativeTime(comment.getCreatedAt()))
+                .content(comment.getContent())
+                .likeCount(0)
+                .isLiked(false)
+                .replies(new ArrayList<>())
                 .build();
     }
 
