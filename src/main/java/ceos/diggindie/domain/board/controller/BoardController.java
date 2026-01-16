@@ -20,13 +20,13 @@ public class BoardController {
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/boards")
-    public ResponseEntity<Response<BoardResponse>> createBoard(
+    public ResponseEntity<Response<BoardCreateResponse>> createBoard(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody BoardCreateRequest request
     ) {
-        BoardResponse result = boardService.createBoard(userDetails.getMemberId(), request);
+        BoardCreateResponse result = boardService.createBoard(userDetails.getMemberId(), request);
 
-        Response<BoardResponse> response = Response.success(
+        Response<BoardCreateResponse> response = Response.success(
                 SuccessCode.INSERT_SUCCESS,
                 result,
                 "디깅 라운지 자유 게시글 작성 API"

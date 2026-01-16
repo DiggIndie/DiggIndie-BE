@@ -27,7 +27,7 @@ public class BoardService {
     private final BoardCommentRepository boardCommentRepository;
 
     @Transactional
-    public BoardResponse createBoard(Long memberId, BoardCreateRequest request) {
+    public BoardCreateResponse createBoard(Long memberId, BoardCreateRequest request) {
         Member member = memberService.findById(memberId);
 
         Board board = Board.builder()
@@ -49,7 +49,7 @@ public class BoardService {
         }
 
         Board savedBoard = boardRepository.save(board);
-        return BoardResponse.from(savedBoard);
+        return BoardCreateResponse.from(savedBoard.getId());
     }
 
     @Transactional
