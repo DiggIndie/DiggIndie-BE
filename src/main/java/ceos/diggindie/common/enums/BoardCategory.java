@@ -1,7 +1,7 @@
 package ceos.diggindie.common.enums;
 
-import ceos.diggindie.common.code.GeneralErrorCode;
-import ceos.diggindie.common.exception.GeneralException;
+import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.exception.BusinessException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
@@ -33,7 +33,7 @@ public enum BoardCategory {
                 return category;
             }
         }
-        throw new GeneralException(GeneralErrorCode.BAD_REQUEST,
+        throw new BusinessException(BusinessErrorCode.CATEGORY_BAD_REQUEST,
                 "지원하지 않는 게시판 카테고리입니다: " + value +
                         ". (none, info, review, recommend, release, news, companion 중 선택해주세요.)");
     }
