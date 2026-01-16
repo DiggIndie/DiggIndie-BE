@@ -1,6 +1,5 @@
 package ceos.diggindie.domain.board.dto.board;
 
-import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.common.utils.TimeUtils;
 import ceos.diggindie.domain.board.entity.board.Board;
 import ceos.diggindie.domain.board.entity.board.BoardComment;
@@ -23,9 +22,7 @@ public record BoardDetailResponse(
         List<CommentResponse> comments
 ) {
     public static BoardDetailResponse of(Board board, List<BoardComment> comments) {
-        int totalCommentCount = comments.stream()
-                .mapToInt(c -> 1 + c.getChildComments().size())
-                .sum();
+        int totalCommentCount = countAllComments(comments);
 
         return BoardDetailResponse.builder()
                 .boardId(board.getId())
@@ -44,5 +41,13 @@ public record BoardDetailResponse(
                         .map(CommentResponse::from)
                         .toList())
                 .build();
+    }
+
+    private static int countAllComments(List<BoardComment> comments) {
+        int count = 0;
+        for (BoardComment comment : comments) {
+            count += 1 + countAllComments(comment.getChildComments());
+        }
+        return count;
     }
 }
