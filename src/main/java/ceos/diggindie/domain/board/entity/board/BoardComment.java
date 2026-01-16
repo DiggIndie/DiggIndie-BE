@@ -4,6 +4,7 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -43,4 +44,12 @@ public class BoardComment extends BaseEntity {
 
     @OneToMany(mappedBy = "boardComment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardCommentLike> likes = new ArrayList<>();
+
+    @Builder
+    public BoardComment(String content, Board board, Member member, BoardComment parentComment) {
+        this.content = content;
+        this.board = board;
+        this.member = member;
+        this.parentComment = parentComment;
+    }
 }

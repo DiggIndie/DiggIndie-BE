@@ -4,9 +4,7 @@ import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.enums.BoardCategory;
 
 import ceos.diggindie.common.exception.BusinessException;
-import ceos.diggindie.domain.board.dto.board.BoardCreateRequest;
-import ceos.diggindie.domain.board.dto.board.BoardDetailResponse;
-import ceos.diggindie.domain.board.dto.board.BoardResponse;
+import ceos.diggindie.domain.board.dto.board.*;
 import ceos.diggindie.domain.board.entity.board.Board;
 import ceos.diggindie.domain.board.entity.board.BoardComment;
 import ceos.diggindie.domain.board.entity.board.BoardImage;
@@ -67,5 +65,33 @@ public class BoardService {
         List<BoardComment> comments = boardCommentRepository.findParentCommentsByBoardId(boardId);
 
         return BoardDetailResponse.of(board, comments);
+    }
+
+
+    @Transactional
+    public CommentResponse createComment(Long memberId, Long boardId, CommentCreateRequest request) {
+        Member member = memberService.findById(memberId);
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."));
+
+        // 대댓글인 경우 부모 댓글 조회
+        BoardComment parentComment = null;
+        if (request.parentCommentId() != null) {
+            parentComment = boardCommentRepository.findById(request.parentCommentId())
+                    .orElseThrow(() -> new BusinessException(BusinessErrorCode.COMMENT_NOT_FOUND,
+                            "부모 댓글을 찾을 수 없습니다."));
+        }
+
+        BoardComment comment = BoardComment.builder()
+                .content(request.content())
+                .board(board)
+                .member(member)
+                .parentComment(parentComment)
+                .build();
+
+        BoardComment savedComment = boardCommentRepository.save(comment);
+        return CommentResponse.from(savedComment);
     }
 }
