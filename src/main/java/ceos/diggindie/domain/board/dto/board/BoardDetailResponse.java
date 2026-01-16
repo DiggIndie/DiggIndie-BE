@@ -1,12 +1,12 @@
 package ceos.diggindie.domain.board.dto.board;
 
+import ceos.diggindie.common.utils.AnonymousNumberGenerator;
 import ceos.diggindie.common.utils.TimeUtils;
 import ceos.diggindie.domain.board.entity.board.Board;
 import ceos.diggindie.domain.board.entity.board.BoardComment;
 import lombok.Builder;
 
 import java.util.List;
-
 @Builder
 public record BoardDetailResponse(
         Long boardId,
@@ -28,11 +28,19 @@ public record BoardDetailResponse(
         boolean liked = board.getBoardLikes().stream()
                 .anyMatch(like -> like.getMember().getId().equals(memberId));
 
+        AnonymousNumberGenerator anonGenerator = new AnonymousNumberGenerator(board, comments);
+
+        String writerNick = anonGenerator.getNickname(
+                board.getMember().getId(),
+                board.getIsAnonymous(),
+                board.getMember().getUserId()
+        );
+
         return BoardDetailResponse.builder()
                 .boardId(board.getId())
                 .category(board.getCategory().getDescription())
                 .title(board.getTitle())
-                .writerNickname(board.getMember().getUserId())
+                .writerNickname(writerNick)
                 .createdAt(TimeUtils.toRelativeTime(board.getCreatedAt()))
                 .content(board.getContent())
                 .imageUrls(board.getBoardImages().stream()
@@ -43,7 +51,7 @@ public record BoardDetailResponse(
                 .isLiked(liked)
                 .commentCount(totalCommentCount)
                 .comments(comments.stream()
-                        .map(c -> CommentResponse.from(c, memberId))
+                        .map(c -> CommentResponse.from(c, memberId, anonGenerator))
                         .toList())
                 .build();
     }
