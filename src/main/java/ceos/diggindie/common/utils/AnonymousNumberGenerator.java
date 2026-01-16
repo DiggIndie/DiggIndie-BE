@@ -38,7 +38,7 @@ public class AnonymousNumberGenerator {
         }
 
         if (memberId.equals(authorMemberId)) {
-            return "글쓴이";
+            return "작성자";
         }
 
         Integer number = memberAnonymousMap.get(memberId);
