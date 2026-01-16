@@ -56,7 +56,7 @@ public class BoardService {
 
     @Transactional
     public BoardDetailResponse getBoardDetail(Long boardId) {
-        Board board = boardRepository.findByIdWithDetails(boardId)
+        Board board = boardRepository.findByIdWithImages(boardId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND,
                         "게시글을 찾을 수 없습니다."));
 
@@ -76,7 +76,6 @@ public class BoardService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND,
                         "게시글을 찾을 수 없습니다."));
 
-        // 대댓글인 경우 부모 댓글 조회
         BoardComment parentComment = null;
         if (request.parentCommentId() != null) {
             parentComment = boardCommentRepository.findById(request.parentCommentId())
@@ -86,6 +85,7 @@ public class BoardService {
 
         BoardComment comment = BoardComment.builder()
                 .content(request.content())
+                .isAnonymous(request.isAnonymous())
                 .board(board)
                 .member(member)
                 .parentComment(parentComment)
