@@ -37,6 +37,9 @@ public enum BusinessErrorCode implements Code {
     // ==================== 공연 ====================
     CONCERT_NOT_FOUND(404, "공연을 찾을 수 없습니다."),
 
+    // ==================== 커뮤니티 ====================
+    BOARD_NOT_FOUND(404, "게시글을 찾을 수 없습니다."),
+
     ;
 
     private final int statusCode;
