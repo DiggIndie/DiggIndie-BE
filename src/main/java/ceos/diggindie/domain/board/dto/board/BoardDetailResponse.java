@@ -18,11 +18,15 @@ public record BoardDetailResponse(
         List<String> imageUrls,
         Integer views,
         Integer likeCount,
+        Boolean isLiked,
         Integer commentCount,
         List<CommentResponse> comments
 ) {
-    public static BoardDetailResponse of(Board board, List<BoardComment> comments) {
+    public static BoardDetailResponse of(Board board, List<BoardComment> comments, Long memberId) {
         int totalCommentCount = countAllComments(comments);
+
+        boolean liked = board.getBoardLikes().stream()
+                .anyMatch(like -> like.getMember().getId().equals(memberId));
 
         return BoardDetailResponse.builder()
                 .boardId(board.getId())
@@ -36,9 +40,10 @@ public record BoardDetailResponse(
                         .toList())
                 .views(board.getViews())
                 .likeCount(board.getBoardLikes().size())
+                .isLiked(liked)
                 .commentCount(totalCommentCount)
                 .comments(comments.stream()
-                        .map(CommentResponse::from)
+                        .map(c -> CommentResponse.from(c, memberId))
                         .toList())
                 .build();
     }

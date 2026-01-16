@@ -15,9 +15,10 @@ public record ReplyResponse(
         String content,
         Boolean isAnonymous,
         Integer likeCount,
+        Boolean isLiked,
         Integer depth
 ) {
-    public static ReplyResponse of(BoardComment comment, int depth) {
+    public static ReplyResponse of(BoardComment comment, int depth, Long memberId) {
         BoardComment parent = comment.getParentComment();
         String replyTo = null;
         Boolean replyToAnonymous = null;
@@ -26,6 +27,9 @@ public record ReplyResponse(
             replyToAnonymous = parent.getIsAnonymous();
             replyTo = parent.getMember().getUserId();
         }
+
+        boolean liked = comment.getLikes().stream()
+                .anyMatch(like -> like.getMember().getId().equals(memberId));
 
         return ReplyResponse.builder()
                 .commentId(comment.getId())
@@ -37,6 +41,7 @@ public record ReplyResponse(
                 .content(comment.getContent())
                 .isAnonymous(comment.getIsAnonymous())
                 .likeCount(comment.getLikes().size())
+                .isLiked(liked)
                 .depth(Math.min(depth, 2))
                 .build();
     }

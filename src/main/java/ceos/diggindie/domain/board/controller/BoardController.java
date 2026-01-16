@@ -38,9 +38,10 @@ public class BoardController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/boards/{boardId}")
     public ResponseEntity<Response<BoardDetailResponse>> getBoardDetail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long boardId
     ) {
-        BoardDetailResponse result = boardService.getBoardDetail(boardId);
+        BoardDetailResponse result = boardService.getBoardDetail(boardId, userDetails.getMemberId());
         Response<BoardDetailResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 result,

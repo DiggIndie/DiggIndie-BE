@@ -15,27 +15,33 @@ public record CommentResponse(
         String content,
         Boolean isAnonymous,
         Integer likeCount,
+        Boolean isLiked,
         List<ReplyResponse> replies
 ) {
-    public static CommentResponse from(BoardComment comment) {
+    public static CommentResponse from(BoardComment comment, Long memberId) {
         List<ReplyResponse> allReplies = new ArrayList<>();
-        collectReplies(comment.getChildComments(), allReplies, 1);
+        collectReplies(comment.getChildComments(), allReplies, 1, memberId);
+
+        boolean liked = comment.getLikes().stream()
+                .anyMatch(like -> like.getMember().getId().equals(memberId));
 
         return CommentResponse.builder()
                 .commentId(comment.getId())
-                .writerNickname(comment.getIsAnonymous() ? "익명" : comment.getMember().getUserId())
+                .writerNickname(comment.getMember().getUserId())
                 .createdAt(TimeUtils.toRelativeTime(comment.getCreatedAt()))
                 .content(comment.getContent())
                 .isAnonymous(comment.getIsAnonymous())
                 .likeCount(comment.getLikes().size())
+                .isLiked(liked)
                 .replies(allReplies)
                 .build();
     }
 
-    private static void collectReplies(List<BoardComment> comments, List<ReplyResponse> result, int depth) {
+    private static void collectReplies(List<BoardComment> comments, List<ReplyResponse> result,
+                                       int depth, Long memberId) {
         for (BoardComment comment : comments) {
-            result.add(ReplyResponse.of(comment, depth));
-            collectReplies(comment.getChildComments(), result, depth + 1);
+            result.add(ReplyResponse.of(comment, depth, memberId));
+            collectReplies(comment.getChildComments(), result, depth + 1, memberId);
         }
     }
 }

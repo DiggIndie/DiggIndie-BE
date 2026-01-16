@@ -53,7 +53,7 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDetailResponse getBoardDetail(Long boardId) {
+    public BoardDetailResponse getBoardDetail(Long boardId, Long memberId) {
         Board board = boardRepository.findByIdWithImages(boardId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND,
                         "게시글을 찾을 수 없습니다."));
@@ -62,9 +62,8 @@ public class BoardService {
 
         List<BoardComment> comments = boardCommentRepository.findParentCommentsByBoardId(boardId);
 
-        return BoardDetailResponse.of(board, comments);
+        return BoardDetailResponse.of(board, comments, memberId);
     }
-
 
     @Transactional
     public CommentResponse createComment(Long memberId, Long boardId, CommentCreateRequest request) {
@@ -90,6 +89,6 @@ public class BoardService {
                 .build();
 
         BoardComment savedComment = boardCommentRepository.save(comment);
-        return CommentResponse.from(savedComment);
+        return CommentResponse.from(savedComment, memberId);
     }
 }
