@@ -2,8 +2,11 @@ package ceos.diggindie.common.utils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class TimeUtils {
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     public static String toRelativeTime(LocalDateTime dateTime) {
         LocalDateTime now = LocalDateTime.now();
@@ -13,16 +16,18 @@ public class TimeUtils {
 
         if (seconds < 60) {
             return "방금 전";
-        } else if (seconds < 3600) {
+        }
+
+        else if (seconds < 3600) {
             return (seconds / 60) + "분 전";
-        } else if (seconds < 86400) {
+        }
+
+        else if (seconds < 86400) {
             return (seconds / 3600) + "시간 전";
-        } else if (seconds < 2592000) {
-            return (seconds / 86400) + "일 전";
-        } else if (seconds < 31536000) {
-            return (seconds / 2592000) + "개월 전";
-        } else {
-            return (seconds / 31536000) + "년 전";
+        }
+
+        else {
+            return dateTime.format(DATE_FORMATTER);
         }
     }
 }
