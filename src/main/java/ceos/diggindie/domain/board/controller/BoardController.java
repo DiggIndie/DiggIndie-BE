@@ -2,11 +2,15 @@ package ceos.diggindie.domain.board.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
+import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.board.dto.board.*;
 import ceos.diggindie.domain.board.service.BoardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -67,5 +71,26 @@ public class BoardController {
         );
 
         return ResponseEntity.status(201).body(response);
+    }
+
+    @GetMapping("/boards")
+    public ResponseEntity<Response<BoardListResponse>> getBoardList(
+            @RequestParam(defaultValue = "none") String category,
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        BoardCategory boardCategory = BoardCategory.from(category);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        BoardListResponse result = boardService.getBoardList(boardCategory, query, pageable);
+
+        Response<BoardListResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "디깅 라운지 게시글 목록 조회 API"
+        );
+
+        return ResponseEntity.status(200).body(response);
     }
 }

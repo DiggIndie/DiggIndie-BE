@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.board.service;
 
 import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.board.dto.board.*;
 import ceos.diggindie.domain.board.entity.board.Board;
@@ -12,6 +13,8 @@ import ceos.diggindie.domain.member.entity.Member;
 
 import ceos.diggindie.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,5 +93,23 @@ public class BoardService {
 
         BoardComment savedComment = boardCommentRepository.save(comment);
         return CommentResponse.from(savedComment, memberId);
+    }
+
+    public BoardListResponse getBoardList(BoardCategory category, String query, Pageable pageable) {
+
+        Page<Board> boards;
+        boolean hasQuery = query != null && !query.isBlank();
+
+        if (category == BoardCategory.NONE) {
+            boards = hasQuery
+                    ? boardRepository.findAllByQueryWithImages(query, pageable)
+                    : boardRepository.findAllWithImages(pageable);
+        } else {
+            boards = hasQuery
+                    ? boardRepository.findByCategoryAndQueryWithImages(category, query, pageable)
+                    : boardRepository.findByCategoryWithImages(category, pageable);
+        }
+
+        return BoardListResponse.from(boards);
     }
 }
