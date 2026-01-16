@@ -11,12 +11,13 @@ import java.util.List;
 @Builder
 public record BoardDetailResponse(
         Long boardId,
-        BoardCategory category,
+        String category,
         String title,
         String writerNickname,
         String createdAt,
         String content,
         List<String> imageUrls,
+        Integer views,
         Integer likeCount,
         Integer commentCount,
         List<CommentResponse> comments
@@ -28,14 +29,15 @@ public record BoardDetailResponse(
 
         return BoardDetailResponse.builder()
                 .boardId(board.getId())
-                .category(board.getCategory())
+                .category(board.getCategory().getDescription())
                 .title(board.getTitle())
-                .writerNickname(board.getIsAnonymous() ? "익명" : board.getMember().getUserId())
+                .writerNickname(board.getMember().getUserId())
                 .createdAt(TimeUtils.toRelativeTime(board.getCreatedAt()))
                 .content(board.getContent())
                 .imageUrls(board.getBoardImages().stream()
                         .map(img -> img.getImageUrl())
                         .toList())
+                .views(board.getViews())
                 .likeCount(board.getBoardLikes().size())
                 .commentCount(totalCommentCount)
                 .comments(comments.stream()
