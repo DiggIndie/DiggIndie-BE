@@ -4,6 +4,7 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,5 +26,11 @@ public class MarketScrap extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @Builder
+    public MarketScrap(Market market, Member member) {
+        this.market = market;
+        this.member = member;
+    }
 
 }
