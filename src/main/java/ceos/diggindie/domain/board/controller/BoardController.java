@@ -6,6 +6,8 @@ import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.board.dto.board.*;
 import ceos.diggindie.domain.board.service.BoardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -92,5 +94,39 @@ public class BoardController {
         );
 
         return ResponseEntity.status(200).body(response);
+    }
+
+    @Operation(summary = "게시글 좋아요 토글", description = "게시글 좋아요를 토글합니다.")
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/boards/{boardId}/like")
+    public ResponseEntity<Response<LikeResponse>> toggleBoardLike(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long boardId
+    ) {
+        LikeResponse response = boardService.toggleBoardLike(userDetails.getMemberId(), boardId);
+
+        return ResponseEntity.ok(Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                response,
+                "게시글 좋아요 토글 성공"
+        ));
+    }
+
+    @Operation(summary = "댓글 좋아요 토글", description = "댓글 좋아요를 토글합니다.")
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/boards/comments/{commentId}/like")
+    public ResponseEntity<Response<LikeResponse>> toggleCommentLike(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable Long commentId
+    ) {
+        LikeResponse response = boardService.toggleCommentLike(userDetails.getMemberId(), commentId);
+
+        return ResponseEntity.ok(Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                response,
+                "댓글 좋아요 토글 성공"
+        ));
     }
 }

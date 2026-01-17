@@ -4,10 +4,10 @@ import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.board.dto.board.*;
-import ceos.diggindie.domain.board.entity.board.Board;
-import ceos.diggindie.domain.board.entity.board.BoardComment;
-import ceos.diggindie.domain.board.entity.board.BoardImage;
+import ceos.diggindie.domain.board.entity.board.*;
+import ceos.diggindie.domain.board.repository.BoardCommentLikeRepository;
 import ceos.diggindie.domain.board.repository.BoardCommentRepository;
+import ceos.diggindie.domain.board.repository.BoardLikeRepository;
 import ceos.diggindie.domain.board.repository.BoardRepository;
 import ceos.diggindie.domain.member.entity.Member;
 
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,8 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberService memberService;
     private final BoardCommentRepository boardCommentRepository;
+    private final BoardLikeRepository boardLikeRepository;
+    private final BoardCommentLikeRepository boardCommentLikeRepository;
 
     @Transactional
     public BoardCreateResponse createBoard(Long memberId, BoardCreateRequest request) {
@@ -112,4 +115,60 @@ public class BoardService {
 
         return BoardListResponse.from(boards);
     }
+
+    // 게시글 좋아요 토글
+    @Transactional
+    public LikeResponse toggleBoardLike(Long memberId, Long boardId) {
+        Member member = memberService.findById(memberId);
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND,
+                        "게시글을 찾을 수 없습니다."));
+
+        Optional<BoardLike> existingLike = boardLikeRepository.findByMemberIdAndBoardId(memberId, boardId);
+
+        boolean isLiked;
+        if (existingLike.isPresent()) {
+            boardLikeRepository.delete(existingLike.get());
+            isLiked = false;
+        } else {
+            boardLikeRepository.save(BoardLike.builder()
+                    .member(member)
+                    .board(board)
+                    .build());
+            isLiked = true;
+        }
+
+        long likeCount = boardLikeRepository.countByBoardId(boardId);
+        return LikeResponse.of(isLiked, likeCount);
+    }
+
+    // 댓글 좋아요 토글
+    @Transactional
+    public LikeResponse toggleCommentLike(Long memberId, Long commentId) {
+        Member member = memberService.findById(memberId);
+
+        BoardComment comment = boardCommentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.COMMENT_NOT_FOUND,
+                        "댓글을 찾을 수 없습니다."));
+
+        Optional<BoardCommentLike> existingLike = boardCommentLikeRepository.findByMemberIdAndBoardCommentId(memberId, commentId);
+
+        boolean isLiked;
+        if (existingLike.isPresent()) {
+            boardCommentLikeRepository.delete(existingLike.get());
+            isLiked = false;
+        } else {
+            boardCommentLikeRepository.save(BoardCommentLike.builder()
+                    .member(member)
+                    .boardComment(comment)
+                    .build());
+            isLiked = true;
+        }
+
+        long likeCount = boardCommentLikeRepository.countByBoardCommentId(commentId);
+        return LikeResponse.of(isLiked, likeCount);
+    }
+
+
 }
