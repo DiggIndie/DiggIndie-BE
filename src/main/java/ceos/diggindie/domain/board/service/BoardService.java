@@ -182,4 +182,44 @@ public class BoardService {
         return LikeResponse.of(isLiked, likeCount);
     }
 
+    @Transactional
+    public BoardUpdateResponse updateBoard(Long memberId, Long boardId, BoardUpdateRequest request) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND));
+
+        if (!board.getMember().getId().equals(memberId)) {
+            throw new BusinessException(BusinessErrorCode.BOARD_NOT_OWNER, "본인의 게시글만 수정할 수 있습니다.");
+        }
+
+        board.update(
+                request.title(),
+                request.content(),
+                request.isAnonymous(),
+                request.category()
+        );
+
+        board.clearImages();
+        for (String imageUrl : request.imageUrls()) {
+            BoardImage image = BoardImage.builder()
+                    .board(board)
+                    .imageUrl(imageUrl)
+                    .build();
+            board.addImage(image);
+        }
+
+        return BoardUpdateResponse.from(board);
+    }
+
+    @Transactional
+    public void deleteBoard(Long memberId, Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND));
+
+        if (!board.getMember().getId().equals(memberId)) {
+            throw new BusinessException(BusinessErrorCode.BOARD_NOT_OWNER, "본인의 게시글만 삭제할 수 있습니다.");
+        }
+
+        boardRepository.delete(board);
+    }
+
 }

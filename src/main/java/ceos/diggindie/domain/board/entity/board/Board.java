@@ -67,7 +67,17 @@ public class Board extends BaseEntity {
         this.boardImages.add(image);
     }
 
+    public void clearImages() {
+        this.boardImages.clear();
+    }
     public void increaseViews() {
         this.views++;
+    }
+
+    public void update(String title, String content, Boolean isAnonymous, BoardCategory category) {
+        this.title = title;
+        this.content = content;
+        this.isAnonymous = isAnonymous;
+        this.category = category;
     }
 }

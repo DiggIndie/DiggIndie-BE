@@ -178,4 +178,57 @@ public class BoardController {
                 "댓글 좋아요 토글 성공"
         ));
     }
+
+    @Operation(summary = "게시글 수정", description = "자신이 작성한 게시글을 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 수정 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "수정 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/boards/{boardId}")
+    public ResponseEntity<Response<BoardUpdateResponse>> updateBoard(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "게시글 ID", example = "1")
+            @PathVariable Long boardId,
+            @Valid @RequestBody BoardUpdateRequest request
+    ) {
+        BoardUpdateResponse result = boardService.updateBoard(
+                userDetails.getMemberId(), boardId, request);
+
+        Response<BoardUpdateResponse> response = Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                result,
+                "디깅 라운지 게시글 수정 API"
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "게시글 삭제", description = "자신이 작성한 게시글을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
+            @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/boards/{boardId}")
+    public ResponseEntity<Response<Void>> deleteBoard(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Parameter(description = "게시글 ID", example = "1")
+            @PathVariable Long boardId
+    ) {
+        boardService.deleteBoard(userDetails.getMemberId(), boardId);
+
+        Response<Void> response = Response.success(
+                SuccessCode.DELETE_SUCCESS,
+                "디깅 라운지 게시글 삭제 API"
+        );
+
+        return ResponseEntity.ok(response);
+    }
 }
