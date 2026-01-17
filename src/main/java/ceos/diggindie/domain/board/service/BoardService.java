@@ -125,6 +125,12 @@ public class BoardService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.BOARD_NOT_FOUND,
                         "게시글을 찾을 수 없습니다."));
 
+        // 본인 게시글 좋아요 방지
+        if (board.getMember().getId().equals(memberId)) {
+            throw new BusinessException(BusinessErrorCode.SELF_LIKE_NOT_ALLOWED,
+                    "자신의 게시글에는 좋아요할 수 없습니다.");
+        }
+
         Optional<BoardLike> existingLike = boardLikeRepository.findByMemberIdAndBoardId(memberId, boardId);
 
         boolean isLiked;
@@ -152,6 +158,12 @@ public class BoardService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.COMMENT_NOT_FOUND,
                         "댓글을 찾을 수 없습니다."));
 
+        // 본인 댓글 좋아요 방지
+        if (comment.getMember().getId().equals(memberId)) {
+            throw new BusinessException(BusinessErrorCode.SELF_LIKE_NOT_ALLOWED,
+                    "자신의 댓글에는 좋아요할 수 없습니다.");
+        }
+
         Optional<BoardCommentLike> existingLike = boardCommentLikeRepository.findByMemberIdAndBoardCommentId(memberId, commentId);
 
         boolean isLiked;
@@ -169,6 +181,5 @@ public class BoardService {
         long likeCount = boardCommentLikeRepository.countByBoardCommentId(commentId);
         return LikeResponse.of(isLiked, likeCount);
     }
-
 
 }

@@ -134,6 +134,7 @@ public class BoardController {
     @Operation(summary = "게시글 좋아요 토글", description = "게시글 좋아요를 토글합니다. 좋아요 상태면 취소, 아니면 좋아요 추가.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "토글 성공"),
+            @ApiResponse(responseCode = "400", description = "자신의 게시글/댓글에는 좋아요 불가"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "게시글을 찾을 수 없음")
     })
@@ -157,6 +158,7 @@ public class BoardController {
     @Operation(summary = "댓글 좋아요 토글", description = "댓글 좋아요를 토글합니다. 좋아요 상태면 취소, 아니면 좋아요 추가.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "토글 성공"),
+            @ApiResponse(responseCode = "400", description = "자신의 게시글/댓글에는 좋아요 불가"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "댓글을 찾을 수 없음")
     })

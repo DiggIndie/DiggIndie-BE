@@ -40,7 +40,9 @@ public enum BusinessErrorCode implements Code {
     // ==================== 커뮤니티 ====================
     BOARD_NOT_FOUND(404, "게시글을 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(404, "해당 댓글을 찾을 수 없습니다."),
-    CATEGORY_BAD_REQUEST(400, "지원하지 않는 게시판 카테고리입니다.")
+    CATEGORY_BAD_REQUEST(400, "지원하지 않는 게시판 카테고리입니다."),
+    SELF_LIKE_NOT_ALLOWED(400, "자신의 게시글/댓글에는 좋아요할 수 없습니다."),
+
 
     ;
 
