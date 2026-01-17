@@ -199,10 +199,13 @@ public class BoardService {
         );
 
         board.clearImages();
-        for (String imageUrl : request.imageUrls()) {
+
+        List<String> imageUrls = request.imageUrls();
+        for (int i = 0; i < imageUrls.size(); i++) {
             BoardImage image = BoardImage.builder()
                     .board(board)
-                    .imageUrl(imageUrl)
+                    .imageUrl(imageUrls.get(i))
+                    .imageOrder(i)
                     .build();
             board.addImage(image);
         }
