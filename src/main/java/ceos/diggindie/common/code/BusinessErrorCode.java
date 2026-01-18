@@ -48,6 +48,21 @@ public enum BusinessErrorCode implements Code {
     SPOTIFY_ID_NOT_FOUND(404, "해당 밴드에 Spotify ID가 없습니다."),
     TOP_TRACK_NOT_FOUND(404, "해당 밴드의 Top Track을 찾을 수 없습니다."),
 
+    // ==================== OAuth ====================
+    OAUTH_PROVIDER_NOT_SUPPORTED(400, "지원하지 않는 소셜 로그인 제공자입니다."),
+    OAUTH_CODE_INVALID(400, "유효하지 않은 인가 코드입니다."),
+    OAUTH_INVALID_PLATFORM(400, "유효하지 않은 플랫폼입니다."),
+    OAUTH_INVALID_STATE(400, "유효하지 않거나 만료된 state입니다."),
+    OAUTH_UNLINK_DENIED(400, "마지막 로그인 수단은 연동 해제할 수 없습니다."),
+    OAUTH_NOT_LINKED(404, "연동되지 않은 소셜 계정입니다."),
+    OAUTH_ALREADY_LINKED(409, "이미 연동된 소셜 계정입니다."),
+    OAUTH_ACCOUNT_EXISTS(409, "해당 소셜 계정으로 가입된 회원이 이미 존재합니다."),
+    OAUTH_TOKEN_REQUEST_FAILED(502, "소셜 로그인 토큰 요청에 실패했습니다."),
+    OAUTH_USER_INFO_REQUEST_FAILED(502, "소셜 로그인 사용자 정보 요청에 실패했습니다."),
+
+    // ==================== 공연 ====================
+    CONCERT_NOT_FOUND(404, "공연을 찾을 수 없습니다."),
+
     ;
 
     private final int statusCode;
