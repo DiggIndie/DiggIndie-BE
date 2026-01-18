@@ -100,4 +100,23 @@ public class Member extends BaseEntity {
         this.phone = phone;
     }
 
+    public void addSocialAccount(SocialAccount socialAccount) {
+        this.socialAccounts.add(socialAccount);
+    }
+
+    public void updateRecentLoginPlatform(LoginPlatform platform) {
+        this.recentLoginPlatform = platform;
+    }
+
+    // 소셜 로그인 전용
+    public static Member createSocialMember(String email, LoginPlatform platform) {
+        Member member = new Member();
+        member.externalId = UUID.randomUUID().toString();
+        member.userId = platform.name().toLowerCase() + "_" + UUID.randomUUID().toString().substring(0, 8);
+        member.email = email;
+        member.role = Role.ROLE_USER;
+        member.recentLoginPlatform = platform;
+        return member;
+    }
+
 }
