@@ -24,4 +24,5 @@ public interface BandScrapRepository extends JpaRepository<BandScrap, Long> {
     List<BandScrap> findAllByMemberId(Long memberId);
 
     void deleteByMemberIdAndBandId(Long memberId, Long bandId);
+    boolean existsByMemberIdAndBandId(Long memberId, Long bandId);
 }

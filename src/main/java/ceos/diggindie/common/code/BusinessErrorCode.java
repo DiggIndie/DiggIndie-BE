@@ -46,6 +46,9 @@ public enum BusinessErrorCode implements Code {
     OAUTH_TOKEN_REQUEST_FAILED(502, "소셜 로그인 토큰 요청에 실패했습니다."),
     OAUTH_USER_INFO_REQUEST_FAILED(502, "소셜 로그인 사용자 정보 요청에 실패했습니다."),
 
+    // ==================== 공연 ====================
+    CONCERT_NOT_FOUND(404, "공연을 찾을 수 없습니다."),
+
     ;
 
     private final int statusCode;

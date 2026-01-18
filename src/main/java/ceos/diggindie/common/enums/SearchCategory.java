@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum Role {
-    ROLE_USER("일반 사용자"),
-    ROLE_ADMIN("관리자");
+public enum SearchCategory {
+    COMMUNITY("커뮤니티"),
+    BAND("밴드"),
+    CONCERT("공연"),
+    GENERAL("일반");
 
     private final String description;
 }

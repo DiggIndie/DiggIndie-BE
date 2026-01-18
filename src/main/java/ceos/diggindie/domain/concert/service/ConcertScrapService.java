@@ -1,9 +1,15 @@
 package ceos.diggindie.domain.concert.service;
 
+import ceos.diggindie.common.code.BusinessErrorCode;
+import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.concert.dto.ConcertScrapResponse;
 import ceos.diggindie.domain.concert.entity.Concert;
 import ceos.diggindie.domain.concert.entity.ConcertScrap;
+import ceos.diggindie.domain.concert.repository.ConcertRepository;
 import ceos.diggindie.domain.concert.repository.ConcertScrapRepository;
+import ceos.diggindie.domain.concert.util.ConcertDDayCalculator;
+import ceos.diggindie.domain.member.entity.Member;
+import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +26,8 @@ import java.util.stream.Collectors;
 public class ConcertScrapService {
 
     private final ConcertScrapRepository concertScrapRepository;
+    private final ConcertRepository concertRepository;
+    private final MemberRepository memberRepository;
 
     public ConcertScrapResponse.ConcertScrapListDTO getMyScrappedConcerts(Long memberId) {
         List<ConcertScrap> scraps = concertScrapRepository.findAllByMemberIdWithConcert(memberId);
@@ -35,7 +42,7 @@ public class ConcertScrapService {
                             .concertId(concert.getId())
                             .concertName(concert.getTitle())
                             .duration(formatDuration(startDate, endDate))
-                            .dDay(calculateDDay(startDate, endDate))
+                            .dDay(ConcertDDayCalculator.calculate(startDate, endDate))
                             .imageUrl(concert.getMainImg())
                             .isFinished(concert.getEndDate() != null && concert.getEndDate().isBefore(LocalDateTime.now()))
                             .build();
@@ -47,17 +54,50 @@ public class ConcertScrapService {
                 .build();
     }
 
-    private String calculateDDay(LocalDate startDate, LocalDate endDate) {
-        LocalDate now = LocalDate.now();
-        if (now.isBefore(startDate)) {
-            long days = ChronoUnit.DAYS.between(now, startDate);
-            return days == 0 ? "D-Day" : "D-" + days;
-        } else if (now.isAfter(endDate)) {
-            return "종료";
-        } else {
-            return "진행 중";
+    @Transactional
+    public ConcertScrapResponse.ConcertScrapCreateDTO createConcertScrap(Long memberId, Long concertId) {
+        // 이미 스크랩한 경우 예외 처리
+        if (concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId)) {
+            throw new BusinessException(BusinessErrorCode.ALREADY_SCRAPPED);
         }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
+
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.CONCERT_NOT_FOUND));
+
+        ConcertScrap concertScrap = ConcertScrap.builder()
+                .member(member)
+                .concert(concert)
+                .build();
+
+        concertScrapRepository.save(concertScrap);
+
+        return ConcertScrapResponse.ConcertScrapCreateDTO.builder()
+                .memberId(member.getExternalId())
+                .concertId(concert.getId())
+                .build();
     }
+
+    @Transactional
+    public ConcertScrapResponse.ConcertScrapCreateDTO deleteConcertScrap(Long memberId, Long concertId) {
+
+        if (!concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId)) {
+            throw new BusinessException(BusinessErrorCode.SCRAP_NOT_FOUND);
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
+
+        concertScrapRepository.deleteByMemberIdAndConcertId(memberId, concertId);
+
+        return ConcertScrapResponse.ConcertScrapCreateDTO.builder()
+                .memberId(member.getExternalId())
+                .concertId(concertId)
+                .build();
+    }
+
 
     private static final DateTimeFormatter FULL_FORMAT = DateTimeFormatter.ofPattern("yyyy.MM.d");
     private static final DateTimeFormatter MONTH_DAY_FORMAT = DateTimeFormatter.ofPattern("MM.d");

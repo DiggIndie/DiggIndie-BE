@@ -3,11 +3,11 @@ package ceos.diggindie.common.response;
 import ceos.diggindie.common.code.Code;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -19,8 +19,13 @@ public class Response<T> {
 
     private int statusCode;
 
-    @Getter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE) 
     private boolean isSuccess;
+
+    @JsonProperty("isSuccess")
+    public boolean isSuccess() {
+        return isSuccess;
+    }
 
     private String message;
 
