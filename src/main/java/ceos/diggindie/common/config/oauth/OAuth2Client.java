@@ -3,7 +3,7 @@ package ceos.diggindie.common.config.oauth;
 import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.enums.LoginPlatform;
 import ceos.diggindie.common.exception.BusinessException;
-import ceos.diggindie.domain.member.dto.oauth.OAuth2UserInfo;
+import ceos.diggindie.domain.member.dto.oauth.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -26,12 +26,11 @@ public class OAuth2Client {
 
     public OAuth2UserInfo getUserInfo(LoginPlatform platform, String code) {
         String accessToken = getAccessToken(platform, code);
-        Map<String, Object> userAttributes = getUserAttributes(platform, accessToken);
-        return OAuth2UserInfo.of(platform, userAttributes);
+        return fetchUserInfo(platform, accessToken);
     }
 
     private String getAccessToken(LoginPlatform platform, String code) {
-        OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());;
+        OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());
 
         String decodedCode;
         try {
@@ -68,31 +67,80 @@ public class OAuth2Client {
         }
     }
 
-    private Map<String, Object> getUserAttributes(LoginPlatform platform, String accessToken) {
+    private OAuth2UserInfo fetchUserInfo(LoginPlatform platform, String accessToken) {
         OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());
 
         try {
-            RestClient.RequestHeadersSpec<?> request = restClient.get()
-                    .uri(provider.getUserInfoUri())
-                    .header("Authorization", "Bearer " + accessToken);
-
-            if (platform == LoginPlatform.KAKAO) {
-                request.header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-            }
-
-            Map<String, Object> response = request
-                    .retrieve()
-                    .body(new ParameterizedTypeReference<>() {});
-
-            if (response == null) {
-                throw new BusinessException(BusinessErrorCode.OAUTH_TOKEN_REQUEST_FAILED);
-            }
-
-            return response;
-
+            return switch (platform) {
+                case KAKAO -> fetchKakaoUser(provider, accessToken);
+                case NAVER -> fetchNaverUser(provider, accessToken);
+                case GOOGLE -> fetchGoogleUser(provider, accessToken);
+                default -> throw new BusinessException(BusinessErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
+            };
         } catch (RestClientException e) {
             log.error("OAuth user info request failed for {}: {}", platform, e.getMessage());
-            throw new BusinessException(BusinessErrorCode.OAUTH_TOKEN_REQUEST_FAILED);
+            throw new BusinessException(BusinessErrorCode.OAUTH_USER_INFO_REQUEST_FAILED);
         }
+    }
+
+    private OAuth2UserInfo fetchKakaoUser(OAuth2Properties.Provider provider, String accessToken) {
+        KakaoUserResponse response = restClient.get()
+                .uri(provider.getUserInfoUri())
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .retrieve()
+                .body(KakaoUserResponse.class);
+
+        if (response == null) {
+            throw new BusinessException(BusinessErrorCode.OAUTH_USER_INFO_REQUEST_FAILED);
+        }
+
+        return new OAuth2UserInfo(
+                LoginPlatform.KAKAO,
+                String.valueOf(response.id()),
+                response.getEmail(),
+                response.getNickname(),
+                response.getProfileImage()
+        );
+    }
+
+    private OAuth2UserInfo fetchNaverUser(OAuth2Properties.Provider provider, String accessToken) {
+        NaverUserResponse response = restClient.get()
+                .uri(provider.getUserInfoUri())
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .body(NaverUserResponse.class);
+
+        if (response == null || response.getId() == null) {
+            throw new BusinessException(BusinessErrorCode.OAUTH_USER_INFO_REQUEST_FAILED);
+        }
+
+        return new OAuth2UserInfo(
+                LoginPlatform.NAVER,
+                response.getId(),
+                response.getEmail(),
+                response.getNickname(),
+                response.getProfileImage()
+        );
+    }
+
+    private OAuth2UserInfo fetchGoogleUser(OAuth2Properties.Provider provider, String accessToken) {
+        GoogleUserResponse response = restClient.get()
+                .uri(provider.getUserInfoUri())
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .body(GoogleUserResponse.class);
+
+        if (response == null || response.getId() == null) {
+            throw new BusinessException(BusinessErrorCode.OAUTH_USER_INFO_REQUEST_FAILED);
+        }
+
+        return new OAuth2UserInfo(
+                LoginPlatform.GOOGLE,
+                response.getId(),
+                response.email(),
+                response.getNickname(),
+                response.getProfileImage()
+        );
     }
 }

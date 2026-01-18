@@ -7,6 +7,7 @@ import ceos.diggindie.common.config.oauth.OAuth2Properties;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.config.security.jwt.JwtTokenProvider;
 import ceos.diggindie.common.enums.LoginPlatform;
+import ceos.diggindie.common.enums.Role;
 import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.common.exception.GeneralException;
 import ceos.diggindie.domain.member.dto.oauth.*;
@@ -19,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -53,17 +55,17 @@ public class OAuth2Service {
 
         LoginResult result = transactionTemplate.execute(status -> {
             Optional<SocialAccount> existingSocialAccount = socialAccountRepository
-                    .findByPlatformAndPlatformIdWithMember(userInfo.getPlatform(), userInfo.getPlatformId());
+                    .findByPlatformAndPlatformIdWithMember(userInfo.platform(), userInfo.platformId());
 
             Member member;
             boolean isNewMember = false;
 
             if (existingSocialAccount.isPresent()) {
                 member = existingSocialAccount.get().getMember();
-                member.updateRecentLoginPlatform(userInfo.getPlatform());
+                member.updateRecentLoginPlatform(userInfo.platform());
 
-                if (userInfo.getEmail() != null) {
-                    existingSocialAccount.get().updateEmail(userInfo.getEmail());
+                if (userInfo.email() != null) {
+                    existingSocialAccount.get().updateEmail(userInfo.email());
                 }
             } else {
                 member = createNewMember(userInfo);
@@ -75,17 +77,14 @@ public class OAuth2Service {
 
         Member member = result.member();
         String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
-        String refreshToken = jwtTokenProvider.generateRefreshToken(member.getExternalId(), member.getRole());
-
-        refreshTokenService.save(member.getExternalId(), refreshToken);
-        setRefreshTokenCookie(response, refreshToken);
+        setRefreshToken(response, member.getExternalId(), member.getRole());
 
         return OAuth2LoginResponse.builder()
                 .newMember(result.isNewMember())
                 .externalId(member.getExternalId())
                 .userId(member.getUserId())
                 .email(member.getEmail())
-                .platform(userInfo.getPlatform())
+                .platform(userInfo.platform())
                 .accessToken(accessToken)
                 .build();
     }
@@ -107,16 +106,16 @@ public class OAuth2Service {
 
         transactionTemplate.executeWithoutResult(status -> {
             if (socialAccountRepository.findByPlatformAndPlatformId(
-                    userInfo.getPlatform(), userInfo.getPlatformId()).isPresent()) {
+                    userInfo.platform(), userInfo.platformId()).isPresent()) {
                 throw new BusinessException(BusinessErrorCode.OAUTH_ACCOUNT_EXISTS);
             }
 
             Member memberRef = memberRepository.getReferenceById(memberId);
 
             SocialAccount socialAccount = SocialAccount.builder()
-                    .platform(userInfo.getPlatform())
-                    .platformId(userInfo.getPlatformId())
-                    .email(userInfo.getEmail())
+                    .platform(userInfo.platform())
+                    .platformId(userInfo.platformId())
+                    .email(userInfo.email())
                     .member(memberRef)
                     .build();
 
@@ -125,9 +124,9 @@ public class OAuth2Service {
 
         return OAuth2LinkResponse.builder()
                 .success(true)
-                .platform(userInfo.getPlatform())
-                .email(userInfo.getEmail())
-                .message(userInfo.getPlatform().getDescription() + " 계정이 연동되었습니다.")
+                .platform(userInfo.platform())
+                .email(userInfo.email())
+                .message(userInfo.platform().getDescription() + " 계정이 연동되었습니다.")
                 .build();
     }
 
@@ -212,13 +211,13 @@ public class OAuth2Service {
     }
 
     private Member createNewMember(OAuth2UserInfo userInfo) {
-        Member member = Member.createSocialMember(userInfo.getEmail(), userInfo.getPlatform());
+        Member member = Member.createSocialMember(userInfo.email(), userInfo.platform());
         memberRepository.save(member);
 
         SocialAccount socialAccount = SocialAccount.builder()
-                .platform(userInfo.getPlatform())
-                .platformId(userInfo.getPlatformId())
-                .email(userInfo.getEmail())
+                .platform(userInfo.platform())
+                .platformId(userInfo.platformId())
+                .email(userInfo.email())
                 .member(member)
                 .build();
 
@@ -228,13 +227,21 @@ public class OAuth2Service {
         return member;
     }
 
-    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        Cookie cookie = new Cookie("refresh_token", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge((int) refreshTokenValidity.toSeconds());
-        response.addCookie(cookie);
+    private void setRefreshToken(HttpServletResponse response, String externalId, Role role) {
+        String refreshToken = jwtTokenProvider.generateRefreshToken(externalId, role);
+        refreshTokenService.save(externalId, refreshToken);
+        addTokenCookie(response, "refresh_token", refreshToken, refreshTokenValidity);
+    }
+
+    private void addTokenCookie(HttpServletResponse response, String name, String value, java.time.Duration maxAge) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/")
+                .maxAge(maxAge)
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
     }
 
     private void validateState(String state, LoginPlatform platform) {
