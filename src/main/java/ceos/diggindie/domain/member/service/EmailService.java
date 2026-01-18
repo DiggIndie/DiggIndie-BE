@@ -152,44 +152,22 @@ public class EmailService {
     }
 
     private String buildSubject(EmailVerificationType type) {
-        return switch (type) {
-            case SIGNUP -> "[Diggindie] 회원가입 인증 코드";
-            case PASSWORD_RESET -> "[Diggindie] 비밀번호 재설정 인증 코드";
-            case FIND_USER_ID -> "[Diggindie] 아이디 찾기 인증 코드";
-        };
+        return type.getSubject();
     }
 
     private String buildContent(String code, EmailVerificationType type) {
-        String title = switch (type) {
-            case SIGNUP -> "회원가입 인증";
-            case PASSWORD_RESET -> "비밀번호 재설정";
-            case FIND_USER_ID -> "아이디 찾기";
-        };
-
-        String description = switch (type) {
-            case SIGNUP -> "아래 인증 코드를 입력하여 회원가입을 완료해주세요.";
-            case PASSWORD_RESET -> "아래 인증 코드를 입력하여 비밀번호를 재설정해주세요.";
-            case FIND_USER_ID -> "아래 인증 코드를 입력하여 아이디를 확인해주세요.";
-        };
-
-        String color = switch (type) {
-            case SIGNUP -> "#007bff";
-            case PASSWORD_RESET -> "#dc3545";
-            case FIND_USER_ID -> "#28a745";
-        };
-
         return """
-            <html>
-            <body style="font-family: Arial, sans-serif; padding: 20px;">
-                <h2 style="color: #333;">Diggindie %s</h2>
-                <p>%s</p>
-                <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
-                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: %s;">%s</span>
-                </div>
-                <p style="color: #666;">이 코드는 5분간 유효합니다.</p>
-                <p style="color: #999; font-size: 12px;">본인이 요청하지 않은 경우 이 이메일을 무시해주세요.</p>
-            </body>
-            </html>
-            """.formatted(title, description, color, code);
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2 style="color: #333;">Diggindie %s</h2>
+            <p>%s</p>
+            <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: %s;">%s</span>
+            </div>
+            <p style="color: #666;">이 코드는 5분간 유효합니다.</p>
+            <p style="color: #999; font-size: 12px;">본인이 요청하지 않은 경우 이 이메일을 무시해주세요.</p>
+        </body>
+        </html>
+        """.formatted(type.getTitle(), type.getDescription(), type.getColor(), code);
     }
 }
