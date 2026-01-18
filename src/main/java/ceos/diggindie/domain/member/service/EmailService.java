@@ -11,6 +11,7 @@ import ceos.diggindie.domain.member.repository.MemberRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RAtomicLong;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -30,9 +32,12 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     private static final String CODE_PREFIX = "email_verify:";
+    private static final String ATTEMPT_PREFIX = "email_attempt:";
     private static final long CODE_VALIDITY_MINUTES = 5;
+    private static final int MAX_ATTEMPTS = 5;
 
     public EmailVerificationResponse sendVerificationCode(EmailSendRequest request) {
         switch (request.type()) {
@@ -57,11 +62,18 @@ public class EmailService {
 
     @Transactional
     public EmailVerificationResponse verifyCode(EmailVerifyRequest request) {
-        boolean isValid = verifyCode(request.email(), request.code(), request.type());
+        // 브루트포스 체크
+        checkAttemptLimit(request.email(), request.type());
+
+        boolean isValid = validateCode(request.email(), request.code(), request.type());
 
         if (!isValid) {
+            incrementAttempt(request.email(), request.type());
             throw new BusinessException(BusinessErrorCode.EMAIL_CODE_INVALID);
         }
+
+        // 인증 성공 시 시도 횟수 초기화
+        clearAttempt(request.email(), request.type());
 
         return switch (request.type()) {
             case SIGNUP -> new EmailVerificationResponse("이메일 인증이 완료되었습니다.", true);
@@ -70,7 +82,11 @@ public class EmailService {
                 validateNewPassword(request.newPassword());
                 Member member = findMemberByEmail(request.email());
                 member.updatePassword(passwordEncoder.encode(request.newPassword()));
-                yield new EmailVerificationResponse("비밀번호가 변경되었습니다.", true);
+
+                // 기존 리프레시 토큰 무효화
+                refreshTokenService.delete(member.getExternalId());
+
+                yield new EmailVerificationResponse("비밀번호가 변경되었습니다. 다시 로그인해주세요.", true);
             }
 
             case FIND_USER_ID -> {
@@ -79,6 +95,32 @@ public class EmailService {
                 yield new EmailVerificationResponse("아이디 찾기가 완료되었습니다.", true, maskedUserId);
             }
         };
+    }
+
+
+    private void checkAttemptLimit(String email, EmailVerificationType type) {
+        String attemptKey = buildAttemptKey(email, type);
+        RAtomicLong attempts = redissonClient.getAtomicLong(attemptKey);
+
+        if (attempts.get() >= MAX_ATTEMPTS) {
+            throw new BusinessException(BusinessErrorCode.EMAIL_VERIFICATION_BLOCKED);
+        }
+    }
+
+    private void incrementAttempt(String email, EmailVerificationType type) {
+        String attemptKey = buildAttemptKey(email, type);
+        RAtomicLong attempts = redissonClient.getAtomicLong(attemptKey);
+        attempts.incrementAndGet();
+        attempts.expire(Duration.ofMinutes(CODE_VALIDITY_MINUTES));
+    }
+
+    private void clearAttempt(String email, EmailVerificationType type) {
+        String attemptKey = buildAttemptKey(email, type);
+        redissonClient.getAtomicLong(attemptKey).delete();
+    }
+
+    private String buildAttemptKey(String email, EmailVerificationType type) {
+        return ATTEMPT_PREFIX + type.name().toLowerCase() + ":" + email;
     }
 
     private void validateNewPassword(String newPassword) {
@@ -102,19 +144,19 @@ public class EmailService {
         return userId.substring(0, 3) + "*".repeat(userId.length() - 3);
     }
 
-    public String generateCode() {
+    private String generateCode() {
         SecureRandom random = new SecureRandom();
         int code = 100000 + random.nextInt(900000);
         return String.valueOf(code);
     }
 
-    public void saveCode(String email, String code, EmailVerificationType type) {
+    private void saveCode(String email, String code, EmailVerificationType type) {
         String key = buildKey(email, type);
         RBucket<String> bucket = redissonClient.getBucket(key);
         bucket.set(code, CODE_VALIDITY_MINUTES, TimeUnit.MINUTES);
     }
 
-    public boolean verifyCode(String email, String code, EmailVerificationType type) {
+    private boolean validateCode(String email, String code, EmailVerificationType type) {
         String key = buildKey(email, type);
         RBucket<String> bucket = redissonClient.getBucket(key);
         String storedCode = bucket.get();
@@ -130,7 +172,7 @@ public class EmailService {
         return CODE_PREFIX + type.name().toLowerCase() + ":" + email;
     }
 
-    public void sendVerificationEmail(String to, String code, EmailVerificationType type) {
+    private void sendVerificationEmail(String to, String code, EmailVerificationType type) {
         String subject = buildSubject(type);
         String content = buildContent(code, type);
         sendEmail(to, subject, content);
