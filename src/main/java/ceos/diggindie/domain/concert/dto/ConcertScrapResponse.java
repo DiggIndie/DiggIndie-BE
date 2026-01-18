@@ -1,5 +1,7 @@
 package ceos.diggindie.domain.concert.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -29,5 +31,20 @@ public class ConcertScrapResponse {
     public static class ConcertScrapCreateDTO {
         private String memberId;
         private Long concertId;
+    }
+
+    @Getter
+    @Builder
+    public static class ConcertScrapToggleDTO {
+        private String memberId;
+        private Long concertId;
+
+        @Getter(AccessLevel.NONE)
+        private boolean isScrapped;
+
+        @JsonProperty("isScrapped")
+        public boolean isScrapped() {
+            return isScrapped;
+        }
     }
 }
