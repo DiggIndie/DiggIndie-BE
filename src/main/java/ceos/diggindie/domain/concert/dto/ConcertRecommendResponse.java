@@ -29,7 +29,7 @@ public record ConcertRecommendResponse(
                         concert.getId(),
                         concert.getTitle(),
                         formatDuration(concert),
-                        ConcertDDayCalculator.calculateWithPastDays(concert.getStartDate()),
+                        ConcertDDayCalculator.calculate(concert.getStartDate()),
                         concert.getMainImg(),
                         concert.getBandConcerts().stream()
                                 .map(bc -> new LineUp(
