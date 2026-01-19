@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.member.entity;
 
 import ceos.diggindie.common.entity.BaseEntity;
+import ceos.diggindie.common.enums.SearchCategory;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,6 +21,10 @@ public class RecentSearch extends BaseEntity {
 
     @Column(nullable = false, length = 100)
     private String content;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SearchCategory category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)

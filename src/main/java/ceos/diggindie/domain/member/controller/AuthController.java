@@ -242,6 +242,7 @@ public class AuthController {
                 authService.getCurrentUser(userDetails.getExternalId()),
                 "사용자 아이디 조회 API"
         );
+
         return ResponseEntity.ok().body(response);
     }
 
