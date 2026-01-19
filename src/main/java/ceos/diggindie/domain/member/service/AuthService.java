@@ -158,11 +158,11 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public UserNicknameResponse getCurrentUser(String externalId) {
+    public MemberIdResponse getCurrentUser(String externalId) {
         Member member = memberRepository.findByExternalId(externalId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
 
-        return new UserNicknameResponse(member.getExternalId(), member.getUserId());
+        return new MemberIdResponse(member.getExternalId(), member.getUserId());
     }
 
 }

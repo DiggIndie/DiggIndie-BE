@@ -1,6 +1,6 @@
 package ceos.diggindie.domain.member.dto;
 
-public record UserNicknameResponse(
+public record MemberIdResponse(
         String memberId,
         String userId
 ) {

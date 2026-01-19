@@ -234,10 +234,10 @@ public class AuthController {
     })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/my/user-id")
-    public ResponseEntity<Response<UserNicknameResponse>> getCurrentUser(
+    public ResponseEntity<Response<MemberIdResponse>> getCurrentUser(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        Response<UserNicknameResponse> response = Response.success(
+        Response<MemberIdResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 authService.getCurrentUser(userDetails.getExternalId()),
                 "사용자 아이디 조회 API"
