@@ -4,8 +4,10 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,9 @@ public class BoardComment extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "is_anonymous", nullable = false)
+    private Boolean isAnonymous;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
@@ -32,15 +37,25 @@ public class BoardComment extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // 부모 댓글 (null 이면 최상위 댓글, not null 이면 대댓글)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_comment_id")
     private BoardComment parentComment;
 
-    // 대댓글 목록
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardComment> childComments = new ArrayList<>();
 
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "boardComment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardCommentLike> likes = new ArrayList<>();
+
+    @Builder
+    public BoardComment(String content, Boolean isAnonymous, Board board,
+                        Member member, BoardComment parentComment) {
+        this.content = content;
+        this.isAnonymous = isAnonymous;
+        this.board = board;
+        this.member = member;
+        this.parentComment = parentComment;
+    }
 }
