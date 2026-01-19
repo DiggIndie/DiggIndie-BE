@@ -57,10 +57,14 @@ dependencies {
 	runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
 	// reddison
-	implementation 'org.redisson:redisson:3.27.0'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.0'
 
 	// swagger
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0"
+
+    // Mail
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 }
 
 tasks.named('test') {
