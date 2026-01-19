@@ -227,4 +227,22 @@ public class AuthController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "사용자 아이디 조회", description = "현재 로그인한 유저의 memberId와 userId를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/my/user-id")
+    public ResponseEntity<Response<UserNicknameResponse>> getCurrentUser(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Response<UserNicknameResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                authService.getCurrentUser(userDetails.getExternalId()),
+                "사용자 아이디 조회 API"
+        );
+        return ResponseEntity.ok().body(response);
+    }
+
 }
