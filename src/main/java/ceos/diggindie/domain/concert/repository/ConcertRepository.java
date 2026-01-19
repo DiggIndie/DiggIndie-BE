@@ -52,15 +52,15 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             SELECT c
             FROM Concert c
             JOIN FETCH c.concertHall
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
-            ORDER BY c.startDate ASC
+            WHERE (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            ORDER BY
+                CASE WHEN c.endDate >= :now THEN 0 ELSE 1 END,
+                c.startDate ASC
         """,
             countQuery = """
             SELECT COUNT(c)
             FROM Concert c
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            WHERE (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
         """)
     Page<Concert> findAllByRecent(@Param("query") String query,
                                   @Param("now") LocalDateTime now,
@@ -70,15 +70,13 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             SELECT c
             FROM Concert c
             JOIN FETCH c.concertHall
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            WHERE (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
             ORDER BY c.views DESC, c.startDate ASC
         """,
             countQuery = """
             SELECT COUNT(c)
             FROM Concert c
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            WHERE (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
         """)
     Page<Concert> findAllByViews(@Param("query") String query,
                                  @Param("now") LocalDateTime now,
@@ -89,8 +87,7 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             FROM Concert c
             JOIN FETCH c.concertHall
             LEFT JOIN c.concertScraps cs
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            WHERE (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
             GROUP BY c.id
             ORDER BY COUNT(cs) DESC, c.startDate ASC
         """,
@@ -98,8 +95,7 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             SELECT COUNT(DISTINCT c)
             FROM Concert c
             LEFT JOIN c.concertScraps cs
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            WHERE (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
         """)
     Page<Concert> findAllByScrapCount(@Param("query") String query,
                                       @Param("now") LocalDateTime now,
