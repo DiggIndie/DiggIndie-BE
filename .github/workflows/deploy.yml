@@ -76,7 +76,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCOUNT_ID,DB_HOST,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,OPENAI_API_KEY,SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,NAVER_CLIENT_ID,NAVER_CLIENT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
+          envs: AWS_ACCOUNT_ID,DB_HOST,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,OPENAI_API_KEY,SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,NAVER_CLIENT_ID,NAVER_CLIENT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,MAIL_USERNAME,MAIL_PASSWORD
           script: |
             sudo cp /tmp/nginx/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com || sudo cp /tmp/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com
             sudo nginx -t && sudo systemctl reload nginx
@@ -113,7 +113,9 @@ jobs:
                   - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
                   - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
                   - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-                  - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+                  - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} 
+                  - MAIL_USERNAME=${MAIL_USERNAME}
+                  - MAIL_PASSWORD=${MAIL_PASSWORD}
                 depends_on:
                   - redis
                 restart: unless-stopped

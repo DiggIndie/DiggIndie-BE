@@ -90,4 +90,18 @@ public class KeywordController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "밴드 키워드 자동 할당(관리자용)", description = "GPT를 사용해 모든 밴드에 키워드 2개씩 자동 할당합니다.")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/admin/bands/assign-keywords")
+    public ResponseEntity<Response<Void>> assignKeywordsToBands() {
+        keywordService.assignKeywordsToBands();
+
+        Response<Void> response = Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                "밴드 키워드 할당 완료"
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
 }

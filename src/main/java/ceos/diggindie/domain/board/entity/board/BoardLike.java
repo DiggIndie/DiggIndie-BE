@@ -4,6 +4,7 @@ import ceos.diggindie.common.entity.BaseEntity;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,5 +26,11 @@ public class BoardLike extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id", nullable = false)
     private Board board;
+
+    @Builder
+    public BoardLike(Member member, Board board) {
+        this.member = member;
+        this.board = board;
+    }
 
 }
