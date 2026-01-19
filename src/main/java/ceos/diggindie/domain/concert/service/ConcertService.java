@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -121,21 +122,45 @@ public class ConcertService {
         return ConcertRecommendResponse.fromConcerts(orderedConcerts);
     }
 
-    // 공연 목록 반환
+    // 공연 목록 반환 (검색 및 정렬 지원)
     @Transactional(readOnly = true)
     public ConcertsListResponse getConcertList(String query, String order, Pageable pageable) {
 
         LocalDateTime now = LocalDateTime.now();
 
-        Page<Concert> concertPage = switch (order) {
-            case "recent" -> concertRepository.findAllByRecent(query, now, pageable);
-            case "view" -> concertRepository.findAllByViews(query, now, pageable);
-            case "scrap" -> concertRepository.findAllByScrapCount(query, now, pageable);
+        // 검색/정렬/페이징으로 Concert ID 목록 조회
+        Page<Long> concertIdsPage = switch (order) {
+            case "recent" -> concertRepository.findConcertIdsByRecent(query, now, pageable);
+            case "view" -> concertRepository.findConcertIdsByViews(query, now, pageable);
+            case "scrap" -> concertRepository.findConcertIdsByScrapCount(query, now, pageable);
             default -> throw new GeneralException(GeneralErrorCode.INVALID_REQUEST_PARAMETER,
                     "지원하지 않는 정렬 타입입니다: " + order + ". (recent, view, scrap 중 선택해주세요.)");
         };
 
-        return ConcertsListResponse.fromPagedConcerts(concertPage);
+        // 빈 결과인 경우 바로 반환
+        List<Long> concertIds = concertIdsPage.getContent();
+        if (concertIds.isEmpty()) {
+            return ConcertsListResponse.fromPagedConcerts(
+                    new PageImpl<>(Collections.emptyList(), pageable, concertIdsPage.getTotalElements()));
+        }
+
+        // ID 목록으로 Concert 상세 정보 조회 (Band 정보 포함, N+1 방지)
+        List<Concert> concertsWithBands = concertRepository.findAllByIdWithBandConcerts(concertIds);
+
+        // 순서 유지를 위한 매핑
+        Map<Long, Concert> concertMap = concertsWithBands.stream()
+                .collect(Collectors.toMap(Concert::getId, c -> c));
+
+        // ID 순서대로 Concert 재정렬
+        List<Concert> orderedConcerts = concertIds.stream()
+                .map(concertMap::get)
+                .filter(c -> c != null)
+                .toList();
+
+        // Page 객체 재생성 (원래 페이징 정보 유지)
+        Page<Concert> resultPage = new PageImpl<>(orderedConcerts, pageable, concertIdsPage.getTotalElements());
+
+        return ConcertsListResponse.fromPagedConcerts(resultPage);
     }
 
     // 공연 상세 조회

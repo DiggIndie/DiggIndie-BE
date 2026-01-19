@@ -5,6 +5,7 @@ import ceos.diggindie.common.enums.MarketType;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,6 +32,9 @@ public class Market extends BaseEntity {
     @Column(nullable = false)
     private Integer price;
 
+    @Column(name = "chat_url", length = 300)
+    private String chatUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
@@ -47,6 +51,36 @@ public class Market extends BaseEntity {
 
     @OneToMany(mappedBy = "market", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MarketImage> marketImages = new ArrayList<>();
+
+    @Builder
+    public Market(String title, String content, Integer price, String chatUrl, Member member, MarketType type) {
+        this.title = title;
+        this.content = content;
+        this.price = price;
+        this.chatUrl = chatUrl;
+        this.member = member;
+        this.type = type;
+    }
+
+    public void addImage(MarketImage image) {
+        this.marketImages.add(image);
+    }
+
+    public void increaseViews() {
+        this.views++;
+    }
+
+    public void update(String title, String content, Integer price, String chatUrl, MarketType type) {
+        this.title = title;
+        this.content = content;
+        this.price = price;
+        this.chatUrl = chatUrl;
+        this.type = type;
+    }
+
+    public void clearImages() {
+        this.marketImages.clear();
+    }
 
 
 }

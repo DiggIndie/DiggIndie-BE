@@ -53,7 +53,6 @@ public class BandService {
     private final OpenAIService openAIService;
     private final SpotifyService spotifyService;
     private final ObjectMapper objectMapper;
-    private final TopTrackRepository topTrackRepository;
     private final ConcertRepository concertRepository;
     private final BandScrapRepository bandScrapRepository;
     private final AlbumRepository albumRepository;
@@ -288,14 +287,16 @@ public class BandService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        Band band = bandRepository.findByIdWithDetails(bandId)
+        Band band = bandRepository.findByIdWithKeywordsAndTopTrack(bandId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.ARTIST_NOT_FOUND));
+
+        List<Artist> artists = artistRepository.findByBandId(bandId);
 
         List<String> keywords = band.getBandKeywords().stream()
                 .map(bk -> bk.getKeyword().getKeyword())
                 .toList();
 
-        List<String> members = band.getArtists().stream()
+        List<String> members = artists.stream()
                 .map(Artist::getArtistName)
                 .toList();
 

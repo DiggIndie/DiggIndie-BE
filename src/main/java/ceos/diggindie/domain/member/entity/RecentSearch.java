@@ -31,9 +31,8 @@ public class RecentSearch extends BaseEntity {
     private Member member;
 
     @Builder
-    public RecentSearch(String content, SearchCategory category, Member member) {
+    public RecentSearch(String content, Member member) {
         this.content = content;
-        this.category = category;
         this.member = member;
     }
 }

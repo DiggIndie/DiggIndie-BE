@@ -36,7 +36,7 @@ public class BandScrapController {
             @ApiResponse(responseCode = "204", description = "스크랩 처리 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @PostMapping("/my/artists")
+    @PatchMapping("/my/artists")
     public ResponseEntity<Response<Void>> toggleBandScraps(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,

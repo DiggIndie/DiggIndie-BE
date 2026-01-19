@@ -2,7 +2,6 @@ package ceos.diggindie.domain.member.controller;
 
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
-import ceos.diggindie.common.enums.SearchCategory;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.RecentSearchRequest;
 import ceos.diggindie.domain.member.dto.RecentSearchResponse;
@@ -27,7 +26,7 @@ public class RecentSearchController {
     private final RecentSearchService recentSearchService;
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "검색어 추가", description = "최근 검색어를 추가합니다.")
+    @Operation(summary = "검색어 추가", description = "최근 검색어를 추가합니다. 동일한 검색어가 있으면 가장 최근 시점으로 업데이트됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "추가 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
@@ -44,14 +43,14 @@ public class RecentSearchController {
         Response<RecentSearchResponse.RecentSearchInfo> response = Response.success(
                 SuccessCode.INSERT_SUCCESS,
                 result,
-                "검색어 추가 성공"
+                "검색어 추가 API"
         );
 
         return ResponseEntity.status(201).body(response);
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "카테고리별 검색어 조회", description = "로그인한 사용자의 카테고리별 최근 검색어를 조회합니다.")
+    @Operation(summary = "검색어 조회", description = "로그인한 사용자의 최근 검색어를 조회합니다. 최신순으로 정렬됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
@@ -59,17 +58,15 @@ public class RecentSearchController {
     @GetMapping("/search/recent")
     public ResponseEntity<Response<RecentSearchResponse.RecentSearchListDTO>> getRecentSearches(
             @Parameter(hidden = true)
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Parameter(description = "검색 카테고리 (COMMUNITY, BAND, CONCERT, GENERAL)")
-            @RequestParam SearchCategory category) {
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         RecentSearchResponse.RecentSearchListDTO result =
-                recentSearchService.getRecentSearchesByCategory(customUserDetails.getMemberId(), category);
+                recentSearchService.getRecentSearches(customUserDetails.getMemberId());
 
         Response<RecentSearchResponse.RecentSearchListDTO> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 result,
-                "검색어 조회 성공"
+                "검색어 전체 조회 API"
         );
 
         return ResponseEntity.ok().body(response);
@@ -79,7 +76,8 @@ public class RecentSearchController {
     @Operation(summary = "개별 검색어 삭제", description = "특정 검색어를 삭제합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "삭제 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "검색어를 찾을 수 없음")
     })
     @DeleteMapping("/search/recent/{recentSearchId}")
     public ResponseEntity<Response<Void>> deleteRecentSearch(
@@ -92,34 +90,28 @@ public class RecentSearchController {
 
         Response<Void> response = Response.success(
                 SuccessCode.DELETE_SUCCESS,
-                "검색어 삭제 성공"
+                "개별 검색어 삭제 API"
         );
 
         return ResponseEntity.ok().body(response);
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "전체 검색어 삭제", description = "로그인한 사용자의 전체 검색어를 삭제합니다.")
+    @Operation(summary = "전체 검색어 삭제", description = "로그인한 사용자의 모든 검색어를 삭제합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "삭제 성공"),
+            @ApiResponse(responseCode = "200", description = "전체 삭제 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @DeleteMapping("/search/recent")
     public ResponseEntity<Response<Void>> deleteAllRecentSearches(
             @Parameter(hidden = true)
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
-            @Parameter(description = "삭제할 카테고리 (COMMUNITY, BAND, CONCERT, GENERAL). 미지정 시 전체 삭제")
-            @RequestParam(required = false) SearchCategory category) {
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        if (category != null) {
-            recentSearchService.deleteRecentSearchesByCategory(customUserDetails.getMemberId(), category);
-        } else {
-            recentSearchService.deleteAllRecentSearches(customUserDetails.getMemberId());
-        }
+        recentSearchService.deleteAllRecentSearches(customUserDetails.getMemberId());
 
         Response<Void> response = Response.success(
                 SuccessCode.DELETE_SUCCESS,
-                category != null ? category.getDescription() + " 검색어 전체 삭제 성공" : "전체 검색어 삭제 성공"
+                "전체 검색어 삭제 API"
         );
 
         return ResponseEntity.ok().body(response);
