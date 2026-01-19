@@ -13,6 +13,7 @@ public enum BusinessErrorCode implements Code {
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
     DUPLICATE_USER_ID(409, "이미 사용 중인 아이디입니다."),
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
+    RECENT_SEARCH_NOT_FOUND(404, "최근 검색어를 찾을 수 없습니다."),
     EMAIL_VERIFICATION_BLOCKED(429, "인증 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요."),
 
     // ==================== 인증/토큰 ====================

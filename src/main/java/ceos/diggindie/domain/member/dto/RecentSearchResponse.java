@@ -1,6 +1,5 @@
 package ceos.diggindie.domain.member.dto;
 
-import ceos.diggindie.common.enums.SearchCategory;
 import ceos.diggindie.domain.member.entity.RecentSearch;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,14 +14,12 @@ public class RecentSearchResponse {
     public static class RecentSearchInfo {
         private Long recentSearchId;
         private String content;
-        private SearchCategory category;
         private LocalDateTime createdAt;
 
         public static RecentSearchInfo from(RecentSearch recentSearch) {
             return RecentSearchInfo.builder()
                     .recentSearchId(recentSearch.getId())
                     .content(recentSearch.getContent())
-                    .category(recentSearch.getCategory())
                     .createdAt(recentSearch.getCreatedAt())
                     .build();
         }
