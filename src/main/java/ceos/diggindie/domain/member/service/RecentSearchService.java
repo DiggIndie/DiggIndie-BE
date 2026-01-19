@@ -46,7 +46,11 @@ public class RecentSearchService {
 
     @Transactional
     public void deleteRecentSearch(Long memberId, Long recentSearchId) {
-        recentSearchRepository.deleteByMemberIdAndId(memberId, recentSearchId);
+        RecentSearch recentSearch = recentSearchRepository.findById(recentSearchId)
+                .filter(rs -> rs.getMember().getId().equals(memberId))
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.RECENT_SEARCH_NOT_FOUND));
+
+        recentSearchRepository.delete(recentSearch);
     }
 
     @Transactional

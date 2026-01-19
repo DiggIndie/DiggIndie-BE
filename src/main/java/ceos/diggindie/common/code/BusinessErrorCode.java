@@ -11,6 +11,7 @@ public enum BusinessErrorCode implements Code {
     MEMBER_NOT_FOUND(404, "회원을 찾을 수 없습니다."),
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
+    RECENT_SEARCH_NOT_FOUND(404, "최근 검색어를 찾을 수 없습니다."),
 
     // ==================== 아티스트 ====================
     ARTIST_NOT_FOUND(404, "아티스트를 찾을 수 없습니다."),
