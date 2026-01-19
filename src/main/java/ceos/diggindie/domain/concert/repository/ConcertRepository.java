@@ -136,4 +136,6 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             WHERE c.id IN :ids
             """)
     List<Concert> findAllByIdWithBandConcerts(@Param("ids") List<Long> ids);
+
+    boolean existsByTitleAndStartDate(String title, LocalDateTime startDate);
 }
