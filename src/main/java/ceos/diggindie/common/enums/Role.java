@@ -1,6 +1,5 @@
 package ceos.diggindie.common.enums;
 
-import ceos.diggindie.common.code.Code;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
