@@ -5,8 +5,10 @@ import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.band.dto.BandDetailResponse;
 import ceos.diggindie.domain.band.dto.BandListResponse;
+import ceos.diggindie.domain.band.dto.BandRecommendResponse;
 import ceos.diggindie.domain.band.dto.BandSearchResponse;
 import ceos.diggindie.common.enums.BandSortOrder;
+import ceos.diggindie.domain.band.service.BandRecommendService;
 import ceos.diggindie.domain.band.service.BandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +32,7 @@ import java.util.List;
 public class BandController {
 
     private final BandService bandService;
+    private final BandRecommendService bandRecommendService;
 
     @Operation(summary = "밴드 정보 업데이트 [내부용]", description = "Raw 데이터를 기반으로 밴드 정보를 업데이트합니다. ADMIN 권한 필요.")
     @ApiResponses({
@@ -126,6 +129,26 @@ public class BandController {
                 bandDetail,
                 "아티스트 상세 조회 성공"
         );
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "추천 밴드 조회 API", description = "로그인한 회원의 추천 밴드 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 필요")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/artists/recommendations/users")
+    public ResponseEntity<Response<BandRecommendResponse.BandListDTO>> getRecommendedBands(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        BandRecommendResponse.BandListDTO result = bandRecommendService.getRecommendedBands(userDetails.getMemberId());
+        Response<BandRecommendResponse.BandListDTO> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "추천 밴드 반환 API"
+        );
+
         return ResponseEntity.ok().body(response);
     }
 }
