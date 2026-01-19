@@ -28,13 +28,6 @@ public class ConcertScrapResponse {
 
     @Getter
     @Builder
-    public static class ConcertScrapCreateDTO {
-        private String memberId;
-        private Long concertId;
-    }
-
-    @Getter
-    @Builder
     public static class ConcertScrapToggleDTO {
         private String memberId;
         private Long concertId;
