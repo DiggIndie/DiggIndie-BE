@@ -12,8 +12,6 @@ public interface RecentSearchRepository extends JpaRepository<RecentSearch, Long
 
     List<RecentSearch> findByMemberIdOrderByCreatedAtDesc(Long memberId);
 
-    void deleteByMemberIdAndId(Long memberId, Long recentSearchId);
-
     void deleteAllByMemberId(Long memberId);
 
     Optional<RecentSearch> findByMemberIdAndContent(Long memberId, String content);
