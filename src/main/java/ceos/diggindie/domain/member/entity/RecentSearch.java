@@ -22,10 +22,6 @@ public class RecentSearch extends BaseEntity {
     @Column(nullable = false, length = 100)
     private String content;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private SearchCategory category;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
