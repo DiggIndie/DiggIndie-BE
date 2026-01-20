@@ -6,6 +6,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.keyword.dto.KeywordRequest;
 import ceos.diggindie.domain.keyword.dto.KeywordResponse;
 import ceos.diggindie.domain.keyword.service.KeywordService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -90,6 +91,8 @@ public class KeywordController {
         return ResponseEntity.ok(response);
     }
 
+
+    @Hidden
     @Operation(summary = "밴드 키워드 자동 할당(관리자용)", description = "GPT를 사용해 모든 밴드에 키워드 2개씩 자동 할당합니다.")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/admin/bands/assign-keywords")
