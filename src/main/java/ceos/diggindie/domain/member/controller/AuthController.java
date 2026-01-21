@@ -7,6 +7,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.dto.oauth.*;
 import ceos.diggindie.domain.member.service.AuthService;
+import ceos.diggindie.domain.member.service.MemberService;
 import ceos.diggindie.domain.member.service.OAuth2Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,6 +30,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final OAuth2Service oAuth2Service;
+    private final MemberService memberService;
 
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -246,4 +248,46 @@ public class AuthController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(summary = "마케팅 동의 변경", description = "로그인한 사용자의 마케팅 동의를 변경합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "마케팅 동의 변경 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/my/marketing-consent")
+    public ResponseEntity<Response<MarketingConsentResponse>> updateMarketingConsent(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody MarketingConsentRequest request
+    ) {
+        Response<MarketingConsentResponse> response = Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                memberService.updateMarketingConsent(userDetails.getExternalId(), request),
+                "마케팅 동의 변경 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "마케팅 동의 조회", description = "로그인한 사용자의 마케팅 동의 여부를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/my/marketing-consent")
+    public ResponseEntity<Response<MarketingConsentResponse>> getMarketingConsent(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Response<MarketingConsentResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                memberService.getMarketingConsent(userDetails.getExternalId()),
+                "마케팅 동의 조회 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
+
 }
+
