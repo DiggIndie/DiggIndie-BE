@@ -19,6 +19,7 @@ public record BoardDetailResponse(
         Integer views,
         Integer likeCount,
         Boolean isLiked,
+        Boolean isMine,
         Integer commentCount,
         List<CommentResponse> comments
 ) {
@@ -49,6 +50,7 @@ public record BoardDetailResponse(
                 .views(board.getViews())
                 .likeCount(board.getBoardLikes().size())
                 .isLiked(liked)
+                .isMine(board.getMember().getId().equals(memberId))
                 .commentCount(totalCommentCount)
                 .comments(comments.stream()
                         .map(c -> CommentResponse.from(c, memberId, anonGenerator))

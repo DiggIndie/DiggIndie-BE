@@ -2,6 +2,7 @@ package ceos.diggindie.domain.board.dto.market;
 
 import ceos.diggindie.common.enums.MarketType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -23,6 +24,7 @@ public record MarketCreateRequest(
         @NotNull(message = "타입은 필수입니다.")
         MarketType type,
 
+        @NotEmpty(message = "이미지는 최소 1장 이상이어야 합니다.")
         List<String> imageUrls
 ) {
 }
