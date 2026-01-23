@@ -23,6 +23,7 @@ public record MarketCreateRequest(
         @NotNull(message = "타입은 필수입니다.")
         MarketType type,
 
+        // 1장이상
         List<String> imageUrls
 ) {
 }
