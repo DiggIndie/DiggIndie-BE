@@ -70,6 +70,9 @@ public class Member extends BaseEntity {
     private List<RecentSearch> recentSearches = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecommendSatisfaction> recommendSatisfactions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BandRecommend> artistRecommends = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
