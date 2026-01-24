@@ -92,7 +92,12 @@ public class EmailService {
             case FIND_USER_ID -> {
                 Member member = findMemberByEmail(request.email());
                 String maskedUserId = maskUserId(member.getUserId());
-                yield new EmailVerificationResponse("아이디 찾기가 완료되었습니다.", true, maskedUserId);
+                yield new EmailVerificationResponse(
+                        "아이디 찾기가 완료되었습니다.",
+                        true,
+                        maskedUserId,
+                        member.getCreatedAt()
+                );
             }
         };
     }
