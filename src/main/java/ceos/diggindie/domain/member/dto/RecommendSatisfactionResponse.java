@@ -14,14 +14,14 @@ public class RecommendSatisfactionResponse {
     @Builder
     public static class RecommendSatisfactionInfo {
         private Long recommendSatisfactionId;
-        private Boolean satisfied;
+        private Boolean isSatisfied;
         private RecommendSatisfactionReason reason;
         private LocalDateTime createdAt;
 
         public static RecommendSatisfactionInfo from(RecommendSatisfaction recommendSatisfaction) {
             return RecommendSatisfactionInfo.builder()
                     .recommendSatisfactionId(recommendSatisfaction.getId())
-                    .satisfied(recommendSatisfaction.getSatisfied())
+                    .isSatisfied(recommendSatisfaction.getSatisfied())
                     .reason(recommendSatisfaction.getReason())
                     .createdAt(recommendSatisfaction.getCreatedAt())
                     .build();

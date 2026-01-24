@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record RecommendSatisfactionRequest(
         @NotNull(message = "만족도는 필수입니다.")
-        Boolean satisfied,
+        Boolean isSatisfied,
 
         RecommendSatisfactionReason reason
 ) {}
