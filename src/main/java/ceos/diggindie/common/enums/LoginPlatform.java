@@ -3,6 +3,9 @@ package ceos.diggindie.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 @Getter
 @RequiredArgsConstructor
 public enum LoginPlatform {
@@ -13,4 +16,14 @@ public enum LoginPlatform {
     LOCAL("로컬");
 
     private final String description;
+
+    public static Optional<LoginPlatform> fromName(String name) {
+        if (name == null || name.isBlank()) {
+            return Optional.empty();
+        }
+
+        return Arrays.stream(values())
+                .filter(p -> p.name().equalsIgnoreCase(name))
+                .findFirst();
+    }
 }

@@ -15,7 +15,6 @@ import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.entity.SocialAccount;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import ceos.diggindie.domain.member.repository.SocialAccountRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,13 +44,43 @@ public class OAuth2Service {
     @Value("${jwt.refresh-token-validity}")
     private java.time.Duration refreshTokenValidity;
 
-    /**
-     * 소셜 로그인 (회원가입 포함)
-     */
-    public OAuth2LoginResponse login(OAuth2LoginRequest request, HttpServletResponse response) {
-        validateState(request.getState(), request.getPlatform());
+    public OAuth2CallbackResponse handleCallback(
+            OAuth2CallbackRequest request,
+            CustomUserDetails userDetails,
+            HttpServletResponse response) {
 
-        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(request.getPlatform(), request.getCode());
+        // state 검증 및 정보 추출
+        OAuth2StateService.StateInfo stateInfo = oAuth2StateService.validateAndConsume(request.getState());
+
+        if (stateInfo == null) {
+            log.warn("OAuth state validation failed - state: {}", request.getState());
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
+        }
+
+        LoginPlatform platform = LoginPlatform.fromName(stateInfo.platform())
+                .orElseThrow(() -> {
+                    log.warn("Invalid platform in state - platform: {}", stateInfo.platform());
+                    return new BusinessException(BusinessErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
+                });
+
+        if (stateInfo.isLogin()) {
+            // 로그인 처리
+            OAuth2LoginResponse loginResult = processLogin(platform, request.getCode(), response);
+            return OAuth2CallbackResponse.login(loginResult);
+
+        } else if (stateInfo.isLink()) {
+            // 연동 처리 (인증 필요)
+            if (userDetails == null) {
+                throw new BusinessException(BusinessErrorCode.UNAUTHORIZED, "계정 연동은 로그인이 필요합니다.");
+            }
+            OAuth2LinkResponse linkResult = processLink(platform, request.getCode(), userDetails);
+            return OAuth2CallbackResponse.link(linkResult);
+        }
+
+        throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
+    }
+    private OAuth2LoginResponse processLogin(LoginPlatform platform, String code, HttpServletResponse response) {
+        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, code);
 
         LoginResult result = transactionTemplate.execute(status -> {
             Optional<SocialAccount> existingSocialAccount = socialAccountRepository
@@ -89,20 +118,16 @@ public class OAuth2Service {
                 .build();
     }
 
-    /**
-     * 기존 계정에 소셜 계정 연동
-     */
-    public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
-        validateState(request.getState(), request.getPlatform());
+    private OAuth2LinkResponse processLink(LoginPlatform platform, String code, CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
 
         transactionTemplate.executeWithoutResult(status -> {
-            if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, request.getPlatform())) {
+            if (socialAccountRepository.existsByMemberIdAndPlatform(memberId, platform)) {
                 throw new BusinessException(BusinessErrorCode.OAUTH_ALREADY_LINKED);
             }
         });
 
-        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(request.getPlatform(), request.getCode());
+        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, code);
 
         transactionTemplate.executeWithoutResult(status -> {
             if (socialAccountRepository.findByPlatformAndPlatformId(
@@ -130,15 +155,8 @@ public class OAuth2Service {
                 .build();
     }
 
-    /**
-     * 소셜 계정 연동 해제
-     */
     @Transactional
     public OAuth2UnlinkResponse unlinkSocialAccount(CustomUserDetails userDetails, LoginPlatform platform) {
-        if (platform == LoginPlatform.LOCAL) {
-            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_PLATFORM, "기본 회원가입은 연동 해제할 수 없습니다.");
-        }
-
         Member member = memberRepository.findById(userDetails.getMemberId())
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND, "회원을 찾을 수 없습니다."));
 
@@ -162,9 +180,6 @@ public class OAuth2Service {
                 .build();
     }
 
-    /**
-     * 연동된 소셜 계정 목록 조회
-     */
     @Transactional(readOnly = true)
     public LinkedSocialAccountResponse getLinkedAccounts(CustomUserDetails userDetails) {
         List<SocialAccount> socialAccounts = socialAccountRepository
@@ -183,13 +198,10 @@ public class OAuth2Service {
                 .build();
     }
 
-    /**
-     * OAuth2 인증 URL 조회
-     */
-    public OAuth2UrlResponse getAuthUrl(LoginPlatform platform) {
+    public OAuth2UrlResponse getAuthUrl(LoginPlatform platform, String purpose) {
         OAuth2Properties.Provider provider = oAuth2Properties.getProvider(platform.name());
 
-        String state = oAuth2StateService.generateState(platform.name());
+        String state = oAuth2StateService.generateState(platform.name(), purpose);
 
         String authUrl = switch (platform) {
             case KAKAO -> String.format(
@@ -209,6 +221,7 @@ public class OAuth2Service {
                 .state(state)
                 .build();
     }
+
 
     private Member createNewMember(OAuth2UserInfo userInfo) {
         Member member = Member.createSocialMember(userInfo.email(), userInfo.platform());
@@ -230,7 +243,7 @@ public class OAuth2Service {
     private void setRefreshToken(HttpServletResponse response, String externalId, Role role) {
         String refreshToken = jwtTokenProvider.generateRefreshToken(externalId, role);
         refreshTokenService.save(externalId, refreshToken);
-        addTokenCookie(response, "refresh_token", refreshToken, refreshTokenValidity);
+        addTokenCookie(response, "refreshToken", refreshToken, refreshTokenValidity);
     }
 
     private void addTokenCookie(HttpServletResponse response, String name, String value, java.time.Duration maxAge) {
@@ -244,13 +257,37 @@ public class OAuth2Service {
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
-    private void validateState(String state, LoginPlatform platform) {
-        if (!oAuth2StateService.validateAndConsume(state, platform.name())) {
-            log.warn("OAuth state validation failed - state: {}, platform: {}", state, platform);
+    private OAuth2StateService.StateInfo validateStateForLogin(String state) {
+        OAuth2StateService.StateInfo stateInfo = oAuth2StateService.validateAndConsume(state);
+
+        if (stateInfo == null) {
+            log.warn("OAuth state validation failed - state: {}", state);
             throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
         }
+
+        if (!stateInfo.isLogin()) {
+            log.warn("OAuth state purpose mismatch - expected: login, actual: {}", stateInfo.purpose());
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE, "로그인용 인증 URL이 아닙니다.");
+        }
+
+        return stateInfo;
     }
 
-    // 내부용 record
+    private OAuth2StateService.StateInfo validateStateForLink(String state) {
+        OAuth2StateService.StateInfo stateInfo = oAuth2StateService.validateAndConsume(state);
+
+        if (stateInfo == null) {
+            log.warn("OAuth state validation failed - state: {}", state);
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
+        }
+
+        if (!stateInfo.isLink()) {
+            log.warn("OAuth state purpose mismatch - expected: link, actual: {}", stateInfo.purpose());
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE, "계정 연동용 인증 URL이 아닙니다.");
+        }
+
+        return stateInfo;
+    }
+
     private record LoginResult(Member member, boolean isNewMember) {}
 }
