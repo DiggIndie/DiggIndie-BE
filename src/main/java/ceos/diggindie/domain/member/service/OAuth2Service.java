@@ -44,12 +44,6 @@ public class OAuth2Service {
     @Value("${jwt.refresh-token-validity}")
     private java.time.Duration refreshTokenValidity;
 
-    // ==================== 통합 콜백 API ====================
-
-    /**
-     * 통합 OAuth2 콜백 처리
-     * state에서 purpose를 읽어 login/link 자동 분기
-     */
     public OAuth2CallbackResponse handleCallback(
             OAuth2CallbackRequest request,
             CustomUserDetails userDetails,
@@ -63,7 +57,11 @@ public class OAuth2Service {
             throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
         }
 
-        LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
+        LoginPlatform platform = LoginPlatform.fromName(stateInfo.platform())
+                .orElseThrow(() -> {
+                    log.warn("Invalid platform in state - platform: {}", stateInfo.platform());
+                    return new BusinessException(BusinessErrorCode.OAUTH_PROVIDER_NOT_SUPPORTED);
+                });
 
         if (stateInfo.isLogin()) {
             // 로그인 처리
@@ -81,23 +79,6 @@ public class OAuth2Service {
 
         throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
     }
-
-    // ==================== 기존 API (하위 호환용, 필요시 제거 가능) ====================
-
-    public OAuth2LoginResponse login(OAuth2LoginRequest request, HttpServletResponse response) {
-        OAuth2StateService.StateInfo stateInfo = validateStateForLogin(request.getState());
-        LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
-        return processLogin(platform, request.getCode(), response);
-    }
-
-    public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
-        OAuth2StateService.StateInfo stateInfo = validateStateForLink(request.getState());
-        LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
-        return processLink(platform, request.getCode(), userDetails);
-    }
-
-    // ==================== 내부 처리 메서드 ====================
-
     private OAuth2LoginResponse processLogin(LoginPlatform platform, String code, HttpServletResponse response) {
         OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, code);
 
@@ -174,8 +155,6 @@ public class OAuth2Service {
                 .build();
     }
 
-    // ==================== 기타 메서드 (변경 없음) ====================
-
     @Transactional
     public OAuth2UnlinkResponse unlinkSocialAccount(CustomUserDetails userDetails, LoginPlatform platform) {
         Member member = memberRepository.findById(userDetails.getMemberId())
@@ -243,7 +222,6 @@ public class OAuth2Service {
                 .build();
     }
 
-    // ==================== Private Helper 메서드 ====================
 
     private Member createNewMember(OAuth2UserInfo userInfo) {
         Member member = Member.createSocialMember(userInfo.email(), userInfo.platform());
