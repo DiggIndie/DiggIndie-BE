@@ -27,20 +27,5 @@ public class RecommendSatisfactionResponse {
                     .build();
         }
     }
-
-    @Getter
-    @Builder
-    public static class RecommendSatisfactionListDTO {
-        private List<RecommendSatisfactionInfo> satisfactions;
-
-        public static RecommendSatisfactionListDTO from(List<RecommendSatisfaction> recommendSatisfactions) {
-            List<RecommendSatisfactionInfo> satisfactionInfos = recommendSatisfactions.stream()
-                    .map(RecommendSatisfactionInfo::from)
-                    .toList();
-            return RecommendSatisfactionListDTO.builder()
-                    .satisfactions(satisfactionInfos)
-                    .build();
-        }
-    }
 }
 
