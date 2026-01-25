@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public record MyScrappedPostResponse(
         Long marketId,
         String category,
@@ -19,7 +18,7 @@ public record MyScrappedPostResponse(
     public static MyScrappedPostResponse from(Market market) {
         return MyScrappedPostResponse.builder()
                 .marketId(market.getId())
-                .category(market.getType() != null ? market.getType().name() : null)
+                .category(market.getType() != null ? market.getType().getDisplayName() : null)
                 .title(market.getTitle())
                 .price(market.getPrice())
                 .thumbnailUrl(market.getMarketImages() != null && !market.getMarketImages().isEmpty()

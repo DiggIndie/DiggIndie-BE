@@ -4,9 +4,9 @@ import ceos.diggindie.common.utils.TimeUtils;
 import ceos.diggindie.domain.board.entity.market.Market;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
+import org.yaml.snakeyaml.error.Mark;
 
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public record MyMarketPostResponse(
         Long marketId,
         String category,
@@ -16,10 +16,10 @@ public record MyMarketPostResponse(
         int scrapCount,
         String createdAt
 ) {
-    public static MyMarketPostResponse from(ceos.diggindie.domain.board.entity.market.Market market) {
+    public static MyMarketPostResponse from(Market market) {
         return MyMarketPostResponse.builder()
                 .marketId(market.getId())
-                .category(market.getType() != null ? market.getType().name() : null)
+                .category(market.getType() != null ? market.getType().getDisplayName() : null)
                 .title(market.getTitle())
                 .price(market.getPrice())
                 .thumbnailUrl(market.getMarketImages() != null && !market.getMarketImages().isEmpty()

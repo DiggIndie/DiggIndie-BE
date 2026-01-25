@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public record MyCommentedPostResponse(
         Long boardId,
         String category,
@@ -20,7 +19,7 @@ public record MyCommentedPostResponse(
     public static MyCommentedPostResponse from(Board board) {
         return MyCommentedPostResponse.builder()
                 .boardId(board.getId())
-                .category(board.getCategory() != null ? board.getCategory().name() : null)
+                .category(board.getCategory() != null ? board.getCategory().getDescription() : null)
                 .title(board.getTitle())
                 .content(board.getContent())
                 .views(board.getViews())
