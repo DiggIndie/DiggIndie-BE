@@ -15,6 +15,8 @@ public enum BusinessErrorCode implements Code {
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
     RECENT_SEARCH_NOT_FOUND(404, "최근 검색어를 찾을 수 없습니다."),
     EMAIL_VERIFICATION_BLOCKED(429, "인증 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요."),
+    INVALID_RESET_TOKEN(401, "유효하지 않은 비밀번호 재설정 토큰입니다."),
+    PASSWORD_INVALID_FORMAT(400,  "비밀번호는 6~20자이며, 영문/숫자/특수문자 중 2가지 이상 조합이어야 합니다."),
 
     // ==================== 인증/토큰 ====================
     REFRESH_TOKEN_NOT_FOUND(401, "Refresh token이 존재하지 않습니다."),

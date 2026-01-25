@@ -7,7 +7,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -26,6 +27,11 @@ services:
     command: ["redis-server", "--appendonly", "yes"]
     environment:
       TZ: Asia/Seoul
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 volumes:
   redis-data:

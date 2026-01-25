@@ -1,18 +1,28 @@
 package ceos.diggindie.domain.member.dto.email;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.time.LocalDateTime;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record EmailVerificationResponse(
         String message,
-        boolean success,
-        String userId,  // FIND_USER_ID일 때만 반환
-        LocalDateTime createdAt
+        String resetToken,      // PASSWORD_RESET용
+        String maskedUserId,    // FIND_USER_ID용
+        LocalDateTime createdAt // FIND_USER_ID용
 ) {
-    public EmailVerificationResponse(String message, boolean success) {
-        this(message, success, null, null);
+    // 기본 응답 (SIGNUP 등)
+    public EmailVerificationResponse(String message) {
+        this(message, null, null, null);
     }
 
-    public EmailVerificationResponse(String message, boolean success, String userId) {
-        this(message, success, userId, null);
+    // PASSWORD_RESET용
+    public static EmailVerificationResponse forPasswordReset(String message, String resetToken) {
+        return new EmailVerificationResponse(message, resetToken, null, null);
+    }
+
+    // FIND_USER_ID용
+    public static EmailVerificationResponse forFindUserId(String message, String maskedUserId, LocalDateTime createdAt) {
+        return new EmailVerificationResponse(message, null, maskedUserId, createdAt);
     }
 }

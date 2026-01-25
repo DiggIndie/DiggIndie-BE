@@ -4,6 +4,7 @@ import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.member.dto.MarketingConsentRequest;
 import ceos.diggindie.domain.member.dto.MarketingConsentResponse;
+import ceos.diggindie.domain.member.dto.PasswordResetRequest;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +23,6 @@ public class MemberService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
                         "회원을 찾을 수 없습니다."));
     }
-
-    public Member findByEmail(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
-                        "회원을 찾을 수 없습니다."));
-    }
-
-    public Member findByUserId(String userId) {
-        return memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
-                        "회원을 찾을 수 없습니다."));
-    }
-
 
     @Transactional
     public MarketingConsentResponse updateMarketingConsent(String externalId, MarketingConsentRequest request) {

@@ -7,6 +7,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.dto.oauth.*;
 import ceos.diggindie.domain.member.service.AuthService;
+import ceos.diggindie.domain.member.service.EmailService;
 import ceos.diggindie.domain.member.service.MemberService;
 import ceos.diggindie.domain.member.service.OAuth2Service;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +32,7 @@ public class AuthController {
     private final AuthService authService;
     private final OAuth2Service oAuth2Service;
     private final MemberService memberService;
+    private final EmailService emailService;
 
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -255,4 +257,22 @@ public class AuthController {
         return ResponseEntity.ok().body(response);
     }
 
+    @Operation(
+            summary = "비밀번호 재설정",
+            description = "이메일 인증 후 발급받은 resetToken으로 비밀번호를 변경합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
+            @ApiResponse(responseCode = "400", description = "유효하지 않은 토큰 또는 비밀번호 형식 오류"),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 이메일")
+    })
+    @PostMapping("/auth/password/reset")
+    public ResponseEntity<Response<String>> resetPassword(
+            @Valid @RequestBody PasswordResetRequest request
+    ) {
+        emailService.resetPassword(request);
+        return ResponseEntity.ok(
+                Response.success(SuccessCode.UPDATE_SUCCESS, "비밀번호가 변경되었습니다.")
+        );
+    }
 }
