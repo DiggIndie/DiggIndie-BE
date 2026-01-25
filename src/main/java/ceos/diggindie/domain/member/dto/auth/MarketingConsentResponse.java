@@ -1,4 +1,4 @@
-package ceos.diggindie.domain.member.dto;
+package ceos.diggindie.domain.member.dto.auth;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

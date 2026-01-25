@@ -1,4 +1,4 @@
-package ceos.diggindie.domain.member.dto;
+package ceos.diggindie.domain.member.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
