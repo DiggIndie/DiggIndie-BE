@@ -5,6 +5,7 @@ import ceos.diggindie.common.config.security.jwt.JwtTokenProvider;
 import ceos.diggindie.common.enums.Role;
 import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.member.dto.*;
+import ceos.diggindie.domain.member.dto.auth.*;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import jakarta.servlet.http.Cookie;

@@ -5,7 +5,6 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.aws.dto.PresignedUrlRequest;
 import ceos.diggindie.domain.aws.dto.PresignedUrlResponse;
 import ceos.diggindie.domain.aws.service.S3Service;
-import ceos.diggindie.domain.member.dto.UserIdCheckResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

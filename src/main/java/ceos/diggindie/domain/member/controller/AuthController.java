@@ -5,6 +5,7 @@ import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.enums.LoginPlatform;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
+import ceos.diggindie.domain.member.dto.auth.*;
 import ceos.diggindie.domain.member.dto.oauth.*;
 import ceos.diggindie.domain.member.service.AuthService;
 import ceos.diggindie.domain.member.service.MemberService;
