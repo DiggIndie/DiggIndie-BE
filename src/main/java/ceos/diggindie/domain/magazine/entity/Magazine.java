@@ -26,7 +26,17 @@ public class Magazine extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(nullable = true, columnDefinition = "TEXT")
+    private String externalUrl;
+
+    @Column(nullable = false)
+    private Long view = 0L;
+
     @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MagazineImage> magazineImages = new ArrayList<>();
+
+    public void increaseView() {
+        this.view++;
+    }
 
 }
