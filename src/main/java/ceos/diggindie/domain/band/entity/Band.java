@@ -25,7 +25,7 @@ public class Band extends BaseEntity {
     @Column(name = "band_id")
     private Long id;
 
-    @Column(name = "band_name", length = 20)
+    @Column(name = "band_name", length = 100)
     private String bandName;
 
     @Column(name = "main_image", length = 200)
