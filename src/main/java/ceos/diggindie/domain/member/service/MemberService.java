@@ -4,7 +4,6 @@ import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.member.dto.MarketingConsentRequest;
 import ceos.diggindie.domain.member.dto.MarketingConsentResponse;
-import ceos.diggindie.domain.member.dto.PasswordResetRequest;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

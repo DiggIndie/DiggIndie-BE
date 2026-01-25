@@ -2,6 +2,7 @@ package ceos.diggindie.domain.board.repository;
 
 import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.domain.board.entity.board.Board;
+import ceos.diggindie.domain.member.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,4 +36,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findByCategoryAndQueryWithImages(@Param("category") BoardCategory category,
                                                  @Param("query") String query,
                                                  Pageable pageable);
+
+    Page<Board> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
+
 }
