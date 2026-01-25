@@ -54,7 +54,37 @@ public class S3Service {
 
 
     private String generateFileKey(String fileName) {
+        String sanitizedFileName = sanitizeFileName(fileName);
         String timestamp = LocalDateTime.now().format(DATE_TIME_FORMATTER);
-        return String.format("%s_%s", timestamp, fileName);
+        return String.format("%s_%s", timestamp, sanitizedFileName);
+    }
+
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "unnamed_file";
+        }
+
+        String nameWithoutExtension;
+        String extension = "";
+        int lastDotIndex = fileName.lastIndexOf('.');
+
+        if (lastDotIndex > 0 && lastDotIndex < fileName.length() - 1) {
+            nameWithoutExtension = fileName.substring(0, lastDotIndex);
+            extension = fileName.substring(lastDotIndex); // '.' 포함
+        } else {
+            nameWithoutExtension = fileName;
+        }
+
+        String sanitized = nameWithoutExtension.replaceAll("[^a-zA-Z0-9가-힣ㄱ-ㅎㅏ-ㅣ_-]", "");
+
+        if (sanitized.isBlank()) {
+            sanitized = "file";
+        }
+
+        if (!extension.isEmpty()) {
+            extension = extension.replaceAll("[^a-zA-Z0-9.]", "");
+        }
+
+        return sanitized + extension;
     }
 }
