@@ -217,11 +217,12 @@ public class AuthController {
     @Operation(summary = "OAuth2 인증 URL 조회", description = "소셜 로그인을 위한 인증 URL을 반환합니다.")
     @GetMapping("/auth/oauth2/url/{platform}")
     public ResponseEntity<Response<OAuth2UrlResponse>> getOAuth2AuthUrl(
-            @PathVariable LoginPlatform platform
+            @PathVariable LoginPlatform platform,
+            @RequestParam(defaultValue = "login") String purpose
     ) {
         Response<OAuth2UrlResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                oAuth2Service.getAuthUrl(platform),
+                oAuth2Service.getAuthUrl(platform, purpose),
                 "OAuth2 인증 URL 조회 API"
         );
         return ResponseEntity.ok().body(response);
