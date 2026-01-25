@@ -8,6 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +21,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import javax.naming.AuthenticationException;
+import java.nio.file.AccessDeniedException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -39,6 +45,27 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response<Void>> handleGeneralException(GeneralException e) {
         GeneralErrorCode errorCode = e.getErrorCode();
         log.warn("GeneralException: {} - {}", errorCode.name(), e.getMessage());
+
+        return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
+    }
+
+    // ==================== 보안 관련 예외 ====================
+
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class, AuthenticationException.class})
+    public ResponseEntity<Response<Void>> handleSecurityException(Exception e) {
+        GeneralErrorCode errorCode;
+        if (e instanceof AuthenticationException) {
+            errorCode = GeneralErrorCode.UNAUTHORIZED;
+        }
+        else {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+                errorCode = GeneralErrorCode.UNAUTHORIZED;
+            } else {
+                errorCode = GeneralErrorCode.FORBIDDEN;
+            }
+        }
+        log.warn("Security Error: {} - {}", errorCode.name(), e.getMessage());
 
         return ResponseEntity.status(errorCode.getStatusCode()).body(Response.fail(errorCode));
     }

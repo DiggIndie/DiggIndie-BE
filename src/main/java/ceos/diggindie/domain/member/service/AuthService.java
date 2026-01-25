@@ -1,7 +1,9 @@
 package ceos.diggindie.domain.member.service;
 
+import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.config.security.jwt.JwtTokenProvider;
 import ceos.diggindie.common.enums.Role;
+import ceos.diggindie.common.exception.BusinessException;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
@@ -35,14 +37,14 @@ public class AuthService {
     @Transactional(readOnly = true)
     public Member findMemberByUserId(String userId) {
         return memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.INVALID_CREDENTIALS));
     }
 
     public LoginResponse login(LoginRequest request, HttpServletResponse response) {
         Member member = findMemberByUserId(request.userId());
 
         if (!passwordEncoder.matches(request.password(), member.getPassword())) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다.");
+            throw new BusinessException(BusinessErrorCode.INVALID_CREDENTIALS);
         }
 
         String accessToken = jwtTokenProvider.generateAccessToken(member.getExternalId(), member.getRole());
@@ -54,7 +56,7 @@ public class AuthService {
     @Transactional
     public Member createMember(SignupRequest request) {
         if (memberRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new BusinessException(BusinessErrorCode.DUPLICATE_EMAIL);
         }
 
         String encodedPassword = passwordEncoder.encode(request.password());
@@ -124,7 +126,7 @@ public class AuthService {
         String refreshToken = extractRefreshTokenFromCookie(request);
 
         if (refreshToken == null) {
-            throw new IllegalArgumentException("Refresh token이 존재하지 않습니다.");
+            throw new BusinessException(BusinessErrorCode.REFRESH_TOKEN_NOT_FOUND);
         }
 
         String externalId = jwtTokenProvider.parseClaims(refreshToken).getSubject();
@@ -132,11 +134,11 @@ public class AuthService {
         if (!refreshTokenService.validate(externalId, refreshToken)) {
             refreshTokenService.delete(externalId);
             removeRefreshTokenCookie(response);
-            throw new IllegalArgumentException("재로그인이 필요합니다.");
+            throw new BusinessException(BusinessErrorCode.REFRESH_TOKEN_INVALID);
         }
 
         Member member = memberRepository.findByExternalId(externalId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
 
         String newAccessToken = jwtTokenProvider.generateAccessToken(externalId, member.getRole());
         setRefreshToken(response, externalId, member.getRole());
@@ -153,6 +155,14 @@ public class AuthService {
             }
         }
         return null;
+    }
+
+    @Transactional(readOnly = true)
+    public MemberIdResponse getCurrentUser(String externalId) {
+        Member member = memberRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
+
+        return new MemberIdResponse(member.getExternalId(), member.getUserId());
     }
 
 }

@@ -48,62 +48,119 @@ public interface ConcertRepository extends JpaRepository<Concert, Long> {
             "ORDER BY c.startDate DESC")
     List<Concert> findConcertsByBandId(@Param("bandId") Long bandId);
 
+
+    /**
+     * 공연 검색 - 공연임박순 (recent) - ID만 조회
+     * 정렬: 진행 예정 공연(startDate >= now)을 빠른 순으로 먼저, 종료된 공연은 최근 순으로 뒤에
+     * 검색: 공연 제목 또는 밴드 이름에 query 포함
+     */
     @Query(value = """
-            SELECT c
+        SELECT c.id
+        FROM Concert c
+        WHERE (:query IS NULL OR :query = ''
+            OR c.title LIKE CONCAT('%', :query, '%')
+            OR EXISTS (
+                SELECT 1
+                FROM BandConcert bc
+                JOIN bc.band b
+                WHERE bc.concert = c
+                    AND b.bandName LIKE CONCAT('%', :query, '%')
+            ))
+        ORDER BY
+            CASE WHEN c.startDate >= :now THEN 0 ELSE 1 END,
+            CASE WHEN c.startDate >= :now THEN c.startDate END ASC,
+            CASE WHEN c.startDate <  :now THEN c.startDate END DESC
+    """,
+    countQuery = """
+        SELECT COUNT(c)
+        FROM Concert c
+        WHERE (:query IS NULL OR :query = ''
+            OR c.title LIKE CONCAT('%', :query, '%')
+            OR EXISTS (
+                SELECT 1
+                FROM BandConcert bc
+                JOIN bc.band b
+                WHERE bc.concert = c
+                    AND b.bandName LIKE CONCAT('%', :query, '%')
+            ))
+    """)
+    Page<Long> findConcertIdsByRecent(@Param("query") String query,
+                                    @Param("now") LocalDateTime now,
+                                    Pageable pageable);
+
+    /**
+     * 공연 검색 - 조회수순 (view) - ID만 조회
+     * 정렬: 조회수 높은 순
+     * 검색: 공연 제목 또는 밴드 이름에 query 포함
+     */
+    @Query(value = """
+            SELECT c.id
             FROM Concert c
-            JOIN FETCH c.concertHall
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
-            ORDER BY c.startDate ASC
-        """,
+            WHERE (:query IS NULL OR :query = ''
+                OR c.title LIKE CONCAT('%', :query, '%')
+                OR EXISTS (
+                    SELECT 1
+                    FROM BandConcert bc
+                    JOIN bc.band b
+                    WHERE bc.concert = c
+                        AND b.bandName LIKE CONCAT('%', :query, '%')
+                ))
+            ORDER BY c.views DESC, c.id DESC
+            """,
             countQuery = """
             SELECT COUNT(c)
             FROM Concert c
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
-        """)
-    Page<Concert> findAllByRecent(@Param("query") String query,
-                                  @Param("now") LocalDateTime now,
-                                  Pageable pageable);
+            WHERE (:query IS NULL OR :query = ''
+                OR c.title LIKE CONCAT('%', :query, '%')
+                OR EXISTS (
+                    SELECT 1
+                    FROM BandConcert bc
+                    JOIN bc.band b
+                    WHERE bc.concert = c
+                        AND b.bandName LIKE CONCAT('%', :query, '%')
+                ))
+            """)
+    Page<Long> findConcertIdsByViews(@Param("query") String query,
+                                    @Param("now") LocalDateTime now,
+                                    Pageable pageable);
 
+    /**
+     * 공연 검색 - 스크랩순 (scrap) - ID만 조회
+     * 정렬: 스크랩 개수 많은 순
+     * 검색: 공연 제목 또는 밴드 이름에 query 포함
+     */
     @Query(value = """
-            SELECT c
+            SELECT c.id
             FROM Concert c
-            JOIN FETCH c.concertHall
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
-            ORDER BY c.views DESC, c.startDate ASC
-        """,
-            countQuery = """
-            SELECT COUNT(c)
-            FROM Concert c
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
-        """)
-    Page<Concert> findAllByViews(@Param("query") String query,
-                                 @Param("now") LocalDateTime now,
-                                 Pageable pageable);
-
-    @Query(value = """
-            SELECT c
-            FROM Concert c
-            JOIN FETCH c.concertHall
             LEFT JOIN c.concertScraps cs
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
+            WHERE (:query IS NULL OR :query = ''
+                OR c.title LIKE CONCAT('%', :query, '%')
+                OR EXISTS (
+                    SELECT 1
+                    FROM BandConcert bc
+                    JOIN bc.band b
+                    WHERE bc.concert = c
+                        AND b.bandName LIKE CONCAT('%', :query, '%')
+                ))
             GROUP BY c.id
-            ORDER BY COUNT(cs) DESC, c.startDate ASC
-        """,
+            ORDER BY COUNT(cs) DESC, c.id DESC
+            """,
             countQuery = """
             SELECT COUNT(DISTINCT c)
             FROM Concert c
-            LEFT JOIN c.concertScraps cs
-            WHERE c.startDate >= :now
-              AND (:query IS NULL OR :query = '' OR c.title LIKE CONCAT('%', :query, '%'))
-        """)
-    Page<Concert> findAllByScrapCount(@Param("query") String query,
-                                      @Param("now") LocalDateTime now,
-                                      Pageable pageable);
+            WHERE (:query IS NULL OR :query = ''
+                OR c.title LIKE CONCAT('%', :query, '%')
+                OR EXISTS (
+                    SELECT 1
+                    FROM BandConcert bc
+                    JOIN bc.band b
+                    WHERE bc.concert = c
+                        AND b.bandName LIKE CONCAT('%', :query, '%')
+                ))
+            """)
+    Page<Long> findConcertIdsByScrapCount(@Param("query") String query,
+                                          @Param("now") LocalDateTime now,
+                                          Pageable pageable);
 
     @Query("""
             SELECT DISTINCT CAST(c.startDate AS LocalDate)

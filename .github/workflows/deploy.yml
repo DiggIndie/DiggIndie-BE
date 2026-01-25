@@ -31,9 +31,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Build with Gradle
-        run: chmod +x ./gradlew && ./gradlew build -x test
+        run: chmod +x ./gradlew && ./gradlew clean build -x test
 
       - name: Build and push Docker image
         env:
@@ -57,6 +58,9 @@ jobs:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.AWS_REGION }}
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_NAME: ${{ secrets.DB_NAME }}
@@ -66,12 +70,25 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          BASE_URL: ${{ secrets.BASE_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: AWS_ACCOUNT_ID,DB_HOST,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,OPENAI_API_KEY,SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_ACCOUNT_ID,DB_HOST,DB_NAME,DB_USERNAME,DB_PASSWORD,JWT_SECRET_KEY,OPENAI_API_KEY,SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET,KAKAO_CLIENT_ID,KAKAO_CLIENT_SECRET,NAVER_CLIENT_ID,NAVER_CLIENT_SECRET,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,MAIL_USERNAME,MAIL_PASSWORD,BASE_URL
           script: |
+            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            export AWS_DEFAULT_REGION=$AWS_REGION
+            
             sudo cp /tmp/nginx/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com || sudo cp /tmp/api.diggindie.com.conf /etc/nginx/sites-available/api.diggindie.com
             sudo nginx -t && sudo systemctl reload nginx
             
@@ -95,15 +112,25 @@ jobs:
                   - REDIS_HOST=redis
                   - REDIS_PORT=6379
                   - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-                  - JWT_ACCESS_TOKEN_VALIDITY=3600000
-                  - JWT_REFRESH_TOKEN_VALIDITY=604800000
+                  - JWT_ACCESS_TOKEN_VALIDITY=PT1H
+                  - JWT_REFRESH_TOKEN_VALIDITY=P7D
                   - OPENAI_API_KEY=${OPENAI_API_KEY}
                   - OPENAI_MODEL=gpt-4o-mini
                   - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
                   - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+                  - BASE_URL=${BASE_URL}
+                  - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+                  - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+                  - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+                  - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+                  - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+                  - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} 
+                  - MAIL_USERNAME=${MAIL_USERNAME}
+                  - MAIL_PASSWORD=${MAIL_PASSWORD}
                 depends_on:
                   - redis
                 restart: unless-stopped
+            
               redis:
                 image: redis:alpine
                 ports:
