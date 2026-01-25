@@ -1,4 +1,4 @@
-package ceos.diggindie.domain.member.dto;
+package ceos.diggindie.domain.member.dto.auth;
 
 public record SignupResponse(
         String externalId,

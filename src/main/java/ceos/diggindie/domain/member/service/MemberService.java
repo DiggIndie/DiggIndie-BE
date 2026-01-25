@@ -2,8 +2,8 @@ package ceos.diggindie.domain.member.service;
 
 import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.exception.BusinessException;
-import ceos.diggindie.domain.member.dto.MarketingConsentRequest;
-import ceos.diggindie.domain.member.dto.MarketingConsentResponse;
+import ceos.diggindie.domain.member.dto.auth.MarketingConsentRequest;
+import ceos.diggindie.domain.member.dto.auth.MarketingConsentResponse;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

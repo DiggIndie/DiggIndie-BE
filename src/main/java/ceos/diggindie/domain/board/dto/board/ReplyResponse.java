@@ -15,6 +15,7 @@ public record ReplyResponse(
         String content,
         Integer likeCount,
         Boolean isLiked,
+        Boolean isMine,
         Integer depth
 ) {
     public static ReplyResponse of(BoardComment comment, int depth, Long memberId,
@@ -33,6 +34,8 @@ public record ReplyResponse(
         boolean liked = comment.getLikes().stream()
                 .anyMatch(like -> like.getMember().getId().equals(memberId));
 
+        boolean isMine = memberId != null && comment.getMember().getId().equals(memberId);
+
         String writerNick = anonGenerator.getNickname(
                 comment.getMember().getId(),
                 comment.getIsAnonymous(),
@@ -48,6 +51,7 @@ public record ReplyResponse(
                 .content(comment.getContent())
                 .likeCount(comment.getLikes().size())
                 .isLiked(liked)
+                .isMine(isMine)
                 .depth(Math.min(depth, 2))
                 .build();
     }
