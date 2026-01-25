@@ -1,6 +1,8 @@
 package ceos.diggindie.domain.concert.repository;
 
+import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.concert.entity.BandConcert;
+import ceos.diggindie.domain.concert.entity.Concert;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,4 +26,6 @@ public interface BandConcertRepository extends JpaRepository<BandConcert, Long> 
     List<Object[]> findConcertIdsByBandIdsOrderByBandCount(
             @Param("bandIds") List<Long> bandIds,
             @Param("now") LocalDateTime now);
+
+    boolean existsByBandAndConcert(Band band, Concert concert);
 }

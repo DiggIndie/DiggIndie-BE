@@ -1,9 +1,9 @@
 package ceos.diggindie.domain.member.service;
 
 import ceos.diggindie.common.code.BusinessErrorCode;
-import ceos.diggindie.common.code.GeneralErrorCode;
 import ceos.diggindie.common.exception.BusinessException;
-import ceos.diggindie.common.exception.GeneralException;
+import ceos.diggindie.domain.member.dto.MarketingConsentRequest;
+import ceos.diggindie.domain.member.dto.MarketingConsentResponse;
 import ceos.diggindie.domain.member.entity.Member;
 import ceos.diggindie.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,24 @@ public class MemberService {
         return memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
                         "회원을 찾을 수 없습니다."));
+    }
+
+
+    @Transactional
+    public MarketingConsentResponse updateMarketingConsent(String externalId, MarketingConsentRequest request) {
+        Member member = memberRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
+                        "회원을 찾을 수 없습니다."));
+        member.updateMarketingConsent(request.marketingConsent());
+        return new MarketingConsentResponse(member.getMarketingConsent());
+    }
+
+    @Transactional(readOnly = true)
+    public MarketingConsentResponse getMarketingConsent(String externalId) {
+        Member member = memberRepository.findByExternalId(externalId)
+                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
+                        "회원을 찾을 수 없습니다."));
+        return new MarketingConsentResponse(member.getMarketingConsent());
     }
 
 }

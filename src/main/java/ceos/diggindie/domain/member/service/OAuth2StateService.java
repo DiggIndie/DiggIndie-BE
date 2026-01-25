@@ -16,27 +16,43 @@ public class OAuth2StateService {
 
     private final StringRedisTemplate redisTemplate;
 
-    /**
-     * state 생성 및 Redis 저장
-     */
-    public String generateState(String platform) {
+    public String generateState(String platform, String purpose) {
         String state = UUID.randomUUID().toString();
         String key = STATE_PREFIX + state;
-        redisTemplate.opsForValue().set(key, platform, STATE_TTL);
+
+        // platform:purpose 형태로 저장 (예: "GOOGLE:login", "KAKAO:link")
+        String value = platform + ":" + purpose;
+        redisTemplate.opsForValue().set(key, value, STATE_TTL);
+
         return state;
     }
 
-    /**
-     * state 검증 (일회성 - 검증 후 삭제)
-     */
-    public boolean validateAndConsume(String state, String expectedPlatform) {
+    public StateInfo validateAndConsume(String state) {
         if (state == null || state.isBlank()) {
-            return false;
+            return null;
         }
 
         String key = STATE_PREFIX + state;
-        String platform = redisTemplate.opsForValue().getAndDelete(key);
+        String value = redisTemplate.opsForValue().getAndDelete(key);
 
-        return expectedPlatform.equalsIgnoreCase(platform);
+        if (value == null || !value.contains(":")) {
+            return null;
+        }
+
+        String[] parts = value.split(":", 2);
+        return new StateInfo(parts[0], parts[1]);
+    }
+
+    public record StateInfo(
+            String platform,
+            String purpose
+    ) {
+        public boolean isLogin() {
+            return "login".equalsIgnoreCase(purpose);
+        }
+
+        public boolean isLink() {
+            return "link".equalsIgnoreCase(purpose);
+        }
     }
 }

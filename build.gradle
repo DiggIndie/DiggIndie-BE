@@ -26,45 +26,51 @@ repositories {
 
 dependencies {
 
-    // Spring Boot Starter
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// Spring Boot Starter
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    // Database
-    runtimeOnly 'org.postgresql:postgresql'
+	// Database
+	runtimeOnly 'org.postgresql:postgresql'
 
-    // pgvector
-    implementation 'com.pgvector:pgvector:0.1.4'
+	// pgvector
+	implementation 'com.pgvector:pgvector:0.1.4'
 
-    // dotenv
-    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+	// dotenv
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
-    // Lombok
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+	// Lombok
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    // Test
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	// security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-	runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.12.5'
-	runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
 	// reddison
-    implementation 'org.redisson:redisson-spring-boot-starter:3.27.0'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.27.0'
 
 	// swagger
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0"
 
-    // Mail
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
+	// OpenCSV
+	implementation 'com.opencsv:opencsv:5.9'
 
+	// Mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// AWS
+	implementation platform('software.amazon.awssdk:bom:2.25.11')
+	implementation 'software.amazon.awssdk:s3'
 }
 
 tasks.named('test') {

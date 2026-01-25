@@ -57,6 +57,9 @@ public class Member extends BaseEntity {
     @Column(name = "profile_img", length = 150)
     private String profileImg;
 
+    @Column(name = "marketing_consent")
+    private Boolean marketingConsent;
+
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SocialAccount> socialAccounts = new ArrayList<>();
 
@@ -68,6 +71,9 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecentSearch> recentSearches = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecommendSatisfaction> recommendSatisfactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BandRecommend> artistRecommends = new ArrayList<>();
@@ -98,6 +104,7 @@ public class Member extends BaseEntity {
         this.email = email;
         this.role = Role.ROLE_USER;
         this.phone = phone;
+        this.marketingConsent = false;
     }
 
     public void updatePassword(String password) {
@@ -112,6 +119,10 @@ public class Member extends BaseEntity {
         this.recentLoginPlatform = platform;
     }
 
+    public void updateMarketingConsent(Boolean marketingConsent) {
+        this.marketingConsent = marketingConsent;
+    }
+
     // 소셜 로그인 전용
     public static Member createSocialMember(String email, LoginPlatform platform) {
         Member member = new Member();
@@ -120,6 +131,7 @@ public class Member extends BaseEntity {
         member.email = email;
         member.role = Role.ROLE_USER;
         member.recentLoginPlatform = platform;
+        member.marketingConsent = false;
         return member;
     }
 

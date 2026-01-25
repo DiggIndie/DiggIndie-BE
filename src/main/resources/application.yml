@@ -17,7 +17,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
+      ddl-auto: ${DDL_AUTO:validate}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -42,6 +42,16 @@ spring:
           auth: true
           starttls:
             enable: true
+
+cloud:
+  aws:
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+    region:
+      static: ${AWS_REGION:ap-northeast-2}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
 
 logging:
   level:

@@ -26,4 +26,10 @@ public class BandConcert extends BaseEntity {
     @JoinColumn(name = "concert_id", nullable = false)
     private Concert concert;
 
+    public static BandConcert of(Band band, Concert concert) {
+        BandConcert bandConcert = new BandConcert();
+        bandConcert.band = band;
+        bandConcert.concert = concert;
+        return bandConcert;
+    }
 }

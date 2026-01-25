@@ -38,4 +38,10 @@ public class ConcertHall extends BaseEntity {
     @OneToMany(mappedBy = "concertHall")
     private List<Concert> concerts = new ArrayList<>();
 
+    public static ConcertHall create(String name, String address) {
+        ConcertHall hall = new ConcertHall();
+        hall.name = name;
+        hall.address = address;
+        return hall;
+    }
 }
