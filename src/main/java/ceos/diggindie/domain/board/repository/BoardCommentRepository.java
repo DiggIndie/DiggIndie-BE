@@ -19,10 +19,15 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment, Long
             "ORDER BY c.createdAt ASC")
     List<BoardComment> findParentCommentsByBoardId(@Param("boardId") Long boardId);
 
-    @Query("""
-    SELECT DISTINCT b FROM BoardComment bc
-    JOIN bc.board b
-    WHERE bc.member = :member
-""")
+    @Query(value = """
+        SELECT bc.board FROM BoardComment bc
+        WHERE bc.member = :member
+        GROUP BY bc.board
+        ORDER BY MAX(bc.createdAt) DESC
+        """,
+            countQuery = """
+        SELECT COUNT(DISTINCT bc.board) FROM BoardComment bc
+        WHERE bc.member = :member
+        """)
     Page<Board> findDistinctBoardsByMember(@Param("member") Member member, Pageable pageable);
 }

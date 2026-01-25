@@ -71,7 +71,7 @@ public class MyPageController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(SORT_PROPERTY).descending());
+        Pageable pageable = PageRequest.of(page, size);
 
         Response<List<MyCommentedPostResponse>> response = Response.success(
                 SuccessCode.GET_SUCCESS,
