@@ -20,8 +20,8 @@ public class RecommendSatisfaction extends BaseEntity {
     @Column(name = "recommend_satisfaction_id")
     private Long id;
 
-    @Column(name = "satisfied", nullable = false)
-    private Boolean satisfied;
+    @Column(name = "isSatisfied", nullable = false)
+    private Boolean isSatisfied;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason", length = 30)
@@ -32,8 +32,8 @@ public class RecommendSatisfaction extends BaseEntity {
     private Member member;
 
     @Builder
-    public RecommendSatisfaction(Boolean satisfied, RecommendSatisfactionReason reason, Member member) {
-        this.satisfied = satisfied;
+    public RecommendSatisfaction(Boolean isSatisfied, RecommendSatisfactionReason reason, Member member) {
+        this.isSatisfied = isSatisfied;
         this.reason = reason;
         this.member = member;
     }

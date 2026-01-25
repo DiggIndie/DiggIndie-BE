@@ -29,7 +29,7 @@ public class RecommendSatisfactionService {
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
 
         RecommendSatisfaction recommendSatisfaction = RecommendSatisfaction.builder()
-                .satisfied(request.isSatisfied())
+                .isSatisfied(request.isSatisfied())
                 .reason(request.reason())
                 .member(member)
                 .build();

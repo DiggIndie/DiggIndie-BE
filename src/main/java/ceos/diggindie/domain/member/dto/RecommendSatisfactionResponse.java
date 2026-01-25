@@ -21,7 +21,7 @@ public class RecommendSatisfactionResponse {
         public static RecommendSatisfactionInfo from(RecommendSatisfaction recommendSatisfaction) {
             return RecommendSatisfactionInfo.builder()
                     .recommendSatisfactionId(recommendSatisfaction.getId())
-                    .isSatisfied(recommendSatisfaction.getSatisfied())
+                    .isSatisfied(recommendSatisfaction.getIsSatisfied())
                     .reason(recommendSatisfaction.getReason())
                     .createdAt(recommendSatisfaction.getCreatedAt())
                     .build();
