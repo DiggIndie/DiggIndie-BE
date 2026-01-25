@@ -16,6 +16,7 @@ public record CommentResponse(
         String content,
         Integer likeCount,
         Boolean isLiked,
+        Boolean isMine,
         List<ReplyResponse> replies
 ) {
     // 상세 조회용
@@ -26,6 +27,8 @@ public record CommentResponse(
 
         boolean liked = comment.getLikes().stream()
                 .anyMatch(like -> like.getMember().getId().equals(memberId));
+
+        boolean isMine = memberId != null && comment.getMember().getId().equals(memberId);
 
         String writerNick = anonGenerator.getNickname(
                 comment.getMember().getId(),
@@ -40,6 +43,7 @@ public record CommentResponse(
                 .content(comment.getContent())
                 .likeCount(comment.getLikes().size())
                 .isLiked(liked)
+                .isMine(isMine)
                 .replies(allReplies)
                 .build();
     }
@@ -50,6 +54,8 @@ public record CommentResponse(
                 ? "익명"
                 : comment.getMember().getUserId();
 
+        boolean isMine = memberId != null && comment.getMember().getId().equals(memberId);
+
         return CommentResponse.builder()
                 .commentId(comment.getId())
                 .writerNickname(writerNick)
@@ -57,6 +63,7 @@ public record CommentResponse(
                 .content(comment.getContent())
                 .likeCount(0)
                 .isLiked(false)
+                .isMine(isMine)
                 .replies(new ArrayList<>())
                 .build();
     }
