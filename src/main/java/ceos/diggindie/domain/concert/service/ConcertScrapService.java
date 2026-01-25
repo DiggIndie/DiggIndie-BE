@@ -54,47 +54,31 @@ public class ConcertScrapService {
                 .build();
     }
 
-    @Transactional
-    public ConcertScrapResponse.ConcertScrapCreateDTO createConcertScrap(Long memberId, Long concertId) {
-        // 이미 스크랩한 경우 예외 처리
-        if (concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId)) {
-            throw new BusinessException(BusinessErrorCode.ALREADY_SCRAPPED);
-        }
 
+    @Transactional
+    public ConcertScrapResponse.ConcertScrapToggleDTO toggleConcertScrap(Long memberId, Long concertId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
 
         Concert concert = concertRepository.findById(concertId)
                 .orElseThrow(() -> new BusinessException(BusinessErrorCode.CONCERT_NOT_FOUND));
 
-        ConcertScrap concertScrap = ConcertScrap.builder()
-                .member(member)
-                .concert(concert)
-                .build();
+        boolean isExist = concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId);
 
-        concertScrapRepository.save(concertScrap);
-
-        return ConcertScrapResponse.ConcertScrapCreateDTO.builder()
-                .memberId(member.getExternalId())
-                .concertId(concert.getId())
-                .build();
-    }
-
-    @Transactional
-    public ConcertScrapResponse.ConcertScrapCreateDTO deleteConcertScrap(Long memberId, Long concertId) {
-
-        if (!concertScrapRepository.existsByMemberIdAndConcertId(memberId, concertId)) {
-            throw new BusinessException(BusinessErrorCode.SCRAP_NOT_FOUND);
+        if (isExist) {
+            concertScrapRepository.deleteByMemberIdAndConcertId(memberId, concertId);
+        } else {
+            ConcertScrap concertScrap = ConcertScrap.builder()
+                    .member(member)
+                    .concert(concert)
+                    .build();
+            concertScrapRepository.save(concertScrap);
         }
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND));
-
-        concertScrapRepository.deleteByMemberIdAndConcertId(memberId, concertId);
-
-        return ConcertScrapResponse.ConcertScrapCreateDTO.builder()
+        return ConcertScrapResponse.ConcertScrapToggleDTO.builder()
                 .memberId(member.getExternalId())
-                .concertId(concertId)
+                .concertId(concert.getId())
+                .isScrapped(!isExist)
                 .build();
     }
 

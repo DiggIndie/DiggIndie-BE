@@ -89,12 +89,15 @@ public interface BandRepository extends JpaRepository<Band, Long> {
                     "k.keyword ILIKE %:query%")
     Page<Band> searchBandsByScrap(@Param("query") String query, Pageable pageable);
 
-    // 아티스트 상세 조회 (연관된 모든 정보 Fetch Join)
     @Query("SELECT DISTINCT b FROM Band b " +
             "LEFT JOIN FETCH b.bandKeywords bk " +
             "LEFT JOIN FETCH bk.keyword " +
-            "LEFT JOIN FETCH b.artists " +
             "LEFT JOIN FETCH b.topTrack " +
             "WHERE b.id = :bandId")
-    Optional<Band> findByIdWithDetails(@Param("bandId") Long bandId);
+    Optional<Band> findByIdWithKeywordsAndTopTrack(@Param("bandId") Long bandId);
+
+    @Query("SELECT DISTINCT b FROM Band b " +
+            "LEFT JOIN FETCH b.artists " +
+            "WHERE b.id = :bandId")
+    Optional<Band> findByIdWithArtists(@Param("bandId") Long bandId);
 }

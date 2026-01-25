@@ -5,6 +5,7 @@ import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -48,4 +49,35 @@ public class Board extends BaseEntity {
     @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BoardImage> boardImages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BoardComment> comments = new ArrayList<>();
+
+    @Builder
+    public Board(String title, String content, Boolean isAnonymous,
+                 Member member, BoardCategory category) {
+        this.title = title;
+        this.content = content;
+        this.isAnonymous = isAnonymous;
+        this.member = member;
+        this.category = category;
+        this.views = 0;
+    }
+
+    public void addImage(BoardImage image) {
+        this.boardImages.add(image);
+    }
+
+    public void clearImages() {
+        this.boardImages.clear();
+    }
+    public void increaseViews() {
+        this.views++;
+    }
+
+    public void update(String title, String content, Boolean isAnonymous, BoardCategory category) {
+        this.title = title;
+        this.content = content;
+        this.isAnonymous = isAnonymous;
+        this.category = category;
+    }
 }

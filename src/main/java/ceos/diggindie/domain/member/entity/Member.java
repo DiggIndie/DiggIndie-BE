@@ -100,6 +100,10 @@ public class Member extends BaseEntity {
         this.phone = phone;
     }
 
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
     public void addSocialAccount(SocialAccount socialAccount) {
         this.socialAccounts.add(socialAccount);
     }

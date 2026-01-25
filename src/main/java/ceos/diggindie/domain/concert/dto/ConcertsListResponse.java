@@ -30,7 +30,7 @@ public record ConcertsListResponse(
                     .map(bc -> bc.getBand().getBandName())
                     .toList();
 
-            // D-Day 계산
+            // D-Day 계산 (과거 공연은 '공연 종료'로 표시)
             String dDay = ConcertDDayCalculator.calculate(concert.getStartDate());
 
             // 기간 포맷팅
