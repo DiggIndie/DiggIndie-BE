@@ -155,22 +155,17 @@ public class AuthController {
         return ResponseEntity.ok().body(response);
     }
 
-    @Operation(summary = "소셜 계정 연동", description = "기존 계정에 소셜 계정을 연동합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "연동 성공"),
-            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
-            @ApiResponse(responseCode = "409", description = "이미 연동된 계정")
-    })
-    @PreAuthorize("isAuthenticated()")
-    @PostMapping("/auth/oauth2/link")
-    public ResponseEntity<Response<OAuth2LinkResponse>> linkSocialAccount(
+    @PostMapping("/auth/oauth2/callback")
+    @Operation(summary = "OAuth2 통합 콜백", description = "로그인/연동을 state 기반으로 자동 분기 처리")
+    public ResponseEntity<Response<OAuth2CallbackResponse>> handleCallback(
+            @RequestBody OAuth2CallbackRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody OAuth2LinkRequest request
-    ) {
-        Response<OAuth2LinkResponse> response = Response.success(
-                SuccessCode.INSERT_SUCCESS,
-                oAuth2Service.linkSocialAccount(userDetails, request),
-                "소셜 계정 연동 API"
+            HttpServletResponse httpResponse) {
+
+        Response<OAuth2CallbackResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                oAuth2Service.handleCallback(request, userDetails, httpResponse),
+                "OAuth2 통합 콜백 API"
         );
         return ResponseEntity.ok().body(response);
     }

@@ -44,12 +44,62 @@ public class OAuth2Service {
     @Value("${jwt.refresh-token-validity}")
     private java.time.Duration refreshTokenValidity;
 
-    public OAuth2LoginResponse login(OAuth2LoginRequest request, HttpServletResponse response) {
-        OAuth2StateService.StateInfo stateInfo = validateStateForLogin(request.getState());
+    // ==================== 통합 콜백 API ====================
+
+    /**
+     * 통합 OAuth2 콜백 처리
+     * state에서 purpose를 읽어 login/link 자동 분기
+     */
+    public OAuth2CallbackResponse handleCallback(
+            OAuth2CallbackRequest request,
+            CustomUserDetails userDetails,
+            HttpServletResponse response) {
+
+        // state 검증 및 정보 추출
+        OAuth2StateService.StateInfo stateInfo = oAuth2StateService.validateAndConsume(request.getState());
+
+        if (stateInfo == null) {
+            log.warn("OAuth state validation failed - state: {}", request.getState());
+            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
+        }
 
         LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
 
-        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, request.getCode());
+        if (stateInfo.isLogin()) {
+            // 로그인 처리
+            OAuth2LoginResponse loginResult = processLogin(platform, request.getCode(), response);
+            return OAuth2CallbackResponse.login(loginResult);
+
+        } else if (stateInfo.isLink()) {
+            // 연동 처리 (인증 필요)
+            if (userDetails == null) {
+                throw new BusinessException(BusinessErrorCode.UNAUTHORIZED, "계정 연동은 로그인이 필요합니다.");
+            }
+            OAuth2LinkResponse linkResult = processLink(platform, request.getCode(), userDetails);
+            return OAuth2CallbackResponse.link(linkResult);
+        }
+
+        throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
+    }
+
+    // ==================== 기존 API (하위 호환용, 필요시 제거 가능) ====================
+
+    public OAuth2LoginResponse login(OAuth2LoginRequest request, HttpServletResponse response) {
+        OAuth2StateService.StateInfo stateInfo = validateStateForLogin(request.getState());
+        LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
+        return processLogin(platform, request.getCode(), response);
+    }
+
+    public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
+        OAuth2StateService.StateInfo stateInfo = validateStateForLink(request.getState());
+        LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
+        return processLink(platform, request.getCode(), userDetails);
+    }
+
+    // ==================== 내부 처리 메서드 ====================
+
+    private OAuth2LoginResponse processLogin(LoginPlatform platform, String code, HttpServletResponse response) {
+        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, code);
 
         LoginResult result = transactionTemplate.execute(status -> {
             Optional<SocialAccount> existingSocialAccount = socialAccountRepository
@@ -87,11 +137,7 @@ public class OAuth2Service {
                 .build();
     }
 
-    public OAuth2LinkResponse linkSocialAccount(CustomUserDetails userDetails, OAuth2LinkRequest request) {
-
-        OAuth2StateService.StateInfo stateInfo = validateStateForLink(request.getState());
-
-        LoginPlatform platform = LoginPlatform.valueOf(stateInfo.platform());
+    private OAuth2LinkResponse processLink(LoginPlatform platform, String code, CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
 
         transactionTemplate.executeWithoutResult(status -> {
@@ -100,7 +146,7 @@ public class OAuth2Service {
             }
         });
 
-        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, request.getCode());
+        OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, code);
 
         transactionTemplate.executeWithoutResult(status -> {
             if (socialAccountRepository.findByPlatformAndPlatformId(
@@ -128,10 +174,10 @@ public class OAuth2Service {
                 .build();
     }
 
+    // ==================== 기타 메서드 (변경 없음) ====================
 
     @Transactional
     public OAuth2UnlinkResponse unlinkSocialAccount(CustomUserDetails userDetails, LoginPlatform platform) {
-
         Member member = memberRepository.findById(userDetails.getMemberId())
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND, "회원을 찾을 수 없습니다."));
 
@@ -196,6 +242,8 @@ public class OAuth2Service {
                 .state(state)
                 .build();
     }
+
+    // ==================== Private Helper 메서드 ====================
 
     private Member createNewMember(OAuth2UserInfo userInfo) {
         Member member = Member.createSocialMember(userInfo.email(), userInfo.platform());
