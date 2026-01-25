@@ -30,14 +30,14 @@ public class RecommendSatisfactionController {
                description = "회원의 추천 만족도를 기록합니다. " +
                            "satisfied는 필수이며, reason은 선택 사항입니다.\n\n" +
                            "**만족한 경우(satisfied=true):**\n" +
-                           "- PERFECT_MATCH: 취향 저격\n" +
-                           "- NEW_DISCOVERY: 새로운 발견\n" +
-                           "- DIVERSE_SELECTION: 다양한 선택지\n\n" +
+                           "- PERFECT_MATCH: 취향에 딱 맞아요\n" +
+                           "- NEW_DISCOVERY: 새로운 발견이 가능했어요\n\n" +
                            "**불만족한 경우(satisfied=false):**\n" +
-                           "- NOT_MY_TASTE: 취향이 아님\n" +
-                           "- ALREADY_KNOWN: 이미 아는 아티스트\n" +
-                           "- GENRE_MISMATCH: 장르가 안 맞음\n" +
-                           "- TOO_MAINSTREAM: 너무 대중적임\n" +
+                           "- ALREADY_KNOWN: 이미 알고 있는 아티스트에요\n" +
+                           "- NOT_MY_TASTE: 취향과 상관없는 음악 같아요\n" +
+                           "- KEYWORD_MISMATCH: 키워드와 실제 음악이 매칭되지 않아요\n" +
+                           "- GENRE_FINE_TRACK_NOT_MY_TASTE: 장르는 맞는데 노래가 취향이 아니에요\n" +
+                           "- BORED: 비슷한 스타일만 나와 지루해요\n" +
                            "- OTHER: 기타")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "추가 성공"),
