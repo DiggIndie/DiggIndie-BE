@@ -3,6 +3,7 @@ package ceos.diggindie.domain.concert.entity;
 import ceos.diggindie.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ public class Concert extends BaseEntity {
     @Column(name = "concert_id")
     private Long id;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 200)  // 30 → 200 (제목 길이 늘림)
     private String title;
 
     @Column(name = "start_date", nullable = false)
@@ -41,10 +42,10 @@ public class Concert extends BaseEntity {
     @Column(name = "main_img", length = 1000)
     private String mainImg;
 
-    @Column(name = "main_url", length = 200)
+    @Column(name = "main_url", length = 500)
     private String mainUrl;
 
-    @Column(name = "book_url", length = 200)
+    @Column(name = "book_url", length = 500)
     private String bookUrl;
 
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
@@ -59,6 +60,28 @@ public class Concert extends BaseEntity {
 
     @OneToMany(mappedBy = "concert")
     private List<ConcertScrap> concertScraps = new ArrayList<>();
+
+    @Builder
+    private Concert(String title, LocalDateTime startDate, LocalDateTime endDate,
+                    String description, Integer preorderPrice, Integer onSitePrice,
+                    String mainImg, String mainUrl, String bookUrl, ConcertHall concertHall) {
+        this.title = title;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description;
+        this.preorderPrice = preorderPrice;
+        this.onSitePrice = onSitePrice;
+        this.mainImg = mainImg;
+        this.mainUrl = mainUrl;
+        this.bookUrl = bookUrl;
+        this.concertHall = concertHall;
+        this.views = 0;
+    }
+
+    public void updatePrices(Integer preorderPrice, Integer onSitePrice) {
+        this.preorderPrice = preorderPrice;
+        this.onSitePrice = onSitePrice;
+    }
 
     public void increaseViews() {
         this.views++;

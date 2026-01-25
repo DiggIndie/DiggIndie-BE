@@ -7,6 +7,7 @@ import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.*;
 import ceos.diggindie.domain.member.dto.oauth.*;
 import ceos.diggindie.domain.member.service.AuthService;
+import ceos.diggindie.domain.member.service.MemberService;
 import ceos.diggindie.domain.member.service.OAuth2Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,6 +30,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final OAuth2Service oAuth2Service;
+    private final MemberService memberService;
 
     @Operation(summary = "회원가입", description = "새로운 회원을 등록합니다.")
     @ApiResponses({
@@ -70,6 +72,9 @@ public class AuthController {
     }
 
     @Operation(summary = "아이디 중복 확인", description = "아이디 중복 여부를 확인합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
     @GetMapping("/auth/exists")
     public ResponseEntity<Response<UserIdCheckResponse>> checkExists(
             @Parameter(description = "아이디", example = "diggindie")
@@ -85,6 +90,10 @@ public class AuthController {
     }
 
     @Operation(summary = "로그아웃", description = "현재 로그인된 사용자를 로그아웃합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/auth/logout")
     public ResponseEntity<Response<LogoutResponse>> logout(
@@ -151,6 +160,12 @@ public class AuthController {
     }
 
     @Operation(summary = "소셜 계정 연동 해제", description = "연동된 소셜 계정을 해제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "연동 해제 성공"),
+            @ApiResponse(responseCode = "400", description = "마지막 로그인 수단은 해제 불가"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
+            @ApiResponse(responseCode = "404", description = "연동되지 않은 계정")
+    })
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/auth/oauth2/unlink/{platform}")
     public ResponseEntity<Response<OAuth2UnlinkResponse>> unlinkSocialAccount(
@@ -166,6 +181,10 @@ public class AuthController {
     }
 
     @Operation(summary = "연동된 소셜 계정 목록 조회", description = "현재 회원에게 연동된 소셜 계정 목록을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/auth/oauth2/accounts")
     public ResponseEntity<Response<LinkedSocialAccountResponse>> getLinkedAccounts(
@@ -180,6 +199,10 @@ public class AuthController {
     }
 
     @Operation(summary = "사용자 아이디 조회", description = "현재 로그인한 유저의 memberId와 userId를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/my/user-id")
     public ResponseEntity<Response<MemberIdResponse>> getCurrentUser(
@@ -192,4 +215,44 @@ public class AuthController {
         );
         return ResponseEntity.ok().body(response);
     }
+
+    @Operation(summary = "마케팅 동의 변경", description = "로그인한 사용자의 마케팅 동의를 변경합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "마케팅 동의 변경 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/my/marketing-consent")
+    public ResponseEntity<Response<MarketingConsentResponse>> updateMarketingConsent(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody MarketingConsentRequest request
+    ) {
+        Response<MarketingConsentResponse> response = Response.success(
+                SuccessCode.UPDATE_SUCCESS,
+                memberService.updateMarketingConsent(userDetails.getExternalId(), request),
+                "마케팅 동의 변경 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "마케팅 동의 조회", description = "로그인한 사용자의 마케팅 동의 여부를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/my/marketing-consent")
+    public ResponseEntity<Response<MarketingConsentResponse>> getMarketingConsent(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Response<MarketingConsentResponse> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                memberService.getMarketingConsent(userDetails.getExternalId()),
+                "마케팅 동의 조회 API"
+        );
+
+        return ResponseEntity.ok().body(response);
+    }
+
 }
