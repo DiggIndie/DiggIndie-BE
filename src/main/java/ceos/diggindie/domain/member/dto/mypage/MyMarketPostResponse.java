@@ -2,9 +2,7 @@ package ceos.diggindie.domain.member.dto.mypage;
 
 import ceos.diggindie.common.utils.TimeUtils;
 import ceos.diggindie.domain.board.entity.market.Market;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
-import org.yaml.snakeyaml.error.Mark;
 
 @Builder
 public record MyMarketPostResponse(

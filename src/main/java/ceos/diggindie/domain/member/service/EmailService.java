@@ -63,7 +63,7 @@ public class EmailService {
         saveCode(request.email(), code, request.type());
         sendVerificationEmail(request.email(), code, request.type());
 
-        return new EmailVerificationResponse("인증 코드가 발송되었습니다.");
+        return EmailVerificationResponse.codeSent();
     }
 
     @Transactional
@@ -82,24 +82,17 @@ public class EmailService {
         clearAttempt(request.email(), request.type());
 
         return switch (request.type()) {
-            case SIGNUP -> new EmailVerificationResponse("이메일 인증이 완료되었습니다.");
+            case SIGNUP -> EmailVerificationResponse.successSignup();
 
             case PASSWORD_RESET -> {
                 String resetToken = createResetToken(request.email());
-                yield EmailVerificationResponse.forPasswordReset(
-                        "인증이 완료되었습니다. 새 비밀번호를 설정해주세요.",
-                        resetToken
-                );
+                yield EmailVerificationResponse.successPasswordReset(resetToken);
             }
 
             case FIND_USER_ID -> {
                 Member member = findMemberByEmail(request.email());
                 String maskedUserId = maskUserId(member.getUserId());
-                yield EmailVerificationResponse.forFindUserId(
-                        "아이디 찾기가 완료되었습니다.",
-                        maskedUserId,
-                        member.getCreatedAt()
-                );
+                yield EmailVerificationResponse.successFindUserId(maskedUserId, member.getCreatedAt());
             }
         };
     }
