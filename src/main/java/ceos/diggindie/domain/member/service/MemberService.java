@@ -23,19 +23,6 @@ public class MemberService {
                         "회원을 찾을 수 없습니다."));
     }
 
-    public Member findByEmail(String email) {
-        return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
-                        "회원을 찾을 수 없습니다."));
-    }
-
-    public Member findByUserId(String userId) {
-        return memberRepository.findByUserId(userId)
-                .orElseThrow(() -> new BusinessException(BusinessErrorCode.MEMBER_NOT_FOUND,
-                        "회원을 찾을 수 없습니다."));
-    }
-
-
     @Transactional
     public MarketingConsentResponse updateMarketingConsent(String externalId, MarketingConsentRequest request) {
         Member member = memberRepository.findByExternalId(externalId)

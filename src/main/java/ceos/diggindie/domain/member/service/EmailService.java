@@ -3,6 +3,7 @@ package ceos.diggindie.domain.member.service;
 import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.enums.EmailVerificationType;
 import ceos.diggindie.common.exception.BusinessException;
+import ceos.diggindie.domain.member.dto.PasswordResetRequest;
 import ceos.diggindie.domain.member.dto.email.EmailSendRequest;
 import ceos.diggindie.domain.member.dto.email.EmailVerifyRequest;
 import ceos.diggindie.domain.member.dto.email.EmailVerificationResponse;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -38,6 +40,10 @@ public class EmailService {
     private static final String ATTEMPT_PREFIX = "email_attempt:";
     private static final long CODE_VALIDITY_MINUTES = 5;
     private static final int MAX_ATTEMPTS = 5;
+
+    private static final String RESET_TOKEN_PREFIX = "password_reset:";
+    private static final long RESET_TOKEN_VALIDITY_MINUTES = 10;
+
 
     public EmailVerificationResponse sendVerificationCode(EmailSendRequest request) {
         switch (request.type()) {
@@ -57,7 +63,7 @@ public class EmailService {
         saveCode(request.email(), code, request.type());
         sendVerificationEmail(request.email(), code, request.type());
 
-        return new EmailVerificationResponse("인증 코드가 발송되었습니다.", true);
+        return EmailVerificationResponse.codeSent();
     }
 
     @Transactional
@@ -76,28 +82,17 @@ public class EmailService {
         clearAttempt(request.email(), request.type());
 
         return switch (request.type()) {
-            case SIGNUP -> new EmailVerificationResponse("이메일 인증이 완료되었습니다.", true);
+            case SIGNUP -> EmailVerificationResponse.successSignup();
 
             case PASSWORD_RESET -> {
-                validateNewPassword(request.newPassword());
-                Member member = findMemberByEmail(request.email());
-                member.updatePassword(passwordEncoder.encode(request.newPassword()));
-
-                // 기존 리프레시 토큰 무효화
-                refreshTokenService.delete(member.getExternalId());
-
-                yield new EmailVerificationResponse("비밀번호가 변경되었습니다. 다시 로그인해주세요.", true);
+                String resetToken = createResetToken(request.email());
+                yield EmailVerificationResponse.successPasswordReset(resetToken);
             }
 
             case FIND_USER_ID -> {
                 Member member = findMemberByEmail(request.email());
                 String maskedUserId = maskUserId(member.getUserId());
-                yield new EmailVerificationResponse(
-                        "아이디 찾기가 완료되었습니다.",
-                        true,
-                        maskedUserId,
-                        member.getCreatedAt()
-                );
+                yield EmailVerificationResponse.successFindUserId(maskedUserId, member.getCreatedAt());
             }
         };
     }
@@ -130,10 +125,22 @@ public class EmailService {
 
     private void validateNewPassword(String newPassword) {
         if (newPassword == null || newPassword.isBlank()) {
-            throw new BusinessException(BusinessErrorCode.PASSWORD_TOO_SHORT);
+            throw new BusinessException(BusinessErrorCode.PASSWORD_INVALID_FORMAT);
         }
-        if (newPassword.length() < 8) {
-            throw new BusinessException(BusinessErrorCode.PASSWORD_TOO_SHORT);
+
+        // 길이 체크: 6~20자
+        if (newPassword.length() < 6 || newPassword.length() > 20) {
+            throw new BusinessException(BusinessErrorCode.PASSWORD_INVALID_FORMAT);
+        }
+
+        // 2가지 이상 조합 체크
+        int typeCount = 0;
+        if (newPassword.matches(".*[a-zA-Z].*")) typeCount++;  // 영문
+        if (newPassword.matches(".*[0-9].*")) typeCount++;      // 숫자
+        if (newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) typeCount++;  // 특수문자
+
+        if (typeCount < 2) {
+            throw new BusinessException(BusinessErrorCode.PASSWORD_INVALID_FORMAT);
         }
     }
 
@@ -217,4 +224,40 @@ public class EmailService {
         </html>
         """.formatted(type.getTitle(), type.getDescription(), type.getColor(), code);
     }
+
+    private String createResetToken(String email) {
+        String token = UUID.randomUUID().toString();
+        String key = RESET_TOKEN_PREFIX + email;
+        RBucket<String> bucket = redissonClient.getBucket(key);
+        bucket.set(token, RESET_TOKEN_VALIDITY_MINUTES, TimeUnit.MINUTES);
+        return token;
+    }
+
+    private void validateResetToken(String email, String token) {
+        String key = RESET_TOKEN_PREFIX + email;
+        RBucket<String> bucket = redissonClient.getBucket(key);
+        String stored = bucket.get();
+
+        if (stored == null || !stored.equals(token)) {
+            throw new BusinessException(BusinessErrorCode.INVALID_RESET_TOKEN);
+        }
+    }
+
+    @Transactional
+    public void resetPassword(PasswordResetRequest request) {
+        validateResetToken(request.email(), request.resetToken());
+        validateNewPassword(request.newPassword());
+
+        Member member = findMemberByEmail(request.email());
+        member.updatePassword(passwordEncoder.encode(request.newPassword()));
+
+        deleteResetToken(request.email());
+        refreshTokenService.delete(member.getExternalId());
+    }
+
+    private void deleteResetToken(String email) {
+        String key = RESET_TOKEN_PREFIX + email;
+        redissonClient.getBucket(key).delete();
+    }
+
 }
