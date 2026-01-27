@@ -1,19 +1,19 @@
 package ceos.diggindie.domain.member.dto.email;
 
+import ceos.diggindie.common.enums.EmailType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
 
+import static ceos.diggindie.common.enums.EmailType.*;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record EmailVerificationResponse(
-        String message,
+        EmailType message,
         String resetToken,      // PASSWORD_RESET용
         String maskedUserId,    // FIND_USER_ID용
         LocalDateTime createdAt // FIND_USER_ID용
 ) {
-    private static final String MSG_CODE_SENT = "인증 코드가 발송되었습니다.";
-    private static final String MSG_SIGNUP_SUCCESS = "이메일 인증이 완료되었습니다.";
-    private static final String MSG_PASSWORD_RESET_SUCCESS = "인증이 완료되었습니다. 새 비밀번호를 설정해주세요.";
-    private static final String MSG_FIND_ID_SUCCESS = "아이디 찾기가 완료되었습니다.";
+
 
     public static EmailVerificationResponse codeSent() {
         return new EmailVerificationResponse(MSG_CODE_SENT, null, null, null);
