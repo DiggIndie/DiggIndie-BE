@@ -2,6 +2,7 @@ package ceos.diggindie.domain.board.repository;
 
 import ceos.diggindie.common.enums.MarketType;
 import ceos.diggindie.domain.board.entity.market.Market;
+import ceos.diggindie.domain.member.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,4 +44,7 @@ public interface MarketRepository extends JpaRepository<Market, Long> {
             "ORDER BY m.createdAt DESC",
             countQuery = "SELECT COUNT(m) FROM Market m WHERE m.type = :type AND (m.title ILIKE %:query% OR m.content ILIKE %:query%)")
     Page<Market> findByTypeAndQueryWithImages(@Param("type") MarketType type, @Param("query") String query, Pageable pageable);
+
+    Page<Market> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
+
 }

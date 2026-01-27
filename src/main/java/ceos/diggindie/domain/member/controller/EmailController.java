@@ -44,7 +44,7 @@ public class EmailController {
 
     @Operation(
             summary = "인증 코드 확인",
-            description = "인증 코드를 확인합니다. PASSWORD_RESET은 newPassword 필수, FIND_USER_ID는 마스킹된 아이디 반환"
+            description = "인증 코드를 확인합니다. PASSWORD_RESET은 resetToken 반환, FIND_USER_ID는 마스킹된 아이디 반환"
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "인증 성공"),
