@@ -41,7 +41,7 @@ public class Band extends BaseEntity {
     private String spotifyId;
 
     @Column(name = "is_band", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean isBand;
+    private Boolean isBand = false;
 
     @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Artist> artists = new ArrayList<>();
