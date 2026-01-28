@@ -10,6 +10,7 @@ import ceos.diggindie.domain.band.dto.BandSearchResponse;
 import ceos.diggindie.common.enums.BandSortOrder;
 import ceos.diggindie.domain.band.service.BandRecommendService;
 import ceos.diggindie.domain.band.service.BandService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,6 +35,7 @@ public class BandController {
     private final BandService bandService;
     private final BandRecommendService bandRecommendService;
 
+    @Hidden
     @Operation(summary = "밴드 정보 업데이트 [내부용]", description = "Raw 데이터를 기반으로 밴드 정보를 업데이트합니다. ADMIN 권한 필요.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "업데이트 성공"),
@@ -45,6 +47,7 @@ public class BandController {
         bandService.processRawBands();
     }
 
+    @Hidden
     @Operation(summary = "아티스트 정보 업데이트 [내부용]", description = "아티스트 정보를 업데이트합니다. ADMIN 권한 필요.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "업데이트 성공"),

@@ -9,6 +9,7 @@ import ceos.diggindie.domain.spotify.dto.TopTrackUpdateAllResponse;
 import ceos.diggindie.domain.spotify.dto.TopTrackUpdateResponse;
 import ceos.diggindie.domain.spotify.service.SpotifyImportService;
 import ceos.diggindie.domain.spotify.service.SpotifyService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Hidden
 @Tag(name = "Spotify", description = "Spotify 관련 API (백엔드 내부용)")
 @RestController
 @RequiredArgsConstructor
