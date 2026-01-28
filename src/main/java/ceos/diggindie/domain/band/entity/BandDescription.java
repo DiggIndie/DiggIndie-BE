@@ -3,6 +3,7 @@ package ceos.diggindie.domain.band.entity;
 import ceos.diggindie.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,4 +28,10 @@ public class BandDescription extends BaseEntity {
     // TODO: 나중에 converter로 구현 시 변경할 컬럼
     @Transient
     private float[] embedding;
+
+    @Builder
+    public BandDescription(Band band, String description) {
+        this.band = band;
+        this.description = description;
+    }
 }

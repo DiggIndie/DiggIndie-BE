@@ -37,11 +37,11 @@ public class Band extends BaseEntity {
     @Column(name = "main_music", length = 200)
     private String mainMusic;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String description;
-
     @Column(name = "spotify_id", length = 100)
     private String spotifyId;
+
+    @Column(name = "is_band", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean isBand = false;
 
     @OneToMany(mappedBy = "band", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Artist> artists = new ArrayList<>();
@@ -68,20 +68,21 @@ public class Band extends BaseEntity {
     @OneToOne(mappedBy = "band", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private TopTrack topTrack;
 
+    @OneToOne(mappedBy = "band", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private BandDescription bandDescription;
+
     @Builder
     public Band(
             String bandName,
             String mainImage,
             String mainUrl,
             String mainMusic,
-            String description,
             String spotifyId
     ) {
         this.bandName = bandName;
         this.mainImage = mainImage;
         this.mainUrl = mainUrl;
         this.mainMusic = mainMusic;
-        this.description = description;
         this.spotifyId = spotifyId;
     }
 

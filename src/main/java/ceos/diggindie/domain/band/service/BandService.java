@@ -12,6 +12,7 @@ import ceos.diggindie.domain.band.dto.TopTrackResponse;
 import ceos.diggindie.domain.band.entity.Album;
 import ceos.diggindie.domain.band.entity.Artist;
 import ceos.diggindie.domain.band.entity.Band;
+import ceos.diggindie.domain.band.entity.BandDescription;
 import ceos.diggindie.domain.band.entity.BandsRawData;
 import ceos.diggindie.common.enums.BandSortOrder;
 import ceos.diggindie.domain.band.repository.*;
@@ -49,6 +50,7 @@ public class BandService {
     private final BandRepository bandRepository;
     private final BandsRawDataRepository bandsRawDataRepository;
     private final ArtistRepository artistRepository;
+    private final BandDescriptionRepository bandDescriptionRepository;
 
     private final OpenAIService openAIService;
     private final SpotifyService spotifyService;
@@ -202,7 +204,7 @@ public class BandService {
                     }
                 } catch (Exception e) {
                     log.warn("[{}] GPT 설명 처리 오류: {}", bandName, e.getMessage());
-                    refinedDescription = null;
+                    refinedDescription = rawDescription;
                 }
 
                 // 3. SpotifyService를 통해 bandName으로 아티스트 조회 및 추가 정보 획득 (spotifyId, imageUrl)
@@ -228,11 +230,20 @@ public class BandService {
                         .mainImage(imageUrl)
                         .mainUrl(mainUrl)
                         .mainMusic(refinedMainMusic)
-                        .description(refinedDescription)
                         .spotifyId(spotifyId)
                         .build();
 
                 bandRepository.save(band);
+
+                // 5. BandDescription 엔티티 생성 및 저장
+                if (refinedDescription != null && !refinedDescription.isBlank()) {
+                    BandDescription bandDescription = BandDescription.builder()
+                            .band(band)
+                            .description(refinedDescription)
+                            .build();
+                    bandDescriptionRepository.save(bandDescription);
+                }
+
                 completed++;
 
                 log.info("[{}/{}] {} 저장 완료", completed, total, bandName);
@@ -332,12 +343,17 @@ public class BandService {
         boolean isScraped = memberId != null
                 && bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId);
 
+        // BandDescription에서 description 조회
+        String description = bandDescriptionRepository.findByBandId(bandId)
+                .map(bd -> bd.getDescription())
+                .orElse(null);
+
         return BandDetailResponse.builder()
                 .artistId(band.getId())
                 .artistName(band.getBandName())
                 .keywords(keywords)
                 .artistImage(band.getMainImage())
-                .description(band.getDescription())
+                .description(description)
                 .members(members)
                 .topTrack(topTrack)
                 .albums(albums)

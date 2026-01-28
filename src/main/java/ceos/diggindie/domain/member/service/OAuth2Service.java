@@ -79,6 +79,7 @@ public class OAuth2Service {
 
         throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
     }
+
     private OAuth2LoginResponse processLogin(LoginPlatform platform, String code, HttpServletResponse response) {
         OAuth2UserInfo userInfo = oAuth2Client.getUserInfo(platform, code);
 
@@ -97,8 +98,28 @@ public class OAuth2Service {
                     existingSocialAccount.get().updateEmail(userInfo.email());
                 }
             } else {
-                member = createNewMember(userInfo);
-                isNewMember = true;
+                // 소셜 계정은 없지만 같은 이메일의 Member 존재 여부 확인
+                Optional<Member> existingMemberByEmail = memberRepository.findByEmail(userInfo.email());
+
+                if (existingMemberByEmail.isPresent()) {
+                    // 같은 이메일의 회원이 있으면 소셜 계정만 연동
+                    member = existingMemberByEmail.get();
+
+                    SocialAccount newSocialAccount = SocialAccount.builder()
+                            .platform(userInfo.platform())
+                            .platformId(userInfo.platformId())
+                            .email(userInfo.email())
+                            .member(member)
+                            .build();
+
+                    socialAccountRepository.save(newSocialAccount);
+                    member.addSocialAccount(newSocialAccount);
+                    member.updateRecentLoginPlatform(userInfo.platform());
+
+                } else {
+                    member = createNewMember(userInfo);
+                    isNewMember = true;
+                }
             }
 
             return new LoginResult(member, isNewMember);
@@ -255,38 +276,6 @@ public class OAuth2Service {
                 .maxAge(maxAge)
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
-    }
-
-    private OAuth2StateService.StateInfo validateStateForLogin(String state) {
-        OAuth2StateService.StateInfo stateInfo = oAuth2StateService.validateAndConsume(state);
-
-        if (stateInfo == null) {
-            log.warn("OAuth state validation failed - state: {}", state);
-            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
-        }
-
-        if (!stateInfo.isLogin()) {
-            log.warn("OAuth state purpose mismatch - expected: login, actual: {}", stateInfo.purpose());
-            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE, "로그인용 인증 URL이 아닙니다.");
-        }
-
-        return stateInfo;
-    }
-
-    private OAuth2StateService.StateInfo validateStateForLink(String state) {
-        OAuth2StateService.StateInfo stateInfo = oAuth2StateService.validateAndConsume(state);
-
-        if (stateInfo == null) {
-            log.warn("OAuth state validation failed - state: {}", state);
-            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE);
-        }
-
-        if (!stateInfo.isLink()) {
-            log.warn("OAuth state purpose mismatch - expected: link, actual: {}", stateInfo.purpose());
-            throw new BusinessException(BusinessErrorCode.OAUTH_INVALID_STATE, "계정 연동용 인증 URL이 아닙니다.");
-        }
-
-        return stateInfo;
     }
 
     private record LoginResult(Member member, boolean isNewMember) {}

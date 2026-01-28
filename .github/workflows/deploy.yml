@@ -100,9 +100,11 @@ jobs:
             
             cat > docker-compose.yml <<-'INNER_EOF'
             version: '3.8'
+            
             services:
               app:
                 image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/diggindie-dev:latest
+                container_name: diggindie-be
                 ports:
                   - "8080:8080"
                 environment:
@@ -127,7 +129,7 @@ jobs:
                   - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
                   - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
                   - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-                  - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} 
+                  - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
                   - MAIL_USERNAME=${MAIL_USERNAME}
                   - MAIL_PASSWORD=${MAIL_PASSWORD}
                   - AWS_S3_BUCKET=${AWS_S3_BUCKET}
@@ -135,19 +137,40 @@ jobs:
                   - AWS_SECRET_KEY=${AWS_SECRET_KEY}
                   - AWS_REGION=${AWS_REGION}
                 depends_on:
-                  - redis
+                  redis:
+                    condition: service_healthy
                 restart: unless-stopped
+                networks:
+                  - app-network
             
               redis:
-                image: redis:alpine
+                image: redis:7
+                container_name: redis
                 ports:
                   - "6379:6379"
+                volumes:
+                  - redis-data:/data
+                command: ["redis-server", "--appendonly", "yes"]
                 environment:
                   - TZ=Asia/Seoul
+                healthcheck:
+                  test: ["CMD", "redis-cli", "ping"]
+                  interval: 5s
+                  timeout: 3s
+                  retries: 5
                 restart: unless-stopped
+                networks:
+                  - app-network
+            
+            networks:
+              app-network:
+                driver: bridge
+            
+            volumes:
+              redis-data:
             INNER_EOF
 
             aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com
             
             docker-compose pull
-            docker-compose up -d --force-recreate app
+            docker-compose up -d --force-recreate
