@@ -48,6 +48,4 @@ public interface MarketRepository extends JpaRepository<Market, Long> {
 
     Page<Market> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
 
-    Page<Market> findAllByOrderByViewsDesc(Pageable pageable);
-
 }

@@ -21,6 +21,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Board", description = "자유게시판 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -231,4 +233,22 @@ public class BoardController {
 
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "인기 게시글 TOP3 조회", description = "자유게시판에서 조회수 기준 상위 3개 게시글을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    @GetMapping("/boards/hot")
+    public ResponseEntity<Response<List<HotBoardResponse>>> getTop3BoardPosts() {
+        List<HotBoardResponse> result = boardService.getTop3BoardPosts();
+
+        Response<List<HotBoardResponse>> response = Response.success(
+                SuccessCode.GET_SUCCESS,
+                result,
+                "자유게시판 인기 게시글 TOP3 조회 API"
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
 }

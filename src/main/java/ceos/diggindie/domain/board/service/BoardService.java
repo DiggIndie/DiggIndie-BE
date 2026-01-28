@@ -3,6 +3,7 @@ package ceos.diggindie.domain.board.service;
 import ceos.diggindie.common.code.BusinessErrorCode;
 import ceos.diggindie.common.enums.BoardCategory;
 import ceos.diggindie.common.exception.BusinessException;
+import ceos.diggindie.domain.board.dto.board.HotBoardResponse;
 import ceos.diggindie.domain.board.dto.board.*;
 import ceos.diggindie.domain.board.entity.board.*;
 import ceos.diggindie.domain.board.repository.BoardCommentLikeRepository;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -223,6 +225,14 @@ public class BoardService {
         }
 
         boardRepository.delete(board);
+    }
+
+    public List<HotBoardResponse> getTop3BoardPosts() {
+        List<Board> boards = boardRepository.findTop3ByOrderByViewsDesc();
+
+        return boards.stream()
+                .map(HotBoardResponse::fromBoard)
+                .collect(Collectors.toList());
     }
 
 }
