@@ -153,7 +153,6 @@ public class KeywordService {
             
             [아티스트 정보]
             - 이름: %s
-            - 설명: %s
             - 대표곡: %s
             
             [키워드 목록]
@@ -163,7 +162,6 @@ public class KeywordService {
             예시: ["서정적", "잔잔한"]
             """.formatted(
                 band.getBandName(),
-                band.getDescription() != null ? band.getDescription() : "정보 없음",
                 band.getMainMusic() != null ? band.getMainMusic() : "정보 없음",
                 keywordList
         );
