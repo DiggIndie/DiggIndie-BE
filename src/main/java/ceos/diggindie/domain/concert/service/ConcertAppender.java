@@ -98,7 +98,6 @@ public class ConcertAppender {
                     .orElseGet(() -> bandRepository.save(
                             Band.builder()
                                     .bandName(name)
-                                    .description(name)
                                     .build()
                     ));
 
