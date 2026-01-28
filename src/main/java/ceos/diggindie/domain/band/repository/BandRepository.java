@@ -14,19 +14,31 @@ public interface BandRepository extends JpaRepository<Band, Long> {
     
     Optional<Band> findByBandName(String bandName);
 
-    // 온보딩용 기본 밴드 검색
-    @Query(value = "SELECT DISTINCT b FROM Band b " +
-            "LEFT JOIN FETCH b.bandKeywords bk " +
-            "LEFT JOIN FETCH bk.keyword k " +
-            "WHERE :query IS NULL OR :query = '' OR " +
-            "b.bandName ILIKE %:query% OR " +
-            "k.keyword ILIKE %:query%",
-            countQuery = "SELECT count(DISTINCT b) FROM Band b " +
-                    "LEFT JOIN b.bandKeywords bk " +
-                    "LEFT JOIN bk.keyword k " +
+    // 온보딩용 기본 밴드 검색 (가중치 기반 랜덤 정렬)
+    @Query(value = "SELECT * FROM ( " +
+            "  SELECT DISTINCT b.*, " +
+            "    (CASE WHEN b.is_band = false THEN RANDOM() * 0.2 - 0.03" +
+            "          ELSE RANDOM() * 1.0" +
+            "     END " +
+            "     + " +
+            "     CASE WHEN b.main_image IS NULL THEN 0.5 " +
+            "          ELSE 0 " +
+            "     END) as sort_value " +
+            "  FROM band b " +
+            "  LEFT JOIN band_keyword bk ON b.band_id = bk.band_id " +
+            "  LEFT JOIN keyword k ON k.keyword_id = bk.keyword_id " +
+            "  WHERE :query IS NULL OR :query = '' OR " +
+            "    b.band_name ILIKE CONCAT('%', :query, '%') OR " +
+            "    k.keyword ILIKE CONCAT('%', :query, '%') " +
+            ") AS bands_with_sort " +
+            "ORDER BY sort_value",
+            countQuery = "SELECT count(DISTINCT b.band_id) FROM band b " +
+                    "LEFT JOIN band_keyword bk ON b.band_id = bk.band_id " +
+                    "LEFT JOIN keyword k ON k.keyword_id = bk.keyword_id " +
                     "WHERE :query IS NULL OR :query = '' OR " +
-                    "b.bandName ILIKE %:query% OR " +
-                    "k.keyword ILIKE %:query%")
+                    "b.band_name ILIKE CONCAT('%', :query, '%') OR " +
+                    "k.keyword ILIKE CONCAT('%', :query, '%')",
+            nativeQuery = true)
     Page<Band> searchBands(@Param("query") String query, Pageable pageable);
 
     // [최신순] 아티스트 검색
@@ -34,35 +46,35 @@ public interface BandRepository extends JpaRepository<Band, Long> {
             "LEFT JOIN FETCH b.topTrack " +
             "LEFT JOIN b.bandKeywords bk " +
             "LEFT JOIN bk.keyword k " +
-            "WHERE :query IS NULL OR :query = '' OR " +
+            "WHERE b.isBand = true AND (:query IS NULL OR :query = '' OR " +
             "b.bandName ILIKE %:query% OR " +
-            "k.keyword ILIKE %:query% " +
+            "k.keyword ILIKE %:query%) " +
             "ORDER BY b.createdAt DESC",
             countQuery = "SELECT count(DISTINCT b) FROM Band b " +
                     "LEFT JOIN b.bandKeywords bk " +
                     "LEFT JOIN bk.keyword k " +
-                    "WHERE :query IS NULL OR :query = '' OR " +
+                    "WHERE b.isBand = true AND (:query IS NULL OR :query = '' OR " +
                     "b.bandName ILIKE %:query% OR " +
-                    "k.keyword ILIKE %:query%")
+                    "k.keyword ILIKE %:query%)")
     Page<Band> searchBandsByRecent(@Param("query") String query, Pageable pageable);
 
     // [가나다순] 아티스트 검색 (Native Query)
     @Query(value = "SELECT b.band_id FROM band b " +
-            "WHERE b.band_id IN (" +
+            "WHERE b.is_band = true AND b.band_id IN (" +
             "  SELECT DISTINCT b2.band_id FROM band b2 " +
             "  LEFT JOIN band_keyword bk ON b2.band_id = bk.band_id " +
             "  LEFT JOIN keyword k ON k.keyword_id = bk.keyword_id " +
-            "  WHERE :query IS NULL OR :query = '' OR " +
+            "  WHERE b2.is_band = true AND (:query IS NULL OR :query = '' OR " +
             "  b2.band_name ILIKE CONCAT('%', :query, '%') OR " +
-            "  k.keyword ILIKE CONCAT('%', :query, '%')" +
+            "  k.keyword ILIKE CONCAT('%', :query, '%'))" +
             ") " +
             "ORDER BY LOWER(b.band_name) COLLATE \"ko_KR.utf8\" ASC",
             countQuery = "SELECT count(DISTINCT b.band_id) FROM band b " +
                     "LEFT JOIN band_keyword bk ON b.band_id = bk.band_id " +
                     "LEFT JOIN keyword k ON k.keyword_id = bk.keyword_id " +
-                    "WHERE :query IS NULL OR :query = '' OR " +
+                    "WHERE b.is_band = true AND (:query IS NULL OR :query = '' OR " +
                     "b.band_name ILIKE CONCAT('%', :query, '%') OR " +
-                    "k.keyword ILIKE CONCAT('%', :query, '%')",
+                    "k.keyword ILIKE CONCAT('%', :query, '%'))",
             nativeQuery = true)
     Page<Long> searchBandIdsByAlphabet(@Param("query") String query, Pageable pageable);
 
@@ -76,17 +88,17 @@ public interface BandRepository extends JpaRepository<Band, Long> {
             "LEFT JOIN b.bandKeywords bk " +
             "LEFT JOIN bk.keyword k " +
             "LEFT JOIN b.bandScraps bs " +
-            "WHERE :query IS NULL OR :query = '' OR " +
+            "WHERE b.isBand = true AND (:query IS NULL OR :query = '' OR " +
             "b.bandName ILIKE %:query% OR " +
-            "k.keyword ILIKE %:query% " +
+            "k.keyword ILIKE %:query%) " +
             "GROUP BY b.id, b.topTrack.id " +
             "ORDER BY COUNT(DISTINCT bs.id) DESC, b.createdAt DESC",
             countQuery = "SELECT count(DISTINCT b) FROM Band b " +
                     "LEFT JOIN b.bandKeywords bk " +
                     "LEFT JOIN bk.keyword k " +
-                    "WHERE :query IS NULL OR :query = '' OR " +
+                    "WHERE b.isBand = true AND (:query IS NULL OR :query = '' OR " +
                     "b.bandName ILIKE %:query% OR " +
-                    "k.keyword ILIKE %:query%")
+                    "k.keyword ILIKE %:query%)")
     Page<Band> searchBandsByScrap(@Param("query") String query, Pageable pageable);
 
     @Query("SELECT DISTINCT b FROM Band b " +
