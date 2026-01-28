@@ -39,4 +39,6 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
 
     Page<Board> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
 
+    Page<Board> findAllByOrderByViewsDesc(Pageable pageable);
+
 }

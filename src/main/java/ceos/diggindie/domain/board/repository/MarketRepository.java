@@ -1,6 +1,7 @@
 package ceos.diggindie.domain.board.repository;
 
 import ceos.diggindie.common.enums.MarketType;
+import ceos.diggindie.domain.board.entity.board.Board;
 import ceos.diggindie.domain.board.entity.market.Market;
 import ceos.diggindie.domain.member.entity.Member;
 import org.springframework.data.domain.Page;
@@ -46,5 +47,7 @@ public interface MarketRepository extends JpaRepository<Market, Long> {
     Page<Market> findByTypeAndQueryWithImages(@Param("type") MarketType type, @Param("query") String query, Pageable pageable);
 
     Page<Market> findByMemberOrderByCreatedAtDesc(Member member, Pageable pageable);
+
+    Page<Market> findAllByOrderByViewsDesc(Pageable pageable);
 
 }
