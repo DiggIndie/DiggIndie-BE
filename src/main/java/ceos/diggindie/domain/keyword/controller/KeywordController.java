@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.keyword.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "Keyword", description = "키워드 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -53,7 +55,7 @@ public class KeywordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/my/keywords")
+    @PostMapping("/me/preferences/keywords")
     public ResponseEntity<Response<Void>> saveKeywordPreferences(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -75,7 +77,7 @@ public class KeywordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/my/keywords")
+    @GetMapping("/me/preferences/keywords")
     public ResponseEntity<Response<List<KeywordResponse>>> getMyKeywords(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -95,7 +97,7 @@ public class KeywordController {
     @Hidden
     @Operation(summary = "밴드 키워드 자동 할당(관리자용)", description = "GPT를 사용해 모든 밴드에 키워드 2개씩 자동 할당합니다.")
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/api/admin/bands/assign-keywords")
+    @PostMapping("/admin/bands/assign-keywords")
     public ResponseEntity<Response<Void>> assignKeywordsToBands() {
         keywordService.assignKeywordsToBands();
 

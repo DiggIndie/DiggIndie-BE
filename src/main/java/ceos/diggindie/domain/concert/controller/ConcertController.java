@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.concert.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "Concert", description = "공연 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -195,7 +197,7 @@ public class ConcertController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "공연을 찾을 수 없음")
     })
-    @PatchMapping("/my/concerts/{concertId}")
+    @PatchMapping("/concerts/{concertId}/scrap")
     public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapToggleDTO>> toggleConcertScrap(
             @Parameter(description = "공연 ID", example = "1")
             @PathVariable Long concertId,

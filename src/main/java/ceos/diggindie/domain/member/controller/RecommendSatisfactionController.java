@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.member.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@ApiVersion("v2")
 @Tag(name = "Recommend Satisfaction", description = "추천 만족도 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +45,7 @@ public class RecommendSatisfactionController {
             @ApiResponse(responseCode = "201", description = "추가 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @PostMapping("/artists/recommendations/satisfaction")
+    @PostMapping("/me/recommendations/feedback")
     public ResponseEntity<Response<RecommendSatisfactionResponse.RecommendSatisfactionInfo>> addRecommendSatisfaction(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails,

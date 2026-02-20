@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.member.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.member.dto.email.EmailSendRequest;
@@ -16,9 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@ApiVersion("v2")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/auth/email")
 @Tag(name = "Email Verification", description = "이메일 인증 API")
 public class EmailController {
 
@@ -33,7 +34,7 @@ public class EmailController {
             @ApiResponse(responseCode = "400", description = "등록되지 않은 이메일 (PASSWORD_RESET, FIND_USER_ID)"),
             @ApiResponse(responseCode = "409", description = "이미 존재하는 이메일 (SIGNUP)")
     })
-    @PostMapping("/send")
+    @PostMapping("/auth/verify/code")
     public ResponseEntity<Response<EmailVerificationResponse>> sendVerificationCode(
             @Valid @RequestBody EmailSendRequest request
     ) {
@@ -50,7 +51,7 @@ public class EmailController {
             @ApiResponse(responseCode = "200", description = "인증 성공"),
             @ApiResponse(responseCode = "400", description = "인증 코드 불일치 또는 만료")
     })
-    @PostMapping("/verify")
+    @PostMapping("/auth/verify/code/confirm")
     public ResponseEntity<Response<EmailVerificationResponse>> verifyCode(
             @Valid @RequestBody EmailVerifyRequest request
     ) {

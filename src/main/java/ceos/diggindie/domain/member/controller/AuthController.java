@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.member.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.enums.LoginPlatform;
@@ -25,6 +26,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@ApiVersion("v2")
 @Tag(name = "Auth", description = "인증 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -78,12 +80,12 @@ public class AuthController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/auth/exists")
+    @GetMapping("/auth/check-id")
     public ResponseEntity<Response<UserIdCheckResponse>> checkExists(
             @Parameter(description = "아이디", example = "diggindie")
-            @RequestParam String userId
+            @RequestParam String q
     ) {
-        UserIdCheckResponse userIdCheckResponse = authService.checkExists(userId);
+        UserIdCheckResponse userIdCheckResponse = authService.checkExists(q);
         Response<UserIdCheckResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 userIdCheckResponse,
@@ -113,7 +115,7 @@ public class AuthController {
     }
 
     @Operation(summary = "토큰 재발급", description = "Refresh Token을 사용하여 새로운 Access Token을 발급합니다.")
-    @PostMapping("/auth/reissue")
+    @PostMapping("/auth/refresh")
     public ResponseEntity<Response<TokenReissueResponse>> reissue(
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
@@ -128,7 +130,7 @@ public class AuthController {
     }
 
     @Operation(summary = "OAuth2 인증 URL 조회", description = "소셜 로그인/연동을 위한 인증 URL을 반환합니다.")
-    @GetMapping("/auth/oauth2/url/{platform}")
+    @GetMapping("/auth/login/{platform}")
     public ResponseEntity<Response<OAuth2UrlResponse>> getOAuth2AuthUrl(
             @PathVariable LoginPlatform platform,
             @Parameter(description = "목적 (login 또는 link)", example = "login")
@@ -148,8 +150,9 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "유효하지 않은 state"),
             @ApiResponse(responseCode = "401", description = "연동 시 인증되지 않은 사용자")
     })
-    @PostMapping("/auth/oauth2/callback")
+    @PostMapping("/auth/login/{platform}/callback")
     public ResponseEntity<Response<OAuth2CallbackResponse>> handleCallback(
+            @PathVariable LoginPlatform platform,
             @RequestBody OAuth2CallbackRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             HttpServletResponse httpResponse
@@ -170,7 +173,7 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "연동되지 않은 계정")
     })
     @PreAuthorize("isAuthenticated()")
-    @DeleteMapping("/auth/oauth2/unlink/{platform}")
+    @DeleteMapping("/me/social-accounts/{platform}")
     public ResponseEntity<Response<OAuth2UnlinkResponse>> unlinkSocialAccount(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable LoginPlatform platform
@@ -189,7 +192,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/auth/oauth2/accounts")
+    @GetMapping("/me/social-accounts")
     public ResponseEntity<Response<LinkedSocialAccountResponse>> getLinkedAccounts(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
@@ -207,7 +210,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/my/user-id")
+    @GetMapping("/me/user-id")
     public ResponseEntity<Response<MemberIdResponse>> getCurrentUser(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
@@ -225,7 +228,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
-    @PatchMapping("/my/marketing-consent")
+    @PatchMapping("/me/marketing")
     public ResponseEntity<Response<MarketingConsentResponse>> updateMarketingConsent(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody MarketingConsentRequest request
@@ -245,7 +248,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/my/marketing-consent")
+    @GetMapping("/me/marketing")
     public ResponseEntity<Response<MarketingConsentResponse>> getMarketingConsent(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
@@ -267,7 +270,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "유효하지 않은 토큰 또는 비밀번호 형식 오류"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 이메일")
     })
-    @PostMapping("/auth/password/reset")
+    @PostMapping("/me/password")
     public ResponseEntity<Response<String>> resetPassword(
             @Valid @RequestBody PasswordResetRequest request
     ) {

@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.magazine.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.enums.MagazineSortOrder;
 import ceos.diggindie.common.response.Response;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@ApiVersion("v2")
 @Tag(name = "Magazine", description = "매거진 관련 API")
 @RestController
 @RequiredArgsConstructor

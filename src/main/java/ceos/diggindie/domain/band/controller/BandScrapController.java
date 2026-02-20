@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.band.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "Band Scrap", description = "밴드 스크랩 관련 API")
 @RestController
 @RequiredArgsConstructor

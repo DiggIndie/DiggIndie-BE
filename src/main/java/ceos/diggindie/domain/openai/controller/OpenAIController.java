@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.openai.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.domain.openai.dto.BandDescriptionRequest;
 import ceos.diggindie.domain.openai.dto.PromptRequest;
 import ceos.diggindie.domain.openai.service.OpenAIService;
@@ -13,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Hidden
+@ApiVersion("v2")
 @Tag(name = "OpenAI", description = "OpenAI 관련 API (백엔드 내부용)")
 @RestController
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class OpenAIController {
             @ApiResponse(responseCode = "200", description = "채팅 요청 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
-    @PostMapping("/api/admin/openai")
+    @PostMapping("/admin/openai")
     public String chat(@RequestBody PromptRequest prompt) {
         return openAIService.callOpenAI(prompt);
     }
@@ -40,7 +42,7 @@ public class OpenAIController {
             @ApiResponse(responseCode = "200", description = "생성 완료"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
-    @PostMapping("/api/admin/openai/band-descriptions")
+    @PostMapping("/admin/openai/band-descriptions")
     public String generateBandDescriptions(@RequestBody BandDescriptionRequest request) {
         return openAIService.generateBandDescriptions(request.startBandId());
     }
