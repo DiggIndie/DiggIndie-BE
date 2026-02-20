@@ -143,7 +143,7 @@ public class BandController {
             @ApiResponse(responseCode = "401", description = "인증 필요")
     })
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/artists/recommendations/users")
+    @GetMapping("/me/recommendations/bands")
     public ResponseEntity<Response<BandRecommendResponse.BandListDTO>> getRecommendedBands(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {

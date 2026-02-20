@@ -29,7 +29,7 @@ public class MemberBandController {
 
     @Operation(summary = "아티스트 취향 저장", description = "로그인 사용자의 아티스트 취향 정보를 저장합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "저장 성공"),
+            @ApiResponse(responseCode = "200", description = "저장 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
     @PreAuthorize("isAuthenticated()")
@@ -46,7 +46,7 @@ public class MemberBandController {
                 "아티스트 취향 설정 API"
         );
 
-        return ResponseEntity.status(204).body(response);
+        return ResponseEntity.ok().body(response);
     }
 
     @Operation(summary = "아티스트 취향 조회", description = "로그인 사용자의 아티스트 취향 정보를 조회합니다.")
