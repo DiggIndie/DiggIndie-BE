@@ -258,13 +258,13 @@ public class BandService {
         log.info("총 {}개 중 성공: {}개, 실패: {}개", total, completed, failed);
     }
 
-    public Page<BandListResponse> getBandList(String query, Pageable pageable) {
+    public Page<BandListResponse> getArtistsList(String query, Pageable pageable) {
         Page<Band> bands = bandRepository.searchBands(query, pageable);
         return bands.map(BandListResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public BandSearchResponse.ArtistListDTO searchArtists(String query, BandSortOrder order, Pageable pageable) {
+    public BandSearchResponse.ArtistListDTO searchBands(String query, BandSortOrder order, Pageable pageable) {
 
         if (order == BandSortOrder.alphabet) {
             Page<Long> bandIdPage = bandRepository.searchBandIdsByAlphabet(query, pageable);

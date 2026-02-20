@@ -42,7 +42,7 @@ public class BandController {
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/api/admin/bands/update")
+    @PostMapping("/admin/bands/update")
     public void updateBands() {
         bandService.processRawBands();
     }
@@ -54,19 +54,19 @@ public class BandController {
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/api/admin/bands/artists/update")
+    @PostMapping("/admin/bands/artists/update")
     public ResponseEntity<Void> updateArtists() {
         bandService.processArtists();
         return ResponseEntity.noContent().build();
     }
 
     /* 밴드 검색 - 온보딩용 */
-    @Operation(summary = "온보딩 시 밴드 검색 및 반환", description = "검색어와 페이징 조건으로 밴드 목록을 조회합니다.")
+    @Operation(summary = "온보딩 시 아티스트 검색 및 반환", description = "검색어와 페이징 조건으로 밴드 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
     @GetMapping("/artists")
-    public ResponseEntity<Response<List<BandListResponse>>> getBandList(
+    public ResponseEntity<Response<List<BandListResponse>>> getArtists(
             @Parameter(description = "검색어", example = "리도어")
             @RequestParam(required = false, defaultValue = "") String query,
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
@@ -75,25 +75,25 @@ public class BandController {
             @RequestParam(required = false, defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<BandListResponse> bands = bandService.getBandList(query, pageable);
+        Page<BandListResponse> bands = bandService.getArtistsList(query, pageable);
         Response<List<BandListResponse>> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 bands,
-                "온보딩 밴드 검색 및 목록 반환 API"
+                "온보딩 아티스트 검색 및 목록 반환 API"
         );
         return ResponseEntity.ok().body(response);
     }
 
-    /* 아티스트 검색 및 목록 조회 */
-    @Operation(summary = "아티스트 검색 및 목록 조회", description = "검색어, 정렬 조건, 페이징으로 아티스트 목록을 조회합니다.")
+    /* 밴드 검색 및 목록 조회 */
+    @Operation(summary = "밴드 검색 및 목록 조회", description = "검색어, 정렬 조건, 페이징으로 아티스트 목록을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/artists/search")
-    public ResponseEntity<Response<BandSearchResponse.ArtistListDTO>> searchArtists(
+    @GetMapping("/bands")
+    public ResponseEntity<Response<BandSearchResponse.ArtistListDTO>> searchBands(
             @Parameter(description = "정렬 기준 (recent: 최신순, alphabet: 가나다순, scrap: 스크랩순)", example = "recent")
             @RequestParam(required = false, defaultValue = "recent") BandSortOrder order,
-            @Parameter(description = "검색어 (아티스트명, 키워드)", example = "쏜애플")
+            @Parameter(description = "검색어 (밴드명, 키워드)", example = "쏜애플")
             @RequestParam(required = false, defaultValue = "") String query,
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
             @RequestParam(required = false, defaultValue = "0") int page,
@@ -101,25 +101,25 @@ public class BandController {
             @RequestParam(required = false, defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        BandSearchResponse.ArtistListDTO result = bandService.searchArtists(query, order, pageable);
+        BandSearchResponse.ArtistListDTO result = bandService.searchBands(query, order, pageable);
         Response<BandSearchResponse.ArtistListDTO> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 result,
-                "아티스트 목록 조회 성공"
+                "밴드 목록 조회 성공"
         );
         return ResponseEntity.ok().body(response);
     }
 
     /* 아티스트 상세 조회 */
     @PreAuthorize("permitAll()")
-    @Operation(summary = "아티스트 상세 조회", description = "아티스트의 상세 정보를 조회합니다. 로그인 시 스크랩 여부가 포함됩니다.")
+    @Operation(summary = "밴드 상세 조회", description = "밴드의 상세 정보를 조회합니다. 로그인 시 스크랩 여부가 포함됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 아티스트")
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 밴드")
     })
-    @GetMapping("/artists/{bandId}")
+    @GetMapping("/bands/{bandId}")
     public ResponseEntity<Response<BandDetailResponse>> getBandDetail(
-            @Parameter(description = "아티스트 ID", example = "12")
+            @Parameter(description = "밴드 ID", example = "12")
             @PathVariable Long bandId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -130,7 +130,7 @@ public class BandController {
         Response<BandDetailResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 bandDetail,
-                "아티스트 상세 조회 성공"
+                "밴드 상세 조회 성공"
         );
         return ResponseEntity.ok().body(response);
     }

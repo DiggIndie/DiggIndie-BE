@@ -43,7 +43,7 @@ public class ConcertController {
     private final ConcertService concertService;
     private final ConcertScrapService concertScrapService;
 
-    @Operation(summary = "공연 목록 조회", description = "전체 공연 목록을 검색/정렬/페이징하여 조회합니다.")
+    @Operation(summary = "공연 검색 및 목록 조회", description = "전체 공연 목록을 검색/정렬/페이징하여 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
@@ -114,7 +114,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/recommendations")
+    @GetMapping("/me/recommendations/concerts")
     public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Response<ConcertRecommendResponse> response = Response.success(
@@ -129,7 +129,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/calendar/monthly")
+    @GetMapping("/concerts/calendar/status")
     public ResponseEntity<Response<ConcertMonthlyCalendarResponse>> getConcertMonthlyCalendar(
             @Parameter(description = "조회할 연도", example = "2026")
             @RequestParam(required = true) int year,
@@ -150,7 +150,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/calendar")
+    @GetMapping("/concerts/calendar/daily")
     public ResponseEntity<Response<ConcertsListResponse>> getConcertsByDates(
             @Parameter(description = "조회할 날짜 목록 (yyyy-MM-dd, 콤마로 구분)", example = "2026-01-11,2026-01-12,2026-01-13")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) List<LocalDate> dates,
@@ -172,7 +172,7 @@ public class ConcertController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @GetMapping("/my/concerts")
+    @GetMapping("/me/scraps/concerts")
     public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapListDTO>> getMyScrappedConcerts(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {

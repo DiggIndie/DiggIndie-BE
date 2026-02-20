@@ -53,12 +53,12 @@ public class BandScrapController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "밴드 스크랩 목록 조회", description = "로그인 사용자의 밴드 스크랩 목록을 페이징 조회합니다.")
+    @Operation(summary = "스크랩한 밴드 목록 조회", description = "로그인 사용자의 밴드 스크랩 목록을 페이징 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @GetMapping("/my/artists")
+    @GetMapping("/me/scraps/bands")
     public ResponseEntity<Response<List<BandScrapResponse.BandScrapInfoDTO>>> getBandScraps(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -74,7 +74,7 @@ public class BandScrapController {
         Response<List<BandScrapResponse.BandScrapInfoDTO>> response = Response.success(
                 SuccessCode.GET_SUCCESS,
                 scrapPageReponse,
-                "밴드 스크랩 목록 조회 API"
+                "스크랩한 밴드 목록 조회 API"
         );
 
         return ResponseEntity.ok().body(response);
