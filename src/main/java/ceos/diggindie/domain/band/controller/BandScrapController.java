@@ -46,7 +46,7 @@ public class BandScrapController {
 
         bandScrapService.toggleBandScrap(userDetails.getMemberId(), bandId);
         Response<Void> response = Response.success(
-                SuccessCode.GET_SUCCESS,
+                SuccessCode.UPDATE_SUCCESS,
                 "밴드 스크랩이 처리되었습니다."
         );
 
