@@ -1,7 +1,6 @@
 package ceos.diggindie.domain.band.service;
 
 import ceos.diggindie.common.exception.GeneralException;
-import ceos.diggindie.domain.band.dto.BandScrapRequest;
 import ceos.diggindie.domain.band.dto.BandScrapResponse;
 import ceos.diggindie.domain.band.entity.Band;
 import ceos.diggindie.domain.band.entity.BandScrap;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,36 +26,24 @@ public class BandScrapService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void toggleBandScraps(Long memberId, BandScrapRequest request) {
+    public void toggleBandScrap(Long memberId, Long bandId) {
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> GeneralException.notFound("존재하지 않는 회원입니다."));
 
-        List<Band> bands = bandRepository.findAllById(request.bandIds());
-        if (bands.size() != request.bandIds().size()) {
-            throw GeneralException.notFound("존재하지 않는 밴드가 포함되어 있습니다.");
+        Band band = bandRepository.findById(bandId)
+                .orElseThrow(() -> GeneralException.notFound("존재하지 않는 밴드입니다."));
+
+        if (bandScrapRepository.existsByMemberIdAndBandId(memberId, bandId)) {
+            bandScrapRepository.deleteByMemberIdAndBandId(memberId, bandId);
+            return;
         }
 
-        // 현재 스크랩된 밴드 ID 조회
-        List<Long> currentScrapBandIds = bandScrapRepository
-                .findAllByMemberId(memberId).stream()
-                .map(scrap -> scrap.getBand().getId())
-                .toList();
-
-        // 토글 처리
-        for (Band band : bands) {
-            if (currentScrapBandIds.contains(band.getId())) {
-                // 이미 스크랩된 밴드 → 삭제
-                bandScrapRepository.deleteByMemberIdAndBandId(memberId, band.getId());
-            } else {
-                // 스크랩 안된 밴드 → 추가
-                BandScrap scrap = BandScrap.builder()
-                        .member(member)
-                        .band(band)
-                        .build();
-                bandScrapRepository.save(scrap);
-            }
-        }
+        BandScrap scrap = BandScrap.builder()
+                .member(member)
+                .band(band)
+                .build();
+        bandScrapRepository.save(scrap);
     }
 
     public Page<BandScrapResponse.BandScrapInfoDTO> getBandScraps(Long memberId, Pageable pageable) {
