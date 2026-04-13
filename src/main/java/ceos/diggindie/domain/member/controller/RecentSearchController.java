@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.member.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -18,6 +19,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@ApiVersion("v2")
 @Tag(name = "Recent Search", description = "최근 검색어 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class RecentSearchController {
             @ApiResponse(responseCode = "201", description = "추가 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @PostMapping("/search/recent")
+    @PostMapping("/me/search-history")
     public ResponseEntity<Response<RecentSearchResponse.RecentSearchInfo>> addRecentSearch(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -55,7 +57,7 @@ public class RecentSearchController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @GetMapping("/search/recent")
+    @GetMapping("/me/search-history")
     public ResponseEntity<Response<RecentSearchResponse.RecentSearchListDTO>> getRecentSearches(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -79,7 +81,7 @@ public class RecentSearchController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "검색어를 찾을 수 없음")
     })
-    @DeleteMapping("/search/recent/{recentSearchId}")
+    @DeleteMapping("/me/search-history/{recentSearchId}")
     public ResponseEntity<Response<Void>> deleteRecentSearch(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -102,7 +104,7 @@ public class RecentSearchController {
             @ApiResponse(responseCode = "200", description = "전체 삭제 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @DeleteMapping("/search/recent")
+    @DeleteMapping("/me/search-history")
     public ResponseEntity<Response<Void>> deleteAllRecentSearches(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {

@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.concert.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.domain.concert.dto.CsvImportResult;
 import ceos.diggindie.domain.concert.service.ConcertCsvImportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@ApiVersion("v2")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class ConcertImportController {
 
     @Operation(summary = "CSV 파일로 공연 일괄 등록 (관리자)")
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping(value = "/api/admin/concerts/import/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/admin/concerts/import/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CsvImportResult> importFromCsv(
             @RequestPart("file") MultipartFile file
     ) {

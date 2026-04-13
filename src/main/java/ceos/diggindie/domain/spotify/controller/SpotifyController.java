@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.spotify.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.response.Response;
 import ceos.diggindie.domain.spotify.dto.SpotifySearchRequest;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Hidden
+@ApiVersion("v2")
 @Tag(name = "Spotify", description = "Spotify 관련 API (백엔드 내부용)")
 @RestController
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class SpotifyController {
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/api/admin/spotify/auth")
+    @GetMapping("/admin/spotify/auth")
     public ResponseEntity<Response<?>> spotifyAuth() {
         Response<SpotifyTokenResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
@@ -52,7 +54,7 @@ public class SpotifyController {
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/api/admin/spotify/search")
+    @GetMapping("/admin/spotify/search")
     public ResponseEntity<Response<?>> spotifySearch(SpotifySearchRequest request) {
         Response<SpotifySearchResponse> response = Response.success(
                 SuccessCode.GET_SUCCESS,
@@ -68,7 +70,7 @@ public class SpotifyController {
             @ApiResponse(responseCode = "201", description = "Import 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
-    @PostMapping("/api/admin/spotify/import-albums")
+    @PostMapping("/admin/spotify/import-albums")
     public ResponseEntity<Response<String>> importAllAlbums() {
 
         spotifyImportService.importAllBandsAlbums();
@@ -87,7 +89,7 @@ public class SpotifyController {
             @ApiResponse(responseCode = "200", description = "Import 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
-    @PostMapping("/api/admin/spotify/import-albums/{bandId}")
+    @PostMapping("/admin/spotify/import-albums/{bandId}")
     public ResponseEntity<Response<String>> importBandAlbums(@PathVariable Long bandId) {
 
         Response<String> response = Response.success(
@@ -105,7 +107,7 @@ public class SpotifyController {
             @ApiResponse(responseCode = "200", description = "업데이트 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
-    @PostMapping("/api/admin/spotify/update/top-track/{bandId}")
+    @PostMapping("/admin/spotify/update/top-track/{bandId}")
     public ResponseEntity<Response<TopTrackUpdateResponse>> updateTopTrack(@PathVariable Long bandId) {
         
         TopTrackUpdateResponse result = spotifyService.updateTopTrackByBandId(bandId);
@@ -124,7 +126,7 @@ public class SpotifyController {
             @ApiResponse(responseCode = "200", description = "업데이트 성공"),
             @ApiResponse(responseCode = "403", description = "권한 없음 (ADMIN만 접근 가능)")
     })
-    @PostMapping("/api/admin/spotify/update/top-track/all")
+    @PostMapping("/admin/spotify/update/top-track/all")
     public ResponseEntity<Response<TopTrackUpdateAllResponse>> updateAllTopTracks() {
         
         TopTrackUpdateAllResponse result = spotifyService.updateAllTopTrack();

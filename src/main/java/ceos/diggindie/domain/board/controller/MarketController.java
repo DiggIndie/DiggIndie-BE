@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.board.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.enums.MarketType;
@@ -21,6 +22,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@ApiVersion("v2")
 @Tag(name = "Market", description = "마켓 게시판 관련 API")
 @RestController
 @RequestMapping("/markets")

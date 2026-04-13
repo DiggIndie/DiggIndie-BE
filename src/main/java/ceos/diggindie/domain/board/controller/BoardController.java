@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.board.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.enums.BoardCategory;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "Board", description = "자유게시판 관련 API")
 @RestController
 @RequiredArgsConstructor

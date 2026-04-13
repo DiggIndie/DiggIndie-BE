@@ -1,9 +1,9 @@
 package ceos.diggindie.domain.band.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
-import ceos.diggindie.domain.band.dto.BandScrapRequest;
 import ceos.diggindie.domain.band.dto.BandScrapResponse;
 import ceos.diggindie.domain.band.service.BandScrapService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "Band Scrap", description = "밴드 스크랩 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -31,34 +31,35 @@ public class BandScrapController {
     private final BandScrapService bandScrapService;
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "밴드 스크랩 토글", description = "로그인 사용자의 밴드 스크랩을 추가/해제합니다.")
+    @Operation(summary = "밴드 스크랩 토글", description = "로그인 사용자의 단일 밴드 스크랩을 추가/해제합니다.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "스크랩 처리 성공"),
+            @ApiResponse(responseCode = "200", description = "스크랩 처리 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @PatchMapping("/my/artists")
-    public ResponseEntity<Response<Void>> toggleBandScraps(
+    @PatchMapping("/bands/{bandId}/scrap")
+    public ResponseEntity<Response<Void>> toggleBandScrap(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @Valid @RequestBody BandScrapRequest request
+            @Parameter(description = "스크랩 토글할 밴드 ID", example = "1")
+            @PathVariable Long bandId
     ) {
 
-        bandScrapService.toggleBandScraps(userDetails.getMemberId(), request);
+        bandScrapService.toggleBandScrap(userDetails.getMemberId(), bandId);
         Response<Void> response = Response.success(
-                SuccessCode.GET_SUCCESS,
+                SuccessCode.UPDATE_SUCCESS,
                 "밴드 스크랩이 처리되었습니다."
         );
 
-        return ResponseEntity.status(204).body(response);
+        return ResponseEntity.ok().body(response);
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "밴드 스크랩 목록 조회", description = "로그인 사용자의 밴드 스크랩 목록을 페이징 조회합니다.")
+    @Operation(summary = "스크랩한 밴드 목록 조회", description = "로그인 사용자의 밴드 스크랩 목록을 페이징 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @GetMapping("/my/artists")
+    @GetMapping("/me/scraps/bands")
     public ResponseEntity<Response<List<BandScrapResponse.BandScrapInfoDTO>>> getBandScraps(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -69,12 +70,12 @@ public class BandScrapController {
     ) {
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<BandScrapResponse.BandScrapInfoDTO> scrapPageReponse =
+        Page<BandScrapResponse.BandScrapInfoDTO> scrapPageResponse =
                 bandScrapService.getBandScraps(userDetails.getMemberId(), pageable);
         Response<List<BandScrapResponse.BandScrapInfoDTO>> response = Response.success(
                 SuccessCode.GET_SUCCESS,
-                scrapPageReponse,
-                "밴드 스크랩 목록 조회 API"
+                scrapPageResponse,
+                "스크랩한 밴드 목록 조회 API"
         );
 
         return ResponseEntity.ok().body(response);

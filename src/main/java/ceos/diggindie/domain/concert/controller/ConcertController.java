@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.concert.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "Concert", description = "공연 관련 API")
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +45,7 @@ public class ConcertController {
     private final ConcertService concertService;
     private final ConcertScrapService concertScrapService;
 
-    @Operation(summary = "공연 목록 조회", description = "전체 공연 목록을 검색/정렬/페이징하여 조회합니다.")
+    @Operation(summary = "공연 검색 및 목록 조회", description = "전체 공연 목록을 검색/정렬/페이징하여 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
@@ -114,7 +116,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/recommendations")
+    @GetMapping("/me/recommendations/concerts")
     public ResponseEntity<Response<ConcertRecommendResponse>> getConcertRecommendations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Response<ConcertRecommendResponse> response = Response.success(
@@ -129,7 +131,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/calendar/monthly")
+    @GetMapping("/concerts/calendar/status")
     public ResponseEntity<Response<ConcertMonthlyCalendarResponse>> getConcertMonthlyCalendar(
             @Parameter(description = "조회할 연도", example = "2026")
             @RequestParam(required = true) int year,
@@ -150,7 +152,7 @@ public class ConcertController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    @GetMapping("/concerts/calendar")
+    @GetMapping("/concerts/calendar/daily")
     public ResponseEntity<Response<ConcertsListResponse>> getConcertsByDates(
             @Parameter(description = "조회할 날짜 목록 (yyyy-MM-dd, 콤마로 구분)", example = "2026-01-11,2026-01-12,2026-01-13")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) List<LocalDate> dates,
@@ -172,7 +174,7 @@ public class ConcertController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
     })
-    @GetMapping("/my/concerts")
+    @GetMapping("/me/scraps/concerts")
     public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapListDTO>> getMyScrappedConcerts(
             @Parameter(hidden = true)
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -195,7 +197,7 @@ public class ConcertController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자"),
             @ApiResponse(responseCode = "404", description = "공연을 찾을 수 없음")
     })
-    @PatchMapping("/my/concerts/{concertId}")
+    @PatchMapping("/concerts/{concertId}/scrap")
     public ResponseEntity<Response<ConcertScrapResponse.ConcertScrapToggleDTO>> toggleConcertScrap(
             @Parameter(description = "공연 ID", example = "1")
             @PathVariable Long concertId,

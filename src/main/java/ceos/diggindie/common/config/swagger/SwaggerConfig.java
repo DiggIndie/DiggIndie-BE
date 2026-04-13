@@ -17,7 +17,7 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("DiggIndie API")
                         .description("인디 밴드 탐색 서비스")
-                        .version("v1.0.0"))
+                        .version("v2.0.0"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server()
                         .url("https://api.diggindie.com")
                         .description("Production"))

@@ -1,5 +1,6 @@
 package ceos.diggindie.domain.member.controller;
 
+import ceos.diggindie.common.annotation.ApiVersion;
 import ceos.diggindie.common.code.SuccessCode;
 import ceos.diggindie.common.config.security.CustomUserDetails;
 import ceos.diggindie.common.response.Response;
@@ -19,10 +20,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@ApiVersion("v2")
 @Tag(name = "MyPage", description = "마이페이지 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/my")
 @PreAuthorize("isAuthenticated()")
 public class MyPageController {
 
@@ -31,7 +32,7 @@ public class MyPageController {
     private static final String SORT_PROPERTY = "createdAt";
 
     @Operation(summary = "내가 쓴 자유게시판 글 조회")
-    @GetMapping("/posts/board")
+    @GetMapping("/me/boards")
     public ResponseEntity<Response<List<MyBoardPostResponse>>> getMyBoardPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
@@ -48,7 +49,7 @@ public class MyPageController {
     }
 
     @Operation(summary = "내가 쓴 마켓 글 조회")
-    @GetMapping("/posts/market")
+    @GetMapping("/me/markets")
     public ResponseEntity<Response<List<MyMarketPostResponse>>> getMyMarketPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
@@ -65,7 +66,7 @@ public class MyPageController {
     }
 
     @Operation(summary = "내가 댓글 단 게시물 조회 (자유게시판)")
-    @GetMapping("/comments")
+    @GetMapping("/me/comments")
     public ResponseEntity<Response<List<MyCommentedPostResponse>>> getMyCommentedPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
@@ -82,7 +83,7 @@ public class MyPageController {
     }
 
     @Operation(summary = "좋아요한 게시물 조회 (자유게시판)")
-    @GetMapping("/likes")
+    @GetMapping("/me/likes/boards")
     public ResponseEntity<Response<List<MyLikedPostResponse>>> getMyLikedPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
@@ -99,7 +100,7 @@ public class MyPageController {
     }
 
     @Operation(summary = "스크랩한 게시물 조회 (거래게시판)")
-    @GetMapping("/scraps")
+    @GetMapping("/me/scraps/markets")
     public ResponseEntity<Response<List<MyScrappedPostResponse>>> getMyScrappedPosts(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(defaultValue = "0") int page,
